@@ -1,0 +1,22 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: infra/docker/api.Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - AEGIS_UPLOAD_DIR=/tmp/aegis-uploads
+      - PYTHONPATH=/app/src:/app
+    volumes:
+      - uploads:/tmp/aegis-uploads
+
+  worker:
+    build:
+      context: .
+      dockerfile: infra/docker/worker.Dockerfile
+    environment:
+      - PYTHONPATH=/app/src:/app
+
+volumes:
+  uploads:

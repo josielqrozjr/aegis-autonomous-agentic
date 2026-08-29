@@ -37,6 +37,25 @@ Evento regulatório: alteração no prazo de retenção do GDPR (simulado).
 
 > **"Watch what happens when the rules change after the investigation is finished."**
 
+### Estratégia de Modelos Google (BÔNUS: +0.2 por modelo adicional)
+
+Cada modelo adicional do Google integrado com sucesso vale **+0.2 pontos de bônus**.
+Day Three já usa 4 modelos (Gemini 3.5 Flash, Gemma 4, Gemini 3.1 Flash Image, Veo 3.1 Fast).
+Nós devemos usar no mínimo 3 para não ficar atrás.
+
+| Modelo | Uso no AEGIS | Justificativa | Prioridade |
+|---|---|---|---|
+| **Gemini 2.5 Flash** | Agentes principais (Planner, Privacy, Governance, Security, Evidence Critic, Remediation, Change Detection) | Raciocínio regulatório, análise de documentos, geração de findings | P0 (obrigatório) |
+| **Gemma** (via Vertex AI Model Garden) | **PII/Sensitive Data Scanner** — segunda camada de verificação de privacidade no documento antes de enviar ao Gemini | Exatamente o que Day Three faz: Gemma para privacy review após redação determinística. No AEGIS: escanear documento uploaded para dados sensíveis antes de processar | P0 (+0.2 bônus) |
+| **Gemini 2.5 Pro** | **Evidence Critic / Adversarial Review** — análise mais profunda para contestação de findings que requerem raciocínio complexo | Modelo mais capaz para a tarefa mais crítica: questionar conclusões. Justificável: adversarial review requer raciocínio mais rigoroso | P1 (+0.2 bônus) |
+| **Veo** | **Geração de vídeo explicativo** do Trust Graph cascade (build-time, não runtime) | Gerar um micro-vídeo de 4s mostrando a cascata de invalidação para o README/Devpost. Fora do caminho crítico | P2 (+0.2 bônus) |
+
+**Meta mínima: Gemini Flash + Gemma = +0.2 bônus garantido.**
+**Meta ideal: Gemini Flash + Gemma + Gemini Pro = +0.4 bônus.**
+
+> **Regra**: cada modelo deve ter um **uso justificável e auditável**, não decorativo.
+> A rota /conformance deve listar cada modelo, seu papel, e uma prova de chamada real.
+
 ---
 
 ## 29/08 — DIA 1: FUNDAÇÃO + CORE AGENTIC
@@ -53,7 +72,7 @@ Evento regulatório: alteração no prazo de retenção do GDPR (simulado).
 
 ### 15:30–16:30 — Bootstrap da infraestrutura
 - [ ] Google Cloud Project.
-- [ ] Vertex AI / Gemini.
+- [ ] Vertex AI / Gemini (habilitar Gemini Flash + Gemma + Gemini Pro).
 - [ ] Google ADK.
 - [ ] FastAPI.
 - [ ] Next.js.
@@ -62,6 +81,7 @@ Evento regulatório: alteração no prazo de retenção do GDPR (simulado).
 - [ ] Cloud Run.
 - [ ] Primeiro deploy mínimo.
 - [ ] **Agent Registry no Google Cloud** (se viável, usar componente oficial; senão, first-party equivalente).
+- [ ] **Validar acesso a Gemma** via Vertex AI Model Garden (para PII Scanner).
 
 **Entrega:** aplicação base rodando na nuvem com health check público.
 
@@ -95,13 +115,14 @@ Implementar/atualizar schemas para:
 
 ### 20:00–21:00 — Pausa
 
-### 21:00–00:00 — Document Understanding + Planner
+### 21:00–00:00 — Document Understanding + Planner + PII Scanner
 - [ ] Upload PDF.
+- [ ] **PII Scanner com Gemma**: escanear documento para dados sensíveis antes de enviar ao Gemini (+0.2 bônus).
 - [ ] Extração de texto (Gemini multimodal ou RUST parser).
 - [ ] Preservação de página/seção.
 - [ ] Classificação do documento.
 - [ ] Extração de jurisdição, tema, entidades, obrigações e contexto.
-- [ ] Planner Agent (já funcional — integrar com Gemini).
+- [ ] Planner Agent (já funcional — integrar com Gemini Flash).
 - [ ] Geração do plano de investigação.
 - [ ] **Planner deve gerar tasks com dependências explícitas** (para Trust Graph).
 
@@ -183,13 +204,14 @@ Upload
 - [ ] Timeline de eventos da investigação.
 
 ### 15:00–17:00 — Adversarial Auditor + Failure Demo
-- [ ] Evidence Critic com Gemini (não apenas threshold check).
+- [ ] Evidence Critic com **Gemini Pro** para argumentação mais rigorosa (+0.2 bônus).
 - [ ] Contestação dos findings com argumentação.
 - [ ] Verificação de evidência (existe? é suficiente? é aplicável?).
 - [ ] Busca de contradições entre findings.
 - [ ] Resultado: Confirmed / Rejected / Insufficient Evidence.
 - [ ] Persistir revisão com justificativa.
 - [ ] **Demo de falha**: simular um agente indisponível → mostrar degradation graceful.
+- [ ] **Justificativa auditável**: log qual modelo foi usado e por quê (Flash para análise, Pro para adversarial).
 
 **Critério de pronto:** a revisão pode alterar o resultado inicial, E uma falha de agente é tratada visivelmente.
 
@@ -408,8 +430,8 @@ Roteiro:
 - [ ] Problema: regulatory compliance drift.
 - [ ] Solução: Trust & Compliance Graph + adversarial review + autonomous re-evaluation.
 - [ ] Arquitetura com Mermaid.
-- [ ] Tecnologias: Gemini, ADK, Cloud Run, Firestore, Vertex AI.
-- [ ] Diferencial: Policy Drift Attack + Trust Graph + failure-aware execution.
+- [ ] Tecnologias: Gemini Flash, Gemini Pro, Gemma, ADK, Cloud Run, Firestore, Vertex AI.
+- [ ] Diferencial: Policy Drift Attack + Trust Graph + failure-aware execution + multi-model architecture.
 - [ ] Vídeo.
 - [ ] GitHub.
 - [ ] Deployment URL pública.
@@ -444,19 +466,20 @@ Roteiro:
 ### Owner: Cainã
 
 ### Dia 1
-- [ ] Gemini + ADK (chamadas reais, não hardcoded)
-- [ ] Agent Registry com metadados (versão, status, health)
+- [ ] Gemini Flash + Gemma + ADK (chamadas reais, não hardcoded)
+- [ ] **PII Scanner com Gemma** (privacy layer antes do Gemini)
+- [ ] Agent Registry com metadados (versão, status, health, **modelo usado**)
 - [ ] Agent contracts (Trust Graph nodes)
-- [ ] Document Understanding com Gemini
+- [ ] Document Understanding com Gemini Flash
 - [ ] Planner com dependências
 - [ ] Dynamic Routing com failure handling
 
 ### Dia 2
-- [ ] Privacy Agent com Gemini (LGPD Art. 15-16)
-- [ ] Governance Agent com Gemini (ISO 27001 A.8.10)
-- [ ] Security Agent com Gemini (GDPR Art. 5(1)(e))
-- [ ] Evidence Critic com Gemini (argumentação real)
-- [ ] Remediation Agent com Gemini
+- [ ] Privacy Agent com Gemini Flash (LGPD Art. 15-16)
+- [ ] Governance Agent com Gemini Flash (ISO 27001 A.8.10)
+- [ ] Security Agent com Gemini Flash (GDPR Art. 5(1)(e))
+- [ ] Evidence Critic com **Gemini Pro** (argumentação mais rigorosa, +0.2 bônus)
+- [ ] Remediation Agent com Gemini Flash
 - [ ] Change Detection Agent
 - [ ] Trust Graph invalidation cascade
 - [ ] **Deterministic fallback** (respostas pré-gravadas se Gemini falhar)
@@ -563,17 +586,18 @@ Roteiro:
 # PRIORIDADES (ATUALIZADAS)
 
 ## P0 — OBRIGATÓRIO (sem isso não competimos)
-- [ ] Upload + Document Understanding **com Gemini**.
+- [ ] Upload + Document Understanding **com Gemini Flash**.
+- [ ] **PII Scanner com Gemma** (+0.2 bônus).
 - [ ] Agent Registry com metadados reais.
 - [ ] Dynamic Routing com failure handling.
-- [ ] 3 especialistas com Gemini (Privacy, Governance, Security).
+- [ ] 3 especialistas com Gemini Flash (Privacy, Governance, Security).
 - [ ] Evidence com hash, provenance e citação exata.
 - [ ] Trust & Compliance Graph (pelo menos no backend).
 - [ ] Adversarial Review com Gemini.
 - [ ] Persistent State (Firestore).
 - [ ] **Regulatory Change + Impact Analysis + Selective Re-evaluation**.
 - [ ] Cloud Run deploy público.
-- [ ] Gemini + ADK.
+- [ ] Gemini Flash + Gemma + ADK.
 - [ ] /health, /agents rotas públicas.
 - [ ] Demo funcional com cenário concreto.
 - [ ] **Testes automatizados (≥30)**.
@@ -585,13 +609,15 @@ Roteiro:
 ## P1 — DIFERENCIAL COMPETITIVO (nos separa dos concorrentes)
 - [ ] Trust Graph visualization (nós coloridos, animação de cascade).
 - [ ] Remediation Loop com Gemini.
+- [ ] **Evidence Critic com Gemini Pro** (+0.2 bônus — modelo mais capaz para adversarial review).
 - [ ] Agent Identity.
-- [ ] /conformance route pública.
+- [ ] /conformance route pública (com lista de modelos usados e justificativa).
 - [ ] Observability (Cloud Logging + traces).
 - [ ] UX refinada (wow factor).
 - [ ] Report export.
 
 ## P2 — SOMENTE SE SOBRAR TEMPO
+- [ ] **Veo** para micro-vídeo do Trust Graph cascade (+0.2 bônus — build-time, fora do caminho crítico).
 - [ ] Source versioning.
 - [ ] RBAC completo.
 - [ ] Autenticação enterprise.
@@ -611,6 +637,8 @@ Roteiro:
 | Health check | /health | /health | ? |
 | Rotas de prova | /agents, /conformance | /judges, /conformance, /platform | receipts |
 | Chamada LLM real ao vivo | Sim | Sim (Gemini 3.5 Flash) | ? |
+| Modelos Google | Gemini Flash + Gemma + Pro (3) | Flash + Gemma + Flash Image + Veo (4) | ? |
+| Bônus modelos | +0.4 (Gemma + Pro) | +0.6 (Gemma + Flash Image + Veo) | ? |
 | Fallback determinístico | Sim | REPLAY_MODE | ? |
 | API pública | Não (P2) | Sim (com rate limiting) | Não |
 | Failure handling visível | Sim | Sim (fail-closed) | Sim (blast radius) |

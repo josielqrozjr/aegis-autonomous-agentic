@@ -2,6 +2,115 @@ Arquitetura de **modular monolith + hexagonal architecture + vertical slices**, 
 
 A ideia é reduzir conflito no Git, deixar as fronteiras claras e permitir que cada desenvolvedor seja praticamente dono de determinados diretórios.
 
+---
+
+# Mudanças Arquiteturais Pós-Análise Competitiva
+
+## Trust & Compliance Graph
+
+O Evidence Graph original evoluiu para um **Trust & Compliance Graph** — um grafo direcionado onde cada nó rastreia dependências, e a invalidação de qualquer nó se propaga automaticamente.
+
+```text
+                 AEGIS TRUST GRAPH
+                      │
+       ┌──────────────┼──────────────┐
+       ▼              ▼              ▼
+ Requirement       Evidence        Agent
+  (versioned)     (hashed)      (health-checked)
+       │              │              │
+       └──────────────┼──────────────┘
+                      ▼
+                    Finding
+                      │
+                 Verification
+                      │
+                ┌─────┴─────┐
+                ▼           ▼
+             Valid       Invalid
+                │           │
+                ▼           ▼
+          Remediation  REOPENED
+```
+
+Cada nó do grafo contém:
+
+```python
+class TrustNode:
+    node_id: str
+    node_type: str          # requirement | evidence | finding | agent
+    version: str
+    source: str
+    timestamp: datetime
+    agent_id: str
+    confidence: float
+    jurisdiction: str
+    content_hash: str       # SHA-256 do conteúdo
+    dependencies: list[str] # IDs dos nós dos quais depende
+    valid: bool
+    invalidated_at: datetime | None
+    invalidated_reason: str | None
+```
+
+**Invalidation cascade**: se um nó é invalidado (ex: regulação muda), todos os nós dependentes são invalidados recursivamente, e o blast radius é calculado.
+
+## Failure-Aware Agent Execution
+
+```text
+Agent Task
+    ↓
+Execute
+    ├── SUCCESS → Finding + Evidence
+    ├── TIMEOUT → Retry (max 2)
+    ├── FAILURE → Log + Calculate blast radius
+    │               ↓
+    │         Affected findings marked DEGRADED
+    │               ↓
+    │         Report blocked as INCOMPLETE
+    │               ↓
+    │         Try substitute agent (if available in Registry)
+    └── UNAVAILABLE → Same as FAILURE, skip retry
+```
+
+## Multi-Model Architecture (Bônus +0.2 por modelo)
+
+```text
+                    AEGIS MODEL LAYER
+                          │
+         ┌────────────────┼────────────────┐
+         ▼                ▼                ▼
+    Gemini Flash       Gemma           Gemini Pro
+         │                │                │
+         ▼                ▼                ▼
+   Agent reasoning   PII/Privacy      Adversarial
+   Document analysis   Scanner          Review
+   Planning           (pre-processing   (complex
+   Specialists         before model      reasoning)
+   Remediation         exposure)
+   Change Detection
+```
+
+| Modelo | Papel | Justificativa |
+|---|---|---|
+| **Gemini 2.5 Flash** | Motor principal de todos os agentes | Rápido, capaz, custo-efetivo para análise regulatória |
+| **Gemma** (Vertex AI Model Garden) | PII Scanner — segunda camada de privacidade | Escaneia documentos antes de enviar ao Gemini. Segurança de dados |
+| **Gemini 2.5 Pro** | Evidence Critic / Adversarial Review | Raciocínio mais profundo para contestar findings (P1) |
+| **Veo** | Micro-vídeo do Trust Graph cascade | Build-time, demonstrativo (P2) |
+
+> Cada modelo deve ter uso **justificável e auditável**. A rota `/conformance` lista cada modelo, seu papel, e prova de chamada real.
+
+## Production Proof Routes (inspirado no Day Three)
+
+```text
+GET /health          → status dos agentes + modelos + serviços
+GET /agents          → Agent Registry completo (versão, status, capabilities, modelo)
+GET /conformance     → provas de stack (Gemini, Gemma, Firestore, Cloud Run)
+GET /investigation/:id/trust-graph → grafo de confiança da investigação
+```
+
+---
+
+# Estrutura de Diretórios
+
 ```text
 aegis/
 ├── apps/
@@ -106,11 +215,19 @@ aegis/
 │   │   │   ├── evidence_critic.py
 │   │   │   └── finding_validator.py
 │   │   │
+│   │   ├── privacy/
+│   │   │   └── pii_scanner.py          # Gemma-based PII detection (+0.2 bônus)
+│   │   │
 │   │   ├── remediation/
 │   │   │   └── remediation_agent.py
 │   │   │
-│   │   └── monitoring/
-│   │       └── change_detection_agent.py
+│   │   ├── monitoring/
+│   │   │   └── change_detection_agent.py
+│   │   │
+│   │   └── trust_graph/                # Trust & Compliance Graph
+│   │       ├── graph.py                # Grafo direcionado + invalidation cascade
+│   │       ├── trust_node.py           # TrustNode model
+│   │       └── blast_radius.py         # Cálculo de impacto
 │   │
 │   ├── mcp/                          # Dev 1
 │   │   ├── server.py
@@ -133,7 +250,15 @@ aegis/
 │   │   ├── finding.py
 │   │   ├── review.py
 │   │   ├── remediation.py
-│   │   └── regulatory_change.py
+│   │   ├── regulatory_change.py
+│   │   └── trust_node.py              # Trust Graph node contract
+│   │
+│   ├── models/                        # Model layer abstraction
+│   │   ├── model_registry.py          # Qual modelo usar para cada tarefa
+│   │   ├── gemini_flash.py            # Gemini Flash adapter
+│   │   ├── gemini_pro.py              # Gemini Pro adapter (adversarial review)
+│   │   ├── gemma.py                   # Gemma adapter (PII scanner)
+│   │   └── fallback.py                # Deterministic fallback (REPLAY_MODE)
 │   │
 │   └── common/
 │       ├── enums.py
@@ -145,10 +270,16 @@ aegis/
 ├── data/
 │   ├── demo/
 │   │   ├── documents/
+│   │   │   └── politica-retencao-dados.pdf  # Documento principal da demo
 │   │   ├── regulations/
+│   │   │   ├── lgpd-v1.json               # LGPD Art. 15-16 (versionado)
+│   │   │   ├── gdpr-v1.json               # GDPR Art. 5(1)(e) + Art. 17
+│   │   │   ├── gdpr-v2.json               # GDPR alterado (evento regulatório)
+│   │   │   └── iso27001-v1.json           # ISO 27001 A.8.10
 │   │   └── scenarios/
-│   ├── fixtures/
-│   └── expected/
+│   │       └── regulatory-change.json      # Evento: GDPR prazo alterado
+│   ├── fixtures/                           # Respostas pré-gravadas (fallback)
+│   └── expected/                           # Outputs esperados para testes
 │
 ├── infra/                            # Dev 2
 │   ├── terraform/
@@ -557,7 +688,61 @@ No nível mais alto:
 
 Isso é essencialmente:
 
-**Hexagonal Architecture + Domain/Application separation + Event-driven architecture + Agent Registry + Strategy/Factory patterns.**
+**Hexagonal Architecture + Domain/Application separation + Event-driven architecture + Agent Registry + Strategy/Factory patterns + Trust Graph + Multi-Model layer.**
+
+---
+
+# Diagrama Arquitetural Atualizado (Pós-Análise Competitiva)
+
+No nível mais alto, com Trust Graph e multi-model:
+
+```text
+                 ┌───────────────────────┐
+                 │      Next.js Web       │
+                 └───────────┬───────────┘
+                             │
+                             ▼
+                 ┌───────────────────────┐
+                 │      FastAPI API       │
+                 │  /health /agents       │
+                 │  /conformance          │
+                 └───────────┬───────────┘
+                             │
+                             ▼
+                 ┌───────────────────────┐
+                 │   Application Layer    │
+                 │   Use Cases + Events   │
+                 └───────────┬───────────┘
+                             │
+              ┌──────────────┼──────────────┐
+              ▼              ▼              ▼
+        Agent System   Trust Graph    Event System
+              │              │              │
+              ▼              ▼              ▼
+         Agent Registry  Invalidation   Regulatory
+              │          Cascade        Change Events
+              ▼
+         Model Layer
+              │
+     ┌────────┼────────┐
+     ▼        ▼        ▼
+   Flash    Gemma     Pro
+  (agents)  (PII)   (critic)
+     │        │        │
+     └────────┼────────┘
+              ▼
+        Vertex AI / ADK
+              │
+     ┌────────┼────────┐
+     ▼        ▼        ▼
+   LGPD     GDPR    ISO27001
+     │        │        │
+     └────────┼────────┘
+              ▼
+     Firestore (state)
+     Cloud Run (deploy)
+     Cloud Logging (obs)
+```
 
 ---
 

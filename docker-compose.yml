@@ -4,15 +4,23 @@ services:
       context: .
       dockerfile: infra/docker/api.Dockerfile
     ports:
-      - "8080:8080"
+      - "${PORT:-8080}:8080"
     environment:
       - PYTHONPATH=/app/src:/app
       - AEGIS_UPLOAD_DIR=/tmp/aegis-uploads
+      - PERSISTENCE_BACKEND=${PERSISTENCE_BACKEND:-memory}
+      - STORAGE_BACKEND=${STORAGE_BACKEND:-local}
       - GCP_PROJECT_ID=${GCP_PROJECT_ID:-}
       - GCS_BUCKET=${GCS_BUCKET:-}
       - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+      - AEGIS_ENV=${AEGIS_ENV:-development}
     volumes:
       - uploads:/tmp/aegis-uploads
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   worker:
     build:
@@ -20,19 +28,22 @@ services:
       dockerfile: infra/docker/worker.Dockerfile
     environment:
       - PYTHONPATH=/app/src:/app
+      - PERSISTENCE_BACKEND=${PERSISTENCE_BACKEND:-memory}
       - GCP_PROJECT_ID=${GCP_PROJECT_ID:-}
       - GCS_BUCKET=${GCS_BUCKET:-}
       - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
 
-  # Uncomment when apps/web exists (Dev 3)
-  # web:
-  #   build:
-  #     context: .
-  #     dockerfile: infra/docker/web.Dockerfile
-  #   ports:
-  #     - "3000:3000"
-  #   environment:
-  #     - NEXT_PUBLIC_API_URL=http://api:8080
+  web:
+    build:
+      context: .
+      dockerfile: infra/docker/web.Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://api:8080
+    depends_on:
+      api:
+        condition: service_healthy
 
 volumes:
   uploads:

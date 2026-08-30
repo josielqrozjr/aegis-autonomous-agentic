@@ -2,10 +2,13 @@ from aegis.schemas.enums import (
     InvestigationStatus,
     TaskStatus,
     AgentRole,
+    AgentStatus,
     FindingSeverity,
     FindingStatus,
     ReviewDecision,
     RemediationStatus,
+    TrustNodeType,
+    TrustNodeValidity,
 )
 from aegis.schemas.contracts import (
     DocumentSection,
@@ -21,16 +24,20 @@ from aegis.schemas.contracts import (
     Task,
     InvestigationPlan,
     Investigation,
+    TrustNode,
 )
 
 __all__ = [
     "InvestigationStatus",
     "TaskStatus",
     "AgentRole",
+    "AgentStatus",
     "FindingSeverity",
     "FindingStatus",
     "ReviewDecision",
     "RemediationStatus",
+    "TrustNodeType",
+    "TrustNodeValidity",
     "DocumentSection",
     "Document",
     "Capability",
@@ -44,4 +51,5 @@ __all__ = [
     "Task",
     "InvestigationPlan",
     "Investigation",
+    "TrustNode",
 ]

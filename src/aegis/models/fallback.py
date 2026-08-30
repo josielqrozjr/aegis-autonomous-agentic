@@ -31,25 +31,29 @@ class DeterministicFallbackModel(BaseLanguageModel):
     def _resolve_fixture_data(self, prompt: str) -> Dict[str, Any]:
         prompt_lower = prompt.lower()
         
-        if "pii" in prompt_lower or "sanitiz" in prompt_lower or "sensitive" in prompt_lower:
+        # 1. Resolução por papel do modelo se específico
+        if self.model_role == "pii_privacy_scanner" or "pii" in prompt_lower or "sanitiz" in prompt_lower:
             return DEMO_PII_SCAN
-        if "critic" in prompt_lower or "adversarial" in prompt_lower or "red team" in prompt_lower or "review" in prompt_lower:
+        if self.model_role == "adversarial_auditor" or "critic" in prompt_lower or "adversarial" in prompt_lower or "red team" in prompt_lower:
             return DEMO_EVIDENCE_CRITIC_REVIEWS
+
+        # 2. Resolução por tarefa
+        if "document understanding" in prompt_lower or "jurisdição" in prompt_lower or "extração" in prompt_lower or "classificação" in prompt_lower:
+            return DEMO_DOCUMENT_UNDERSTANDING
         if "remediat" in prompt_lower or "recomenda" in prompt_lower or "action" in prompt_lower:
             return DEMO_REMEDIATIONS
         if "drift" in prompt_lower or "regulatory change" in prompt_lower or "mudança regulatória" in prompt_lower or "impact" in prompt_lower:
             return DEMO_POLICY_DRIFT_IMPACT
-        if "privacy" in prompt_lower or "lgpd" in prompt_lower:
-            return DEMO_PRIVACY_FINDINGS
-        if "security" in prompt_lower or "gdpr" in prompt_lower:
-            return DEMO_SECURITY_FINDINGS
         if "governance" in prompt_lower or "iso27001" in prompt_lower or "iso 27001" in prompt_lower:
             return DEMO_GOVERNANCE_FINDINGS
-        if "document understanding" in prompt_lower or "extração" in prompt_lower or "classificação" in prompt_lower or "understanding" in prompt_lower:
-            return DEMO_DOCUMENT_UNDERSTANDING
+        if "security" in prompt_lower or "gdpr" in prompt_lower:
+            return DEMO_SECURITY_FINDINGS
+        if "privacy" in prompt_lower or "lgpd" in prompt_lower:
+            return DEMO_PRIVACY_FINDINGS
             
         # Fallback default
         return DEMO_DOCUMENT_UNDERSTANDING
+
 
     async def generate_text(
         self,

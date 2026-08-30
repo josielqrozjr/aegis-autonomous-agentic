@@ -27,7 +27,9 @@ class AgentRole(str, Enum):
     SECURITY_SPECIALIST = "security_specialist"
     EVIDENCE_CRITIC = "evidence_critic"
     REMEDIATION_SPECIALIST = "remediation_specialist"
+    REMEDIATION = "remediation_specialist"
     CHANGE_DETECTION = "change_detection"
+
 
 class FindingSeverity(str, Enum):
     CRITICAL = "critical"

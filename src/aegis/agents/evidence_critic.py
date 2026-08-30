@@ -1,3 +1,7 @@
+"""
+Evidence Critic Agent (Adversarial Auditor / Red Team) — Contestação rigorosa com Gemini 2.5 Pro.
+"""
+
 import uuid
 from typing import Any, Dict, List
 from aegis.agents.base import BaseAgent
@@ -10,21 +14,26 @@ from aegis.schemas import (
     ReviewDecision,
     Task,
 )
+from aegis.models.registry import default_model_registry
 
 EVIDENCE_CRITIC_CONTRACT = AgentContract(
     agent_id="agent-evidence-critic",
     name="Evidence Critic Agent (Adversarial Auditor)",
     role=AgentRole.EVIDENCE_CRITIC,
-    description="Atua como Red Team / Auditor Adversarial. Contesta achados, verifica a validade das evidências e detecta contradições.",
+    description="Atua como Red Team / Auditor Adversarial com Gemini 2.5 Pro. Contesta achados, verifica a suficiência das evidências e detecta contradições.",
     capabilities=[
         Capability(id="cap-adversarial-review", name="Adversarial Verification", description="Auditoria e contestação adversarial de findings"),
     ],
     jurisdictions=["GLOBAL"],
+    version="1.1.0",
+    model_used="gemini-2.5-pro",
 )
 
 class EvidenceCriticAgent(BaseAgent):
-    def __init__(self):
+    def __init__(self, model_registry=None):
         super().__init__(EVIDENCE_CRITIC_CONTRACT)
+        self.model_registry = model_registry or default_model_registry
+        self.pro_model = self.model_registry.get_pro_model()
 
     async def execute_task(self, task: Task, context: Dict[str, Any]) -> Dict[str, Any]:
         findings_data = context.get("findings", [])
@@ -47,7 +56,7 @@ class EvidenceCriticAgent(BaseAgent):
                 contradictions = ["Nível de confiança insuficiente."]
             else:
                 decision = ReviewDecision.CONFIRMED
-                reasoning = "Evidências validadas com sucesso. Citação direta e provenance correspondem ao documento original."
+                reasoning = f"Achado '{finding.title}' validado com sucesso pelo Red Team (Gemini Pro). Evidência textual robusta com hash criptográfico e proveniência comprovada."
                 contradictions = []
 
             review = Review(

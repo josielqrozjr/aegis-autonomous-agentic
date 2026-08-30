@@ -5,10 +5,13 @@ from aegis.schemas.enums import (
     InvestigationStatus,
     TaskStatus,
     AgentRole,
+    AgentStatus,
     FindingSeverity,
     FindingStatus,
     ReviewDecision,
     RemediationStatus,
+    TrustNodeType,
+    TrustNodeValidity,
 )
 
 class DocumentSection(BaseModel):
@@ -45,6 +48,9 @@ class AgentContract(BaseModel):
     capabilities: List[Capability] = Field(default_factory=list)
     jurisdictions: List[str] = Field(default_factory=list)
     version: str = "1.0.0"
+    status: AgentStatus = AgentStatus.APPROVED
+    health_check_url: Optional[str] = None
+    model_used: Optional[str] = None
 
 class Requirement(BaseModel):
     id: str
@@ -53,6 +59,7 @@ class Requirement(BaseModel):
     description: str
     regulatory_framework: str # LGPD, GDPR, ISO27001, OWASP
     jurisdiction: str
+    regulation_version: str = "1.0"
 
 class Evidence(BaseModel):
     id: str
@@ -62,6 +69,10 @@ class Evidence(BaseModel):
     quote: str
     provenance: str
     confidence_score: float = Field(ge=0.0, le=1.0)
+    content_hash: Optional[str] = None  # SHA-256 of content
+    dependencies: List[str] = Field(default_factory=list)  # IDs of dependent nodes
+    invalidated_at: Optional[datetime] = None
+    invalidated_reason: Optional[str] = None
     metadata: Dict[str, Any] = Field(default_factory=dict)
 
 class Finding(BaseModel):
@@ -73,6 +84,9 @@ class Finding(BaseModel):
     description: str
     severity: FindingSeverity
     status: FindingStatus = FindingStatus.OPEN
+    confidence: float = Field(default=0.8, ge=0.0, le=1.0)
+    affected_by_change: bool = False
+    original_finding_id: Optional[str] = None
     evidences: List[Evidence] = Field(default_factory=list)
     insufficient_evidence_reason: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
@@ -102,6 +116,8 @@ class RegulatoryChange(BaseModel):
     version: str
     change_description: str
     affected_requirements: List[str] = Field(default_factory=list)
+    affected_findings: List[str] = Field(default_factory=list)
+    affected_evidence: List[str] = Field(default_factory=list)
     detected_at: datetime = Field(default_factory=datetime.utcnow)
 
 class Task(BaseModel):
@@ -111,6 +127,9 @@ class Task(BaseModel):
     agent_role: AgentRole
     description: str
     status: TaskStatus = TaskStatus.QUEUED
+    retry_count: int = 0
+    substitute_agent_id: Optional[str] = None
+    dependencies: List[str] = Field(default_factory=list)  # task IDs this depends on
     result: Optional[Dict[str, Any]] = None
     error: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
@@ -134,3 +153,21 @@ class Investigation(BaseModel):
     remediations: List[Remediation] = Field(default_factory=list)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class TrustNode(BaseModel):
+    """Vertex of the Trust & Compliance Graph."""
+    node_id: str
+    node_type: TrustNodeType
+    version: str = "1.0"
+    source: str  # origin: agent_id, document_id, regulation, etc.
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    agent_id: Optional[str] = None
+    confidence: float = Field(default=1.0, ge=0.0, le=1.0)
+    jurisdiction: Optional[str] = None
+    content_hash: Optional[str] = None  # SHA-256
+    dependencies: List[str] = Field(default_factory=list)  # node_ids
+    valid: bool = True
+    invalidated_at: Optional[datetime] = None
+    invalidated_reason: Optional[str] = None
+    metadata: Dict[str, Any] = Field(default_factory=dict)

@@ -17,13 +17,19 @@ logger = logging.getLogger("aegis.worker")
 class AegisWorker:
     """Simple worker that processes commands in-process (Pub/Sub adapter later)."""
 
-    def __init__(self, inv_repo, change_repo, audit_repo, registry=None):
-        self._investigation_handler = InvestigationHandler(inv_repo, audit_repo, registry)
+    def __init__(self, inv_repo, change_repo, audit_repo, registry=None, trust_graph_getter=None):
+        self._inv_repo = inv_repo
+        self._change_repo = change_repo
+        self._audit_repo = audit_repo
+        self._registry = registry
+        self._trust_graph_getter = trust_graph_getter
         self._regulatory_handler = RegulatoryChangeHandler(inv_repo, change_repo, audit_repo)
 
     async def process_investigation(self, investigation_id: str) -> Dict[str, Any]:
         logger.info("Processing investigation %s", investigation_id)
-        return await self._investigation_handler.handle(investigation_id)
+        trust_graph = self._trust_graph_getter(investigation_id) if self._trust_graph_getter else None
+        handler = InvestigationHandler(self._inv_repo, self._audit_repo, self._registry, trust_graph)
+        return await handler.handle(investigation_id)
 
     async def process_regulatory_change(self, change_id: str) -> Dict[str, Any]:
         logger.info("Processing regulatory change %s", change_id)

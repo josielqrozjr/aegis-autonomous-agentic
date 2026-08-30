@@ -9,6 +9,7 @@ from apps.api.app.infrastructure.memory.repositories import (
     MemoryAuditRepository,
 )
 from aegis.registry.registry import AgentRegistry
+from apps.api.app.domain.trust_graph.graph import TrustGraph
 
 # Singletons — swappable for Firestore adapters later
 _investigation_repo = MemoryInvestigationRepository()
@@ -18,6 +19,7 @@ _remediation_repo = MemoryRemediationRepository()
 _regulatory_change_repo = MemoryRegulatoryChangeRepository()
 _audit_repo = MemoryAuditRepository()
 _agent_registry: AgentRegistry | None = None
+_trust_graphs: dict[str, TrustGraph] = {}  # investigation_id -> TrustGraph
 
 
 def set_agent_registry(registry: AgentRegistry) -> None:
@@ -53,3 +55,13 @@ def get_agent_registry() -> AgentRegistry:
     if _agent_registry is None:
         raise RuntimeError("AgentRegistry not initialized. Call set_agent_registry first.")
     return _agent_registry
+
+
+def get_trust_graph(investigation_id: str) -> TrustGraph:
+    if investigation_id not in _trust_graphs:
+        _trust_graphs[investigation_id] = TrustGraph()
+    return _trust_graphs[investigation_id]
+
+
+def get_all_trust_graphs() -> dict[str, TrustGraph]:
+    return _trust_graphs

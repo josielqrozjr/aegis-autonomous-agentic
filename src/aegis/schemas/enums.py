@@ -17,6 +17,7 @@ class TaskStatus(str, Enum):
     WAITING = "waiting"
     COMPLETED = "completed"
     FAILED = "failed"
+    RETRY = "retry"
 
 class AgentRole(str, Enum):
     PLANNER = "planner"
@@ -54,3 +55,23 @@ class RemediationStatus(str, Enum):
     IN_PROGRESS = "in_progress"
     RESOLVED = "resolved"
     VERIFIED = "verified"
+
+
+class AgentStatus(str, Enum):
+    APPROVED = "approved"
+    DEGRADED = "degraded"
+    UNAVAILABLE = "unavailable"
+
+
+class TrustNodeType(str, Enum):
+    REQUIREMENT = "requirement"
+    EVIDENCE = "evidence"
+    FINDING = "finding"
+    AGENT = "agent"
+    DOCUMENT = "document"
+
+
+class TrustNodeValidity(str, Enum):
+    VALID = "valid"
+    INVALIDATED = "invalidated"
+    DEGRADED = "degraded"

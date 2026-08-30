@@ -17,10 +17,10 @@ AEGIS implements a fortified multi-model strategy utilizing specialized Google m
 
 | Agent / Component | Model | Role & Purpose | Bonus Justification |
 |---|---|---|:---:|
-| **PII Gate Scanner** | **Gemma (Model Garden)** | Pre-flight privacy sanitization of sensitive documents (CPF, emails, tokens, IP traces) before any LLM ingestion. | **+0.2 pts** (Specialized Open Model) |
+| **PII Gate Scanner** | **Gemma (Model Garden)** | Pre-flight privacy sanitization of sensitive documents (CPF, emails, tokens, IP traces) before any LLM ingestion. | (Specialized Open Model) |
 | **Document Understanding & Planner** | **Gemini 2.5 Flash** | Sub-second extraction of jurisdictions, obligations, and dynamic specialist task routing. | Core Multi-Agent Fleet |
 | **Domain Specialists (Privacy, Security, Governance)** | **Gemini 2.5 Flash** | High-throughput regulatory compliance auditing against legal frameworks with exact citation extraction. | Core Multi-Agent Fleet |
-| **Evidence Critic (Red Team Auditor)** | **Gemini 2.5 Pro** | Adversarial auditor with deep reasoning to challenge findings, detect false positives, and verify citation provenance. | **+0.2 pts** (Adversarial Pro Reasoning) |
+| **Evidence Critic (Red Team Auditor)** | **Gemini 2.5 Pro** | Adversarial auditor with deep reasoning to challenge findings, detect false positives, and verify citation provenance. | (Adversarial Pro Reasoning) |
 | **Remediation Specialist** | **Gemini 2.5 Flash** | Actionable corrective planning, assigned owners, and deadline estimation. | Core Multi-Agent Fleet |
 | **Change Detection Agent** | **Gemini 2.5 Flash** | Real-time monitoring of regulatory updates and autonomous Selective Recovery orchestration. | Showstopper Engine |
 
@@ -128,7 +128,7 @@ aegis/
 │   ├── models/       # Multi-Model AI Layer (Gemini Flash, Gemini Pro, Gemma, Fallback)
 │   ├── agents/       # Specialist Fleet, Evidence Critic, Remediation, Change Detection
 │   ├── registry/     # Dynamic Capability Registry & Agent Discovery
-│   └── schemas/      # Pydantic v2 Strict Contracts & Trust Graph Nodes
+│   └── schemas/      # Pydantic v Strict Contracts & Trust Graph Nodes
 ├── data/demo/        # Synthetic Multi-Jurisdiction Policy & Versioned Regulations
 ├── demo_runner.py    # Live CLI Video Pitch Orchestrator
 └── tests/            # End-to-end and unit tests suite (78 tests)
@@ -138,6 +138,6 @@ aegis/
 
 ## 👥 Team
 - **Dev 1 (Cainã):** AI / Agent Architecture Lead
-- **Dev 2 (Josiel):** Backend / Cloud Infrastructure Lead
+- **Dev  (Josiel):** Backend / Cloud Infrastructure Lead
 - **Dev 3:** Fullstack UI / Frontend Lead
 - **Dev 4:** Documentation / Devpost Lead

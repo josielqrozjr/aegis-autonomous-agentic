@@ -9,47 +9,47 @@ export function AdversarialReviewCard() {
         <div>
           <div className="flex items-center gap-2">
             <h3 className="text-xs font-bold uppercase tracking-wider text-white">
-              Camada de Revisão Adversarial (Evidence Critic)
+              Adversarial Review Layer (Evidence Critic)
             </h3>
             <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#0D1013] text-[#B8843A] border border-[#2A3038]">
               Gemini 2.5 Pro
             </span>
           </div>
           <p className="text-xs text-[#9096A0] mt-0.5">
-            Raciocínio crítico para eliminação de falsos positivos e contestações infundadas.
+            Critical reasoning for false positive reduction and evidence chain verification.
           </p>
         </div>
 
         <span className="text-[11px] font-mono text-[#3B8F6B] px-2 py-0.5 rounded bg-[#3B8F6B]/15 border border-[#3B8F6B]/30">
-          Auditado
+          Audited
         </span>
       </div>
 
-      {/* Grid Comparativo */}
+      {/* Comparative Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1 text-xs">
         <div className="p-3.5 rounded-lg bg-[#0D1013] border border-[#2A3038] space-y-1.5">
           <div className="flex justify-between font-mono text-[10px] text-[#5C636E]">
-            <span>1. Proposta do Especialista (Gemini Flash)</span>
-            <span>Pré-Crítica</span>
+            <span>1. Specialist Proposal (Gemini 1.5 Flash)</span>
+            <span className="uppercase">Pre-Critique</span>
           </div>
           <p className="text-[#B8BDC7]">
-            "A política viola o GDPR por permitir armazenamento em backup frio por 2 anos."
+            "The policy violates GDPR by permitting 2-year retention in cold backups."
           </p>
           <div className="text-[11px] text-[#9096A0] italic">
-            Interpretação literal de exclusão imediata em fitas e mídias magnéticas.
+            Literal interpretation of immediate deletion on tape and magnetic media.
           </div>
         </div>
 
         <div className="p-3.5 rounded-lg bg-[#0D1013] border border-[#2A3038] space-y-1.5">
           <div className="flex justify-between font-mono text-[10px] text-[#B8843A]">
-            <span>2. Veredito do Evidence Critic (Gemini Pro)</span>
-            <span className="text-[#3B8F6B]">Falso Positivo Refinado</span>
+            <span>2. Evidence Critic Verdict (Gemini 2.5 Pro)</span>
+            <span className="text-[#3B8F6B] uppercase font-bold">Refined False Positive</span>
           </div>
           <p className="text-white">
-            "O GDPR (Art. 17) aceita sobrescrita cíclica em backups frios desde que isolados de consultas ativas."
+            "GDPR (Art. 17) permits cyclical overwriting in cold backups provided they remain isolated from live queries."
           </p>
           <div className="text-[11px] text-[#3B8F6B]">
-            Resultado: Severidade ajustada de 'Crítica' para 'Recomendação de Isolamento'.
+            Outcome: Severity adjusted from 'Critical' to 'Isolation Recommendation'.
           </div>
         </div>
       </div>

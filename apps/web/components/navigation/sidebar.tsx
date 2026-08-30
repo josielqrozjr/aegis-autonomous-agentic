@@ -3,7 +3,6 @@
 import React from "react";
 import { cn } from "@/lib/utils";
 import { AegisShieldLogo } from "@/components/ui/aegis-logo";
-import { useLanguage } from "@/lib/i18n/language-context";
 
 interface SidebarProps {
   activeTab: string;
@@ -11,14 +10,12 @@ interface SidebarProps {
 }
 
 export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
-  const { t } = useLanguage();
-
   const menuItems = [
-    { id: "investigations", label: t("nav_investigations"), badge: "47" },
-    { id: "new-investigation", label: t("nav_new"), badge: null },
-    { id: "dashboard", label: t("nav_dashboard"), badge: "Trust Graph" },
-    { id: "remediation", label: t("nav_remediation"), badge: "Drift" },
-    { id: "report", label: t("nav_report"), badge: "PDF" },
+    { id: "investigations", label: "1. Investigations", badge: "47" },
+    { id: "new-investigation", label: "2. New Investigation", badge: null },
+    { id: "dashboard", label: "3. Dashboard & Agents", badge: "Trust Graph" },
+    { id: "remediation", label: "4. Remediation & Drift", badge: "Drift" },
+    { id: "report", label: "5. Final Report", badge: "PDF" },
   ];
 
   return (
@@ -26,7 +23,7 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
       <div>
         {/* Brand header */}
         <div className="p-5 border-b border-[#2A3038] flex items-center gap-3">
-          <AegisShieldLogo className="w-8 h-9 shrink-0" />
+          <AegisShieldLogo className="w-8 h-9 shrink-0 text-[#B8843A]" />
           <div>
             <div className="flex items-center gap-2">
               <span className="font-bold text-base tracking-wider text-[#B8843A] font-serif">
@@ -37,7 +34,7 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
               </span>
             </div>
             <p className="text-[10px] text-[#9096A0] tracking-tight">
-              {t("nav_evidence_connected")}
+              Connected Evidence
             </p>
           </div>
         </div>
@@ -45,7 +42,7 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
         {/* Navigation */}
         <nav className="p-3 space-y-1">
           <div className="px-3 py-2 text-[10px] font-bold text-[#5C636E] uppercase tracking-wider">
-            {t("nav_navigation")}
+            Navigation
           </div>
 
           {menuItems.map((item) => {
@@ -55,7 +52,7 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
                 key={item.id}
                 onClick={() => onTabChange(item.id)}
                 className={cn(
-                  "w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all text-left",
+                  "w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all text-left cursor-pointer",
                   isActive
                     ? "bg-[#171B1F] text-[#B8843A] border-l-2 border-[#B8843A] pl-2.5 font-semibold"
                     : "text-[#9096A0] hover:text-white hover:bg-[#171B1F]/40"
@@ -80,22 +77,22 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
         </nav>
       </div>
 
-      {/* Footer Model info */}
+      {/* Footer Model Info */}
       <div className="p-4 border-t border-[#2A3038] space-y-2 text-[10px] text-[#9096A0] font-mono">
         <div className="text-[9px] text-[#5C636E] uppercase font-bold tracking-wider">
-          {t("nav_active_models")}
+          Active AI Fleet
         </div>
         <div className="flex justify-between">
           <span>PII Scanner</span>
           <span className="text-white">Gemma 2B</span>
         </div>
         <div className="flex justify-between">
-          <span>{t("nav_specialists")}</span>
-          <span className="text-[#4C8FA6]">Gemini Flash</span>
+          <span>Specialists</span>
+          <span className="text-[#4C8FA6]">Gemini 1.5 Flash</span>
         </div>
         <div className="flex justify-between">
-          <span>{t("nav_critic")}</span>
-          <span className="text-[#B8843A]">Gemini Pro</span>
+          <span>Evidence Critic</span>
+          <span className="text-[#B8843A]">Gemini 2.5 Pro</span>
         </div>
       </div>
     </aside>

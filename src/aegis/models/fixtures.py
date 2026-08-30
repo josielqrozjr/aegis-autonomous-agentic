@@ -59,6 +59,29 @@ DEMO_PRIVACY_FINDINGS: Dict[str, Any] = {
                     "dependencies": ["doc-retention-policy"]
                 }
             ]
+        },
+        {
+            "id": "finding-privacy-gdpr-17",
+            "requirement_id": "GDPR-ART-17",
+            "agent_id": "agent-privacy-specialist",
+            "title": "Ausência de Prazo Máximo para Resposta ao Direito de Exclusão",
+            "description": "A política não define prazo máximo para responder a solicitações de exclusão do titular e deixa a análise totalmente sob critério interno, contrariando o artigo 17 do GDPR.",
+            "severity": "high",
+            "status": "open",
+            "confidence": 0.9,
+            "affected_by_change": False,
+            "evidences": [
+                {
+                    "id": "ev-privacy-02",
+                    "document_id": "doc-retention-policy",
+                    "page_number": 2,
+                    "section_id": "sec-6.2",
+                    "quote": "Solicitações de exclusão (direito ao esquecimento) serão analisadas caso a caso pela equipe jurídica, sem prazo máximo definido para resposta.",
+                    "provenance": "Seção 6.2 - Direitos dos Titulares",
+                    "confidence_score": 0.93,
+                    "dependencies": ["doc-retention-policy"]
+                }
+            ]
         }
     ]
 }
@@ -87,6 +110,29 @@ DEMO_SECURITY_FINDINGS: Dict[str, Any] = {
                     "dependencies": ["doc-retention-policy"]
                 }
             ]
+        },
+        {
+            "id": "finding-security-gdpr-02",
+            "requirement_id": "GDPR-ART-44-49",
+            "agent_id": "agent-security-specialist",
+            "title": "Transferência Internacional de Dados sem SCCs ou Decisão de Adequação",
+            "description": "O documento autoriza o processamento de dados de clientes europeus em servidores localizados no Brasil e EUA sem cláusulas contratuais padrão ou adequada avaliação de impacto, violando os requisitos de transferência internacional do GDPR.",
+            "severity": "high",
+            "status": "open",
+            "confidence": 0.91,
+            "affected_by_change": False,
+            "evidences": [
+                {
+                    "id": "ev-sec-02",
+                    "document_id": "doc-retention-policy",
+                    "page_number": 6,
+                    "section_id": "sec-7.2",
+                    "quote": "A transferência é realizada sem cláusulas contratuais padrão (SCCs) ou decisão de adequação vigente.",
+                    "provenance": "Seção 7.1-7.2 - Transferência Internacional de Dados",
+                    "confidence_score": 0.94,
+                    "dependencies": ["doc-retention-policy"]
+                }
+            ]
         }
     ]
 }
@@ -112,6 +158,29 @@ DEMO_GOVERNANCE_FINDINGS: Dict[str, Any] = {
                     "quote": "As mídias e snapshots legados serão apagados periodicamente conforme conveniência operacional da equipe de TI.",
                     "provenance": "Seção 5.3 - Descarte e Sobrescrita de Snapshots",
                     "confidence_score": 0.91,
+                    "dependencies": ["doc-retention-policy"]
+                }
+            ]
+        },
+        {
+            "id": "finding-gov-iso-02",
+            "requirement_id": "ISO27001-A.8.24",
+            "agent_id": "agent-governance-specialist",
+            "title": "Ausência de Governança de Chaves e Criptografia em Trânsito",
+            "description": "O documento menciona TLS 1.2/1.3, mas não define regras de gestão de chaves, rotação, armazenamento seguro ou critérios de uso de criptografia em dados em repouso e em trânsito.",
+            "severity": "medium",
+            "status": "open",
+            "confidence": 0.87,
+            "affected_by_change": False,
+            "evidences": [
+                {
+                    "id": "ev-gov-02",
+                    "document_id": "doc-retention-policy",
+                    "page_number": 4,
+                    "section_id": "sec-4.2",
+                    "quote": "Os dados em trânsito são criptografados com TLS 1.2 / TLS 1.3 para assegurar integridade.",
+                    "provenance": "Seção 4.2 - Proteção em Trânsito",
+                    "confidence_score": 0.9,
                     "dependencies": ["doc-retention-policy"]
                 }
             ]

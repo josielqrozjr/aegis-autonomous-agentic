@@ -11,6 +11,11 @@ from apps.api.app.infrastructure.observability.logging import (
     setup_structured_logging,
     RequestTracingMiddleware,
 )
+from apps.api.app.infrastructure.security.middleware import (
+    RateLimitMiddleware,
+    ErrorSanitizationMiddleware,
+    get_cors_origins,
+)
 from apps.api.app.api.v1.health import router as health_router
 from apps.api.app.api.v1.investigations import router as investigations_router
 from apps.api.app.api.v1.documents import router as documents_router
@@ -36,12 +41,14 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=get_cors_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 app.add_middleware(RequestTracingMiddleware)
+app.add_middleware(RateLimitMiddleware, max_requests=100, window_seconds=60)
+app.add_middleware(ErrorSanitizationMiddleware)
 
 # Public production-proof routes (no prefix)
 app.include_router(health_router)

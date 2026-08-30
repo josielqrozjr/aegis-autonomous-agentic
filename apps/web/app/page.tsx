@@ -24,7 +24,6 @@ import {
 } from "@/lib/mock-data";
 import { Investigation, InvestigationStatus, Finding } from "@/lib/types";
 import { TrustGraphData } from "@/lib/api/client";
-import { FileText, Radio, Sparkles } from "lucide-react";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("investigations");
@@ -35,7 +34,7 @@ export default function Home() {
   const [graphData, setGraphData] = useState<TrustGraphData>(MOCK_TRUST_GRAPH_INITIAL);
   const [pipelineStatus, setPipelineStatus] = useState<InvestigationStatus>("COMPLETED");
   
-  // Demo Flow state (Dia 3)
+  // Demo Flow state
   const [demoStep, setDemoStep] = useState(1);
   const [showDemoController, setShowDemoController] = useState(true);
 
@@ -49,7 +48,7 @@ export default function Home() {
     const newId = `INV-2024-00${investigations.length + 48}`;
     const newInv: Investigation = {
       id: newId,
-      title: `Auditoria de Conformidade: ${data.fileName}`,
+      title: `Auditoria: ${data.fileName}`,
       documentName: data.fileName,
       documentHash: "a7b3c2d4e5f60718293a4b5c6d7e8f90123456789abcdef0123456789abcdef0",
       fileSizeBytes: data.content.length,
@@ -93,7 +92,6 @@ export default function Home() {
     }, 4000);
   };
 
-  // Sincronização do Demo Flow
   const handleDemoStepChange = (step: number) => {
     setDemoStep(step);
     if (step === 1) {
@@ -121,7 +119,6 @@ export default function Home() {
     setActiveTab("investigations");
   };
 
-  // Disparo da simulação de Policy Drift (Efeito Cascata no Trust Graph)
   const handleDriftTriggered = (scenario: {
     framework: string;
     version: string;
@@ -162,14 +159,12 @@ export default function Home() {
     );
   };
 
-  // Restaurar estado original do grafo
   const handleResetDrift = () => {
     setIsDriftActive(false);
     setGraphData(MOCK_TRUST_GRAPH_INITIAL);
     setFindings(MOCK_FINDINGS);
   };
 
-  // Aplicar remediação
   const handleApplyRemediation = (findingId: string) => {
     setFindings((prev) =>
       prev.map((f) => (f.id === findingId ? { ...f, status: "RESOLVED" } : f))
@@ -183,18 +178,18 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#080b11]">
-      {/* Sidebar Lateral fixa */}
+    <div className="flex h-screen overflow-hidden bg-[#0D1013]">
+      {/* Sidebar */}
       <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
 
-      {/* Área de Conteúdo Principal */}
+      {/* Main Column */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Header */}
         <TopHeader currentInvestigationId={currentInvestigation.id} />
 
-        {/* Scrollable Body */}
+        {/* Scrollable Content */}
         <main className="flex-1 overflow-y-auto p-6 space-y-6">
-          {/* Controlador do Modo Demonstração Guiada (≤ 3 cliques) */}
+          {/* Controlador da Demo */}
           {showDemoController && (
             <DemoFlowController
               currentStep={demoStep}
@@ -218,7 +213,7 @@ export default function Home() {
             />
           )}
 
-          {/* TAB 2: NOVA INVESTIGAÇÃO (UPLOAD DRAG-AND-DROP) */}
+          {/* TAB 2: NOVA INVESTIGAÇÃO */}
           {activeTab === "new-investigation" && (
             <div className="py-2">
               <Dropzone onStartInvestigation={handleStartInvestigation} />
@@ -228,42 +223,36 @@ export default function Home() {
           {/* TAB 3: DASHBOARD & AGENTES & TRUST GRAPH */}
           {activeTab === "dashboard" && (
             <div className="space-y-6">
-              {/* Barra de Progresso dos Estágios */}
+              {/* Stepper */}
               <PipelineStepper currentStatus={pipelineStatus} />
 
-              {/* Informações do Documento sob Auditoria */}
-              <div className="bg-[#0d121d] border border-[#1e293b] rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex items-center gap-3.5">
-                  <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400">
-                    <FileText className="w-6 h-6" />
+              {/* Informações do Documento */}
+              <div className="bg-[#171B1F] border border-[#2A3038] rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-white text-base tracking-tight">
+                      {currentInvestigation.title}
+                    </h3>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#0D1013] text-[#B8843A] border border-[#2A3038]">
+                      {currentInvestigation.id}
+                    </span>
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-bold text-white text-base tracking-tight">
-                        {currentInvestigation.title}
-                      </h3>
-                      <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-blue-600/20 text-blue-300 border border-blue-500/30">
-                        {currentInvestigation.id}
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-400 font-mono mt-1">
-                      Hash SHA-256: {currentInvestigation.documentHash}
-                    </p>
-                  </div>
+                  <p className="text-xs text-[#9096A0] font-mono mt-1">
+                    Hash SHA-256: {currentInvestigation.documentHash}
+                  </p>
                 </div>
 
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => handleDemoStepChange(3)}
-                    className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/30 transition-colors flex items-center gap-1.5"
+                    className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-[#B8843A]/15 hover:bg-[#B8843A]/25 text-[#D4A559] border border-[#B8843A]/30 transition-colors"
                   >
-                    <Radio className="w-3.5 h-3.5" />
                     Simular Mudança Regulatória (Drift)
                   </button>
                 </div>
               </div>
 
-              {/* O Grafo de Confiança (Trust & Compliance Graph) */}
+              {/* Trust & Compliance Graph */}
               <TrustGraphViewer
                 graphData={graphData}
                 onNodeSelect={(node) => {
@@ -277,34 +266,34 @@ export default function Home() {
                 isDrifting={isDriftActive}
               />
 
-              {/* Camada de Revisão Adversarial (Evidence Critic) */}
+              {/* Revisão Adversarial */}
               <AdversarialReviewCard />
 
-              {/* Painel de Apontamentos & Findings com Citações e Hashes */}
+              {/* Apontamentos de Auditoria */}
               <FindingsPanel
                 findings={findings}
                 onOpenEvidence={(f) => setSelectedFindingForEvidence(f)}
                 onApplyRemediation={(f) => setSelectedFindingForRemediation(f)}
               />
 
-              {/* Grid dos Agentes Especialistas */}
-              <div>
-                <div className="flex items-center justify-between mb-3">
+              {/* Frota de Agentes */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-base font-bold text-white tracking-tight">
-                      Painel de Atividade dos Agentes Especialistas
+                    <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                      Frota de Agentes Especialistas
                     </h3>
-                    <p className="text-xs text-slate-400">
-                      Orquestração multiagente: Gemma (PII), Gemini Flash (Especialistas) e Gemini Pro (Adversarial Critic)
+                    <p className="text-xs text-[#9096A0]">
+                      Gemma (PII), Gemini Flash (Especialistas) e Gemini Pro (Adversarial Critic)
                     </p>
                   </div>
-                  <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <div className="flex items-center gap-1.5 text-xs text-[#9096A0] font-mono">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#3B8F6B]" />
                     <span>5 Agentes Provisionados</span>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
                   {agents.map((agent) => (
                     <AgentCard key={agent.id} agent={agent} />
                   ))}
@@ -316,14 +305,12 @@ export default function Home() {
           {/* TAB 4: REMEDIAÇÃO & MUDANÇA (POLICY DRIFT) */}
           {activeTab === "remediation" && (
             <div className="space-y-6">
-              {/* Painel de Disparo de Mudança */}
               <PolicyDriftPanel
                 onDriftTriggered={handleDriftTriggered}
                 onReset={handleResetDrift}
                 isDriftActive={isDriftActive}
               />
 
-              {/* Visualização do Grafo de Confiança com Efeito Cascata */}
               <TrustGraphViewer
                 graphData={graphData}
                 onNodeSelect={(node) => setSelectedNodeId(node.id)}
@@ -331,7 +318,6 @@ export default function Home() {
                 isDrifting={isDriftActive}
               />
 
-              {/* Apontamentos Reabertos pós Drift */}
               <FindingsPanel
                 findings={findings.filter((f) => isDriftActive ? f.status === "REOPENED_DRIFT" || f.severity === "CRITICAL" : true)}
                 onOpenEvidence={(f) => setSelectedFindingForEvidence(f)}
@@ -340,7 +326,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* TAB 5: RELATÓRIO FINAL & EXPORTAÇÃO PDF */}
+          {/* TAB 5: RELATÓRIO FINAL */}
           {activeTab === "report" && (
             <ComplianceReportView
               investigation={currentInvestigation}
@@ -351,13 +337,13 @@ export default function Home() {
         </main>
       </div>
 
-      {/* Gaveta Lateral de Visualização do Documento Fonte com Destaque */}
+      {/* Source Viewer Drawer */}
       <SourceDocumentViewer
         finding={selectedFindingForEvidence}
         onClose={() => setSelectedFindingForEvidence(null)}
       />
 
-      {/* Modal de Remediação */}
+      {/* Remediation Modal */}
       <RemediationModal
         finding={selectedFindingForRemediation}
         onClose={() => setSelectedFindingForRemediation(null)}

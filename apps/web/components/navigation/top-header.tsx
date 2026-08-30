@@ -1,39 +1,38 @@
 "use client";
 
 import React from "react";
-import { Shield, Sparkles, Activity, CheckCircle2 } from "lucide-react";
+import { AegisShieldLogo } from "@/components/ui/aegis-logo";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 interface TopHeaderProps {
   currentInvestigationId?: string;
 }
 
 export function TopHeader({ currentInvestigationId = "INV-2024-0047" }: TopHeaderProps) {
+  const { t } = useLanguage();
+
   return (
-    <header className="h-16 bg-[#0d121d] border-b border-[#1e293b] px-6 flex items-center justify-between">
+    <header className="h-14 bg-[#0D1013] border-b border-[#2A3038] px-6 flex items-center justify-between shrink-0">
       <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2">
-          <span className="font-bold text-white text-base tracking-wide">AEGIS</span>
-          <span className="text-slate-600">/</span>
-          <span className="text-sm text-slate-300 font-medium">
-            Compliance Regulatório · IA Multiagente
-          </span>
+        <AegisShieldLogo className="w-5 h-6 text-[#B8843A]" />
+        <div className="flex items-center gap-2 text-xs">
+          <span className="font-serif font-bold text-sm tracking-wider text-[#B8843A]">AEGIS</span>
+          <span className="text-[#5C636E]">/</span>
+          <span className="text-[#9096A0]">{t("header_subtitle")}</span>
         </div>
-        <span className="ml-3 px-2.5 py-0.5 text-xs font-mono font-semibold rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">
-          {currentInvestigationId}
-        </span>
       </div>
 
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2 text-xs text-slate-400">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-          <span>Orquestrador Ativo</span>
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 text-xs text-[#9096A0]">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#3B8F6B]" />
+          <span>{t("header_orchestrator")}</span>
         </div>
 
-        <div className="h-4 w-px bg-slate-800" />
+        <div className="h-4 w-px bg-[#2A3038]" />
 
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-800/80 border border-slate-700/60 text-xs text-slate-300">
-          <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-          <span>Figma MCP Conectado</span>
+        <div className="text-xs font-mono text-[#D4A559]">
+          <span className="text-[#9096A0]">{t("header_audit")}: </span>
+          <span className="font-semibold">{currentInvestigationId}</span>
         </div>
       </div>
     </header>

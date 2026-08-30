@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { LanguageProvider } from "@/lib/i18n/language-context";
 
 export const metadata: Metadata = {
-  title: "AEGIS — Plataforma de Compliance Autônomo Multiagente",
-  description: "Auditoria contínua, Trust Graph e rastreabilidade de conformidade regulatória com Google Gemini e Gemma.",
+  title: "AEGIS — Autonomous Multi-Agent Compliance Platform",
+  description: "Continuous audit, Trust Graph and regulatory compliance traceability with Google Gemini and Gemma.",
 };
 
 export default function RootLayout({
@@ -14,7 +15,9 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className="dark">
       <body className="bg-[#080b11] text-slate-100 antialiased selection:bg-blue-600 selection:text-white">
-        {children}
+        <LanguageProvider>
+          {children}
+        </LanguageProvider>
       </body>
     </html>
   );

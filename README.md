@@ -139,5 +139,5 @@ aegis/
 ## 👥 Team
 - **Dev 1 (Cainã):** AI / Agent Architecture Lead
 - **Dev  (Josiel):** Backend / Cloud Infrastructure Lead
-- **Dev 3:** Fullstack UI / Frontend Lead
-- **Dev 4:** Documentation / Devpost Lead
+- **Dev 3 (Elis):** Fullstack UI / Frontend Lead
+- **Dev 4 (Alana):** Documentation / Devpost Lead

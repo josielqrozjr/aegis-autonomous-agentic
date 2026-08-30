@@ -5,9 +5,31 @@
   "title": "ISO/IEC 27001:2022 Information Security Management Systems",
   "requirements": [
     {
+      "id": "req-iso-001",
+      "code": "ISO27001-A.5.1",
+      "title": "Policies for Information Security",
+      "description": "A set of policies for information security shall be defined, approved by management, published and communicated to relevant personnel and interested parties.",
+      "regulatory_framework": "ISO27001",
+      "jurisdiction": "GLOBAL",
+      "regulation_version": "2022"
+    },
+    {
+      "id": "req-iso-002",
       "code": "ISO27001-A.8.10",
       "title": "Information Deletion",
-      "description": "Information stored in information systems, devices or in any other storage media shall be deleted when no longer required, in accordance with applicable statutory, regulatory, and contractual requirements."
+      "description": "Information stored in information systems, devices or in any other storage media shall be deleted when no longer required, in accordance with applicable statutory, regulatory, and contractual requirements.",
+      "regulatory_framework": "ISO27001",
+      "jurisdiction": "GLOBAL",
+      "regulation_version": "2022"
+    },
+    {
+      "id": "req-iso-003",
+      "code": "ISO27001-A.8.24",
+      "title": "Use of Cryptography",
+      "description": "Rules for the effective use of cryptography, including cryptographic key management, shall be defined and implemented to protect the confidentiality, authenticity and integrity of information.",
+      "regulatory_framework": "ISO27001",
+      "jurisdiction": "GLOBAL",
+      "regulation_version": "2022"
     }
   ]
 }

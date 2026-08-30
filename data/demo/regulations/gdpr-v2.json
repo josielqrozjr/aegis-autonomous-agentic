@@ -3,17 +3,35 @@
   "version": "2.0",
   "jurisdiction": "EU",
   "title": "EDPB Updated Guidelines on Storage Limitation (2026 Revision)",
+  "effective_date": "2026-07-01",
   "change_summary": "Prazo máximo estrito de retenção de logs e telemetria de tráfego reduzido de 10 para 5 anos. Exige anonimização ou expurgo obrigatório de IPs.",
   "requirements": [
     {
+      "id": "req-gdpr-001",
       "code": "GDPR-ART-5-1-E",
       "title": "Storage Limitation Principle (Updated 2026)",
-      "description": "Retention of user connection logs, telemetry, and IP traces must not exceed 5 years under any circumstances for EU residents."
+      "description": "Retention of user connection logs, telemetry, and IP traces must not exceed 5 years under any circumstances for EU residents.",
+      "regulatory_framework": "GDPR",
+      "jurisdiction": "EU",
+      "regulation_version": "2.0"
     },
     {
+      "id": "req-gdpr-002",
       "code": "GDPR-ART-17",
       "title": "Right to Erasure ('Right to be Forgotten')",
-      "description": "Immediate erasure required upon subject request without undue delay."
+      "description": "Immediate erasure required upon subject request without undue delay.",
+      "regulatory_framework": "GDPR",
+      "jurisdiction": "EU",
+      "regulation_version": "2.0"
+    },
+    {
+      "id": "req-gdpr-003",
+      "code": "GDPR-ART-44-49",
+      "title": "International Data Transfers",
+      "description": "Any transfer of personal data to a third country shall take place only if the controller and processor comply with conditions for transfer, including adequacy decisions, appropriate safeguards (SCCs, BCRs), or specific derogations.",
+      "regulatory_framework": "GDPR",
+      "jurisdiction": "EU",
+      "regulation_version": "2.0"
     }
   ]
 }

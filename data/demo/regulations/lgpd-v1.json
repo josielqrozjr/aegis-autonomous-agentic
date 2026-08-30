@@ -5,14 +5,40 @@
   "title": "Lei Geral de Proteção de Dados Pessoais (Lei 13.709/2018)",
   "requirements": [
     {
-      "code": "LGPD-ART-15",
-      "title": "Término do Tratamento de Dados",
-      "description": "O término do tratamento de dados pessoais ocorrerá quando verificada que a finalidade foi alcançada ou quando os dados deixaram de ser necessários."
+      "id": "req-lgpd-001",
+      "code": "LGPD-ART-7",
+      "title": "Bases Legais para Tratamento de Dados Pessoais",
+      "description": "O tratamento de dados pessoais somente poderá ser realizado mediante consentimento do titular ou nas hipóteses previstas em lei (execução de contrato, legítimo interesse, proteção ao crédito, etc.).",
+      "regulatory_framework": "LGPD",
+      "jurisdiction": "BR",
+      "regulation_version": "1.0"
     },
     {
+      "id": "req-lgpd-002",
+      "code": "LGPD-ART-15",
+      "title": "Término do Tratamento de Dados",
+      "description": "O término do tratamento de dados pessoais ocorrerá quando verificada que a finalidade foi alcançada ou quando os dados deixaram de ser necessários.",
+      "regulatory_framework": "LGPD",
+      "jurisdiction": "BR",
+      "regulation_version": "1.0"
+    },
+    {
+      "id": "req-lgpd-003",
       "code": "LGPD-ART-16",
       "title": "Eliminação dos Dados Pessoais",
-      "description": "Os dados pessoais serão eliminados após o término de seu tratamento, autorizada a conservação apenas para cumprimento de obrigação legal ou regulatória específica."
+      "description": "Os dados pessoais serão eliminados após o término de seu tratamento, autorizada a conservação apenas para cumprimento de obrigação legal ou regulatória específica.",
+      "regulatory_framework": "LGPD",
+      "jurisdiction": "BR",
+      "regulation_version": "1.0"
+    },
+    {
+      "id": "req-lgpd-004",
+      "code": "LGPD-ART-18",
+      "title": "Direitos do Titular",
+      "description": "O titular dos dados pessoais tem direito a obter do controlador, a qualquer momento e mediante requisição: confirmação de tratamento, acesso, correção, anonimização, portabilidade, eliminação e revogação do consentimento.",
+      "regulatory_framework": "LGPD",
+      "jurisdiction": "BR",
+      "regulation_version": "1.0"
     }
   ]
 }

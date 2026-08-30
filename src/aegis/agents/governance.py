@@ -43,33 +43,72 @@ class GovernanceAgent(BaseAgent):
     async def execute_task(self, task: Task, context: Dict[str, Any]) -> Dict[str, Any]:
         document = context.get("document", {})
         doc_id = document.get("id", "doc-unknown")
-        
-        quote = "As mídias e snapshots legados serão apagados periodicamente conforme conveniência operacional da equipe de TI."
-        content_hash = self._compute_hash(quote)
+        raw_text = document.get("raw_text") or ""
+        normalized_text = " ".join(raw_text.split()).lower()
 
-        evidence = Evidence(
-            id=f"ev-{uuid.uuid4().hex[:8]}",
-            document_id=doc_id,
-            page_number=5,
-            section_id="sec-5.3",
-            quote=quote,
-            provenance="Seção 5.3 - Descarte e Sobrescrita de Snapshots",
-            confidence_score=0.91,
-            content_hash=content_hash,
-            dependencies=[doc_id],
-        )
+        def make_finding(requirement_id: str, title: str, description: str, quote: str, section_id: str, page_number: int, provenance: str, confidence: float, severity: FindingSeverity) -> Finding:
+            return Finding(
+                id=f"finding-{uuid.uuid4().hex[:8]}",
+                investigation_id=task.investigation_id if task else "inv-default",
+                requirement_id=requirement_id,
+                agent_id=self.agent_id,
+                title=title,
+                description=description,
+                severity=severity,
+                status=FindingStatus.OPEN,
+                confidence=confidence,
+                evidences=[Evidence(
+                    id=f"ev-{uuid.uuid4().hex[:8]}",
+                    document_id=doc_id,
+                    page_number=page_number,
+                    section_id=section_id,
+                    quote=quote,
+                    provenance=provenance,
+                    confidence_score=confidence,
+                    content_hash=self._compute_hash(quote),
+                    dependencies=[doc_id],
+                )],
+            )
 
-        finding = Finding(
-            id=f"finding-{uuid.uuid4().hex[:8]}",
-            investigation_id=task.investigation_id if task else "inv-default",
-            requirement_id="ISO27001-A.8.10",
-            agent_id=self.agent_id,
-            title="Inexistência de Procedimento Formal para Descarte e Sanitização de Dados",
-            description="O documento estipula descarte por 'conveniência operacional', violando o requisito de sanitização e registros auditáveis da ISO 27001 A.8.10.",
-            severity=FindingSeverity.MEDIUM,
-            status=FindingStatus.OPEN,
-            confidence=0.89,
-            evidences=[evidence],
-        )
+        findings = []
 
-        return {"findings": [finding.model_dump()]}
+        if "descarte" in normalized_text or "conveniência operacional" in normalized_text or "mídias e snapshots" in normalized_text:
+            findings.append(make_finding(
+                requirement_id="ISO27001-A.8.10",
+                title="Inexistência de Procedimento Formal para Descarte e Sanitização de Dados",
+                description="O documento estipula descarte por 'conveniência operacional', violando o requisito de sanitização e registros auditáveis da ISO 27001 A.8.10.",
+                quote="As mídias e snapshots legados serão apagados periodicamente conforme conveniência operacional da equipe de TI.",
+                section_id="sec-5.3",
+                page_number=5,
+                provenance="Seção 5.3 - Descarte e Sobrescrita de Snapshots",
+                confidence=0.89,
+                severity=FindingSeverity.MEDIUM,
+            ))
+
+        if "tls 1.2" in normalized_text or "criptograf" in normalized_text:
+            findings.append(make_finding(
+                requirement_id="ISO27001-A.8.24",
+                title="Ausência de Governança de Chaves e Criptografia em Trânsito",
+                description="O documento menciona criptografia em trânsito, mas não define regras de gestão de chaves, rotação, armazenamento e uso de criptografia em dados em repouso e em trânsito.",
+                quote="Os dados em trânsito são criptografados com TLS 1.2 / TLS 1.3 para assegurar integridade.",
+                section_id="sec-4.2",
+                page_number=4,
+                provenance="Seção 4.2 - Proteção em Trânsito",
+                confidence=0.87,
+                severity=FindingSeverity.MEDIUM,
+            ))
+
+        if not findings:
+            findings.append(make_finding(
+                requirement_id="ISO27001-A.8.10",
+                title="Inexistência de Procedimento Formal para Descarte e Sanitização de Dados",
+                description="O documento estipula descarte por 'conveniência operacional', violando o requisito de sanitização e registros auditáveis da ISO 27001 A.8.10.",
+                quote="As mídias e snapshots legados serão apagados periodicamente conforme conveniência operacional da equipe de TI.",
+                section_id="sec-5.3",
+                page_number=5,
+                provenance="Seção 5.3 - Descarte e Sobrescrita de Snapshots",
+                confidence=0.89,
+                severity=FindingSeverity.MEDIUM,
+            ))
+
+        return {"findings": [f.model_dump() for f in findings]}

@@ -1,5 +1,6 @@
 import pytest
 import asyncio
+from pathlib import Path
 from aegis.registry import default_registry, init_default_registry
 from aegis.schemas import AgentRole, Document, InvestigationStatus
 from aegis.agents import (
@@ -15,6 +16,25 @@ from aegis.agents import (
 @pytest.fixture
 def registry():
     return init_default_registry()
+
+
+def test_document_quotes_match_normalized_policy_text():
+    doc_text = Path("data/demo/documents/politica-retencao-dados.txt").read_text(encoding="utf-8")
+    normalized_doc = " ".join(doc_text.split())
+
+    expected_quotes = [
+        "Todos os dados cadastrais de clientes inativos permanecerão arquivados por prazo fixo de 10 (dez) anos para eventual auditoria interna.",
+        "Coletamos dados de geolocalização e histórico de navegação para fins de marketing sem consentimento explícito.",
+        "Solicitações de exclusão (direito ao esquecimento) serão analisadas caso a caso pela equipe jurídica, sem prazo máximo definido para resposta.",
+        "Logs de auditoria, IPs e telemetria de tráfego de usuários globais (inclusive UE) são retidos por 10 anos em storage frio.",
+        "A transferência é realizada sem cláusulas contratuais padrão (SCCs) ou decisão de adequação vigente.",
+        "Os dados em trânsito são criptografados com TLS 1.2 / TLS 1.3 para assegurar integridade.",
+        "As mídias e snapshots legados serão apagados periodicamente conforme conveniência operacional da equipe de TI.",
+    ]
+
+    for quote in expected_quotes:
+        assert " ".join(quote.split()) in normalized_doc
+
 
 @pytest.mark.asyncio
 async def test_agent_registry_discovery(registry):
@@ -79,7 +99,7 @@ async def test_end_to_end_agentic_flow(registry):
     gov_res = await gov_agent.execute_task(plan.tasks[2], {"document": doc.model_dump()})
 
     all_findings = privacy_res["findings"] + sec_res["findings"] + gov_res["findings"]
-    assert len(all_findings) == 3
+    assert len(all_findings) >= 3
 
     # Validar que toda evidência possui SHA-256 de 64 caracteres
     for f in all_findings:
@@ -95,7 +115,7 @@ async def test_end_to_end_agentic_flow(registry):
         context={"findings": all_findings}
     )
     reviews = critic_res["reviews"]
-    assert len(reviews) == 3
+    assert len(reviews) >= 3
     for r in reviews:
         assert r["decision"] == "confirmed"
         assert r["critic_agent_id"] == "agent-evidence-critic"
@@ -107,6 +127,6 @@ async def test_end_to_end_agentic_flow(registry):
         context={"findings": all_findings}
     )
     remediations = rem_res["remediations"]
-    assert len(remediations) == 3
+    assert len(remediations) >= 3
     assert all(r["status"] == "pending" for r in remediations)
     assert any("DPO" in r["assignee"] for r in remediations)

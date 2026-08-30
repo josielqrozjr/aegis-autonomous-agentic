@@ -25,14 +25,9 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
         <div className="p-5 border-b border-[#2A3038] flex items-center gap-3">
           <AegisShieldLogo className="w-8 h-9 shrink-0 text-[#B8843A]" />
           <div>
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-base tracking-wider text-[#B8843A] font-serif">
-                AEGIS
-              </span>
-              <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-[#171B1F] text-[#9096A0] border border-[#2A3038]">
-                v2.4
-              </span>
-            </div>
+            <span className="font-bold text-base tracking-wider text-[#B8843A] font-serif block">
+              AEGIS
+            </span>
             <p className="text-[10px] text-[#9096A0] tracking-tight">
               Connected Evidence
             </p>

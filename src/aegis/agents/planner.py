@@ -13,8 +13,6 @@ from aegis.schemas import (
     TaskStatus,
     InvestigationPlan,
 )
-from aegis.registry import default_registry
-
 PLANNER_CONTRACT = AgentContract(
     agent_id="agent-planner",
     name="Planner & Orchestrator Agent",
@@ -32,7 +30,12 @@ PLANNER_CONTRACT = AgentContract(
 class PlannerAgent(BaseAgent):
     def __init__(self, registry=None):
         super().__init__(PLANNER_CONTRACT)
-        self.registry = registry or default_registry
+        if registry is None:
+            from aegis.registry.registry import default_registry
+            self.registry = default_registry
+        else:
+            self.registry = registry
+
 
     async def create_plan(self, investigation_id: str, document_analysis: Dict[str, Any]) -> InvestigationPlan:
         jurisdiction = document_analysis.get("jurisdiction", "GLOBAL")

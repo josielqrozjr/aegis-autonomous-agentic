@@ -1,14 +1,12 @@
 from aegis.registry.registry import default_registry, AgentRegistry
-from aegis.agents import (
-    DOCUMENT_UNDERSTANDING_CONTRACT,
-    PLANNER_CONTRACT,
-    PRIVACY_AGENT_CONTRACT,
-    GOVERNANCE_AGENT_CONTRACT,
-    SECURITY_AGENT_CONTRACT,
-    EVIDENCE_CRITIC_CONTRACT,
-    REMEDIATION_AGENT_CONTRACT,
-    CHANGE_DETECTION_CONTRACT,
-)
+from aegis.agents.document_understanding import DOCUMENT_UNDERSTANDING_CONTRACT
+from aegis.agents.planner import PLANNER_CONTRACT
+from aegis.agents.privacy import PRIVACY_AGENT_CONTRACT
+from aegis.agents.governance import GOVERNANCE_AGENT_CONTRACT
+from aegis.agents.security import SECURITY_AGENT_CONTRACT
+from aegis.agents.evidence_critic import EVIDENCE_CRITIC_CONTRACT
+from aegis.agents.remediation import REMEDIATION_AGENT_CONTRACT
+from aegis.agents.change_detection import CHANGE_DETECTION_CONTRACT
 
 def init_default_registry(registry: AgentRegistry = default_registry) -> AgentRegistry:
     """

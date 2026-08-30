@@ -43,7 +43,8 @@ class PrivacyAgent(BaseAgent):
     async def execute_task(self, task: Task, context: Dict[str, Any]) -> Dict[str, Any]:
         document = context.get("document", {})
         doc_id = document.get("id", "doc-unknown")
-        raw_text = document.get("raw_text", "")
+        raw_text = document.get("raw_text") or ""
+
         
         quote = "Todos os dados cadastrais de clientes inativos permanecerão arquivados por prazo fixo de 10 (dez) anos para eventual auditoria interna."
         if "geolocalização" in raw_text.lower():

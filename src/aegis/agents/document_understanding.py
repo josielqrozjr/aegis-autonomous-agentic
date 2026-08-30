@@ -35,7 +35,7 @@ class DocumentUnderstandingAgent(BaseAgent):
         if not document_data:
             raise ValueError("Documento não fornecido no contexto da tarefa")
         
-        raw_text = document_data.get("raw_text", "")
+        raw_text = document_data.get("raw_text") or ""
         
         # 1. PII Scan & Sanitização via Gemma
         pii_result = await self.gemma_scanner.scan_and_sanitize(raw_text)

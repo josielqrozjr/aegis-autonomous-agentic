@@ -55,8 +55,17 @@ class GemmaPIIScanner(BaseLanguageModel):
 
     def _deterministic_regex_scan(self, text: str) -> PIIScanResult:
         """Scan determinístico rápido via regex para garantir detecção mesmo offline."""
+        if not text:
+            return PIIScanResult(
+                pii_detected=False,
+                entities_found=[],
+                sanitized_text="",
+                safety_status="PASSED_CLEAN",
+            )
+
         entities = []
         sanitized = text
+
 
         # CPF / Tax ID regex
         cpf_pattern = r'\b\d{3}\.\d{3}\.\d{3}-\d{2}\b'

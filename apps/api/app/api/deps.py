@@ -10,6 +10,7 @@ from apps.api.app.infrastructure.memory.repositories import (
 )
 from aegis.registry.registry import AgentRegistry
 from apps.api.app.domain.trust_graph.graph import TrustGraph
+from apps.api.app.infrastructure.storage.backends import create_storage_backend, LocalStorageBackend
 
 # Singletons — swappable for Firestore adapters later
 _investigation_repo = MemoryInvestigationRepository()
@@ -19,7 +20,8 @@ _remediation_repo = MemoryRemediationRepository()
 _regulatory_change_repo = MemoryRegulatoryChangeRepository()
 _audit_repo = MemoryAuditRepository()
 _agent_registry: AgentRegistry | None = None
-_trust_graphs: dict[str, TrustGraph] = {}  # investigation_id -> TrustGraph
+_trust_graphs: dict[str, TrustGraph] = {}
+_storage_backend = None  # investigation_id -> TrustGraph
 
 
 def set_agent_registry(registry: AgentRegistry) -> None:
@@ -65,3 +67,10 @@ def get_trust_graph(investigation_id: str) -> TrustGraph:
 
 def get_all_trust_graphs() -> dict[str, TrustGraph]:
     return _trust_graphs
+
+
+def get_storage_backend():
+    global _storage_backend
+    if _storage_backend is None:
+        _storage_backend = create_storage_backend()
+    return _storage_backend

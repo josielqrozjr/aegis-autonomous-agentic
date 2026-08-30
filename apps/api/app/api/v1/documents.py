@@ -1,31 +1,27 @@
 """Document upload and retrieval endpoints."""
 
 import uuid
-import os
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 
 from aegis.schemas.contracts import Document
-from apps.api.app.api.deps import get_document_repo
+from apps.api.app.api.deps import get_document_repo, get_storage_backend
 
 router = APIRouter(prefix="/documents", tags=["documents"])
-
-UPLOAD_DIR = os.environ.get("AEGIS_UPLOAD_DIR", "/tmp/aegis-uploads")
 
 
 @router.post("", status_code=201)
 async def upload_document(
     file: UploadFile = File(...),
     doc_repo=Depends(get_document_repo),
+    storage=Depends(get_storage_backend),
 ):
-    os.makedirs(UPLOAD_DIR, exist_ok=True)
     doc_id = str(uuid.uuid4())
-    storage_path = os.path.join(UPLOAD_DIR, f"{doc_id}_{file.filename}")
+    destination = f"{doc_id}_{file.filename}"
 
     content = await file.read()
-    with open(storage_path, "wb") as f:
-        f.write(content)
+    storage_path = await storage.upload(destination, content, file.content_type or "application/octet-stream")
 
     raw_text: str | None = None
     if file.content_type and file.content_type.startswith("text"):

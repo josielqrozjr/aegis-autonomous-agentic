@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Sidebar } from "@/components/navigation/sidebar";
 import { TopHeader } from "@/components/navigation/top-header";
 import { MetricsHeader } from "@/components/investigation/metrics-header";
@@ -14,6 +14,8 @@ import { FindingsPanel } from "@/components/findings/findings-panel";
 import { SourceDocumentViewer } from "@/components/evidence/source-document-viewer";
 import { AdversarialReviewCard } from "@/components/audit/adversarial-review-card";
 import { RemediationModal } from "@/components/remediation/remediation-modal";
+import { DemoFlowController } from "@/components/demo/demo-flow-controller";
+import { ComplianceReportView } from "@/components/reports/compliance-report-view";
 import { 
   MOCK_AGENTS, 
   MOCK_INVESTIGATIONS, 
@@ -21,17 +23,8 @@ import {
   MOCK_TRUST_GRAPH_INITIAL 
 } from "@/lib/mock-data";
 import { Investigation, InvestigationStatus, Finding } from "@/lib/types";
-import { TrustGraphData, TrustGraphNode } from "@/lib/api/client";
-import { 
-  FileText, 
-  Play, 
-  Layers, 
-  Radio, 
-  ShieldCheck, 
-  AlertTriangle,
-  RefreshCw 
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+import { TrustGraphData } from "@/lib/api/client";
+import { FileText, Radio, Sparkles } from "lucide-react";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("investigations");
@@ -42,6 +35,10 @@ export default function Home() {
   const [graphData, setGraphData] = useState<TrustGraphData>(MOCK_TRUST_GRAPH_INITIAL);
   const [pipelineStatus, setPipelineStatus] = useState<InvestigationStatus>("COMPLETED");
   
+  // Demo Flow state (Dia 3)
+  const [demoStep, setDemoStep] = useState(1);
+  const [showDemoController, setShowDemoController] = useState(true);
+
   // Modals & Drawers state
   const [selectedFindingForEvidence, setSelectedFindingForEvidence] = useState<Finding | null>(null);
   const [selectedFindingForRemediation, setSelectedFindingForRemediation] = useState<Finding | null>(null);
@@ -74,7 +71,7 @@ export default function Home() {
       setAgents((prev) =>
         prev.map((a) => (a.id === "pii-scanner" ? { ...a, status: "RUNNING" } : a))
       );
-    }, 1200);
+    }, 1000);
 
     setTimeout(() => {
       setPipelineStatus("INVESTIGATING");
@@ -87,12 +84,41 @@ export default function Home() {
             : a
         )
       );
-    }, 2800);
+    }, 2500);
 
     setTimeout(() => {
       setPipelineStatus("COMPLETED");
       setAgents((prev) => prev.map((a) => ({ ...a, status: "COMPLETED" })));
-    }, 4500);
+      setDemoStep(2);
+    }, 4000);
+  };
+
+  // Sincronização do Demo Flow
+  const handleDemoStepChange = (step: number) => {
+    setDemoStep(step);
+    if (step === 1) {
+      setActiveTab("new-investigation");
+    } else if (step === 2) {
+      setActiveTab("dashboard");
+    } else if (step === 3) {
+      setActiveTab("remediation");
+      handleDriftTriggered({
+        framework: "GDPR",
+        version: "v2.0-2026",
+        description: "Prazo máximo de retenção reduzido para 2 anos (Art. 5(1)(e) GDPR v2).",
+        invalidatedNodeIds: ["req-gdpr-5", "ev-prazo-90dias", "find-02-node"],
+      });
+    } else if (step === 4) {
+      setActiveTab("report");
+    }
+  };
+
+  const handleResetDemo = () => {
+    setDemoStep(1);
+    setIsDriftActive(false);
+    setGraphData(MOCK_TRUST_GRAPH_INITIAL);
+    setFindings(MOCK_FINDINGS);
+    setActiveTab("investigations");
   };
 
   // Disparo da simulação de Policy Drift (Efeito Cascata no Trust Graph)
@@ -104,7 +130,6 @@ export default function Home() {
   }) => {
     setIsDriftActive(true);
 
-    // Efeito cascata nos nós do grafo
     setGraphData((prev) => ({
       ...prev,
       invalid_nodes: scenario.invalidatedNodeIds.length,
@@ -122,7 +147,6 @@ export default function Home() {
       }),
     }));
 
-    // Reabertura do finding afetado
     setFindings((prev) =>
       prev.map((f) =>
         f.id === "FIND-02"
@@ -150,7 +174,6 @@ export default function Home() {
     setFindings((prev) =>
       prev.map((f) => (f.id === findingId ? { ...f, status: "RESOLVED" } : f))
     );
-    // Se o nó correspondente estiver no grafo, revalidar
     setGraphData((prev) => ({
       ...prev,
       nodes: prev.nodes.map((n) =>
@@ -171,6 +194,15 @@ export default function Home() {
 
         {/* Scrollable Body */}
         <main className="flex-1 overflow-y-auto p-6 space-y-6">
+          {/* Controlador do Modo Demonstração Guiada (≤ 3 cliques) */}
+          {showDemoController && (
+            <DemoFlowController
+              currentStep={demoStep}
+              onStepChange={handleDemoStepChange}
+              onReset={handleResetDemo}
+            />
+          )}
+
           {/* Métricas Superiores */}
           <MetricsHeader />
 
@@ -222,7 +254,7 @@ export default function Home() {
 
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => setActiveTab("remediation")}
+                    onClick={() => handleDemoStepChange(3)}
                     className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/30 transition-colors flex items-center gap-1.5"
                   >
                     <Radio className="w-3.5 h-3.5" />
@@ -308,43 +340,13 @@ export default function Home() {
             </div>
           )}
 
-          {/* TAB 5: RELATÓRIO FINAL */}
+          {/* TAB 5: RELATÓRIO FINAL & EXPORTAÇÃO PDF */}
           {activeTab === "report" && (
-            <div className="bg-[#0d121d] border border-[#1e293b] rounded-xl p-8 max-w-3xl mx-auto space-y-6 my-4">
-              <div className="flex items-center justify-between border-b border-[#1e293b] pb-4">
-                <div>
-                  <h3 className="text-xl font-bold text-white">Dossiê de Conformidade Regulatória</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">AEGIS Compliance Engine · ID: INV-2024-0047</p>
-                </div>
-                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5">
-                  <ShieldCheck className="w-4 h-4" /> Certificado Válido
-                </span>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3 text-center">
-                <div className="p-3 rounded-lg bg-[#111726] border border-slate-800">
-                  <span className="text-[10px] uppercase font-bold text-slate-500 block">Grafo de Confiança</span>
-                  <span className="text-lg font-bold font-mono text-emerald-400">
-                    {graphData.valid_nodes}/{graphData.total_nodes} Válidos
-                  </span>
-                </div>
-                <div className="p-3 rounded-lg bg-[#111726] border border-slate-800">
-                  <span className="text-[10px] uppercase font-bold text-slate-500 block">Revisão Adversarial</span>
-                  <span className="text-lg font-bold font-mono text-purple-400">Gemini 2.5 Pro</span>
-                </div>
-                <div className="p-3 rounded-lg bg-[#111726] border border-slate-800">
-                  <span className="text-[10px] uppercase font-bold text-slate-500 block">Hashes de Prova</span>
-                  <span className="text-lg font-bold font-mono text-cyan-400">100% Auditados</span>
-                </div>
-              </div>
-
-              <div className="p-4 rounded-lg bg-[#080b11] border border-slate-800 space-y-2 text-xs text-slate-300">
-                <p className="font-semibold text-white">Resumo Executivo de Auditoria:</p>
-                <p>
-                  O documento <strong>politica_retencao_dados_v2.pdf</strong> foi submetido à análise autônoma de 4 especialistas regulatórios (LGPD, GDPR, ISO 27001 e Gemma PII Scanner), tendo cada apontamento validado pelo Evidence Critic.
-                </p>
-              </div>
-            </div>
+            <ComplianceReportView
+              investigation={currentInvestigation}
+              findings={findings}
+              graphData={graphData}
+            />
           )}
         </main>
       </div>

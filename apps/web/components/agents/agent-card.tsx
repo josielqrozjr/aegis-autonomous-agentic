@@ -37,18 +37,18 @@ export function AgentCard({ agent }: AgentCardProps) {
 
       {/* Task */}
       <div className="p-2.5 rounded bg-[#0D1013] border border-[#2A3038] text-[11px] text-[#B8BDC7] font-mono">
-        <span className="text-[#5C636E] block text-[9px] uppercase tracking-wider mb-0.5">Tarefa:</span>
+        <span className="text-[#5C636E] block text-[9px] uppercase tracking-wider mb-0.5">Current Task:</span>
         <span className="line-clamp-1">{agent.currentTask}</span>
       </div>
 
       {/* Stats */}
       <div className="border-t border-[#2A3038] pt-2 flex items-center justify-between text-[11px] font-mono text-[#9096A0]">
         <div>
-          <span>Confiança: </span>
+          <span>Confidence: </span>
           <span className="text-white font-semibold">{(agent.confidence * 100).toFixed(0)}%</span>
         </div>
         <div>
-          <span>Tempo: </span>
+          <span>Latency: </span>
           <span className="text-white">{agent.lastExecutionMs}ms</span>
         </div>
       </div>

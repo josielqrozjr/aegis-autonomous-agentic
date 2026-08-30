@@ -43,12 +43,12 @@ export function TrustGraphViewer({
             </h3>
             {isDrifting && (
               <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#A24438]/20 text-[#A24438] border border-[#A24438]/40 animate-pulse">
-                Policy Drift Ativo
+                Policy Drift Active
               </span>
             )}
           </div>
           <p className="text-[11px] text-[#9096A0] mt-0.5">
-            Rastreabilidade ponta a ponta: Requisitos ➔ Agentes ➔ Evidências ➔ Apontamentos
+            End-to-end traceability: Requirements ➔ Agents ➔ Evidence ➔ Findings
           </p>
         </div>
 
@@ -56,15 +56,15 @@ export function TrustGraphViewer({
         <div className="flex items-center gap-4 text-[11px] font-mono text-[#9096A0]">
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-[#3B8F6B]" />
-            <span>Válido</span>
+            <span>Valid</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-[#A24438]" />
-            <span>Invalidado</span>
+            <span>Invalidated</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-[#B8843A]" />
-            <span>Reavaliação</span>
+            <span>Under Review</span>
           </div>
         </div>
       </div>
@@ -75,7 +75,7 @@ export function TrustGraphViewer({
           {/* Col 1 */}
           <div className="space-y-2.5">
             <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#9096A0] pb-1 border-b border-[#2A3038] flex justify-between">
-              <span>1. Requisitos</span>
+              <span>1. Requirements</span>
               <span>{columns.requirement.length}</span>
             </div>
             <div className="space-y-2">
@@ -93,7 +93,7 @@ export function TrustGraphViewer({
           {/* Col 2 */}
           <div className="space-y-2.5">
             <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#9096A0] pb-1 border-b border-[#2A3038] flex justify-between">
-              <span>2. Agentes</span>
+              <span>2. AI Agents</span>
               <span>{columns.agent.length}</span>
             </div>
             <div className="space-y-2">
@@ -111,7 +111,7 @@ export function TrustGraphViewer({
           {/* Col 3 */}
           <div className="space-y-2.5">
             <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#9096A0] pb-1 border-b border-[#2A3038] flex justify-between">
-              <span>3. Evidências</span>
+              <span>3. Evidence</span>
               <span>{columns.evidence.length}</span>
             </div>
             <div className="space-y-2">
@@ -129,7 +129,7 @@ export function TrustGraphViewer({
           {/* Col 4 */}
           <div className="space-y-2.5">
             <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#9096A0] pb-1 border-b border-[#2A3038] flex justify-between">
-              <span>4. Apontamentos</span>
+              <span>4. Findings</span>
               <span>{columns.finding.length}</span>
             </div>
             <div className="space-y-2">
@@ -146,7 +146,7 @@ export function TrustGraphViewer({
         </div>
       </div>
 
-      {/* Drawer de Detalhes do Nó */}
+      {/* Node Details Drawer */}
       {inspectingNode && (
         <div className="p-4 bg-[#12161A] border-t border-[#2A3038] flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
           <div className="space-y-1">
@@ -162,15 +162,15 @@ export function TrustGraphViewer({
                     : "bg-[#A24438]/15 text-[#A24438]"
                 )}
               >
-                {inspectingNode.valid ? "Válido" : "Invalidado"}
+                {inspectingNode.valid ? "Valid" : "Invalidated"}
               </span>
             </div>
             <p className="text-[11px] text-[#9096A0]">
-              {inspectingNode.details || "Sem detalhes adicionais."}
+              {inspectingNode.details || "No additional details available."}
             </p>
             {inspectingNode.invalidated_reason && (
               <p className="text-[11px] text-[#A24438] font-mono">
-                Motivo: {inspectingNode.invalidated_reason}
+                Reason: {inspectingNode.invalidated_reason}
               </p>
             )}
           </div>
@@ -179,9 +179,9 @@ export function TrustGraphViewer({
             <span>Hash: {inspectingNode.content_hash.slice(0, 16)}...</span>
             <button
               onClick={() => setInspectingNode(null)}
-              className="text-[#9096A0] hover:text-white px-2 py-1 rounded bg-[#171B1F] border border-[#2A3038]"
+              className="text-[#9096A0] hover:text-white px-2.5 py-1 rounded bg-[#171B1F] border border-[#2A3038] transition-colors"
             >
-              Fechar
+              Close
             </button>
           </div>
         </div>

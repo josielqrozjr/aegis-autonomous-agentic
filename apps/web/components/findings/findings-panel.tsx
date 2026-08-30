@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { Finding, FindingSeverity } from "@/lib/types";
+import { Finding } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { useLanguage } from "@/lib/i18n/language-context";
 
 interface FindingsPanelProps {
   findings: Finding[];
@@ -12,7 +11,6 @@ interface FindingsPanelProps {
 }
 
 export function FindingsPanel({ findings, onOpenEvidence, onApplyRemediation }: FindingsPanelProps) {
-  const { t } = useLanguage();
   const [filter, setFilter] = useState<string>("ALL");
 
   const filtered = findings.filter((f) => {
@@ -26,10 +24,10 @@ export function FindingsPanel({ findings, onOpenEvidence, onApplyRemediation }: 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-[#2A3038]">
         <div>
           <h3 className="text-sm font-bold text-white tracking-wide uppercase">
-            {t("findings_title")} ({findings.length})
+            Audit Findings ({findings.length})
           </h3>
           <p className="text-xs text-[#9096A0]">
-            {t("findings_subtitle")}
+            Traceable, verified non-compliance evidence validated by the autonomous agent fleet.
           </p>
         </div>
 
@@ -40,13 +38,13 @@ export function FindingsPanel({ findings, onOpenEvidence, onApplyRemediation }: 
               key={lvl}
               onClick={() => setFilter(lvl)}
               className={cn(
-                "px-2.5 py-1 rounded text-xs font-medium transition-colors",
+                "px-2.5 py-1 rounded text-xs font-medium transition-colors cursor-pointer",
                 filter === lvl
                   ? "bg-[#21262B] text-[#B8843A] font-semibold"
                   : "text-[#9096A0] hover:text-white"
               )}
             >
-              {lvl === "ALL" ? t("findings_all") : lvl}
+              {lvl === "ALL" ? "All" : lvl}
             </button>
           ))}
         </div>
@@ -75,11 +73,11 @@ export function FindingsPanel({ findings, onOpenEvidence, onApplyRemediation }: 
               </h4>
               <div className="flex items-center gap-2">
                 {finding.status === "REOPENED_DRIFT" ? (
-                  <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#A24438]/20 text-[#A24438] border border-[#A24438]/40 animate-pulse">
-                    {t("findings_reopened")}
+                  <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#A24438]/20 text-[#A24438] border border-[#A24438]/40 animate-pulse font-mono">
+                    Reopened by Policy Drift
                   </span>
                 ) : (
-                  <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#3B8F6B]/15 text-[#3B8F6B] border border-[#3B8F6B]/30">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#3B8F6B]/15 text-[#3B8F6B] border border-[#3B8F6B]/30 font-mono">
                     Confirmed
                   </span>
                 )}
@@ -94,27 +92,27 @@ export function FindingsPanel({ findings, onOpenEvidence, onApplyRemediation }: 
               {finding.description}
             </p>
 
-            {/* Citação em bloco limpa */}
+            {/* Clean blockquote */}
             <div className="p-2.5 rounded bg-[#0D1013] border border-[#2A3038] text-[11px] text-[#B8BDC7] italic font-mono">
               "{finding.evidenceQuote.slice(0, 120)}..."
             </div>
 
-            {/* Linha pontilhada divisória */}
+            {/* Dashed separator */}
             <div className="border-t border-dashed border-[#2A3038] pt-2 flex items-center justify-between text-[11px] font-mono text-[#9096A0]">
               <button
                 onClick={() => onOpenEvidence(finding)}
-                className="text-[#4C8FA6] hover:text-[#7EB5CC] transition-colors"
+                className="text-[#4C8FA6] hover:text-[#7EB5CC] transition-colors cursor-pointer"
               >
-                {t("findings_see")}
+                policy.pdf §2.1 · inspect highlight
               </button>
 
               <div className="flex items-center gap-3">
-                <span>{t("findings_conf")} {(finding.confidence).toFixed(2)}</span>
+                <span>conf {(finding.confidence).toFixed(2)}</span>
                 <button
                   onClick={() => onApplyRemediation(finding)}
-                  className="px-2.5 py-1 rounded text-[10px] font-semibold bg-[#B8843A]/20 hover:bg-[#B8843A]/30 text-[#D4A559] border border-[#B8843A]/40 transition-colors"
+                  className="px-2.5 py-1 rounded text-[10px] font-semibold bg-[#B8843A]/20 hover:bg-[#B8843A]/30 text-[#D4A559] border border-[#B8843A]/40 transition-colors cursor-pointer"
                 >
-                  {t("findings_remediate")}
+                  Remediate
                 </button>
               </div>
             </div>

@@ -24,8 +24,10 @@ import {
 } from "@/lib/mock-data";
 import { Investigation, InvestigationStatus, Finding } from "@/lib/types";
 import { TrustGraphData } from "@/lib/api/client";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 export default function Home() {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState("investigations");
   const [investigations, setInvestigations] = useState<Investigation[]>(MOCK_INVESTIGATIONS);
   const [currentInvestigation, setCurrentInvestigation] = useState<Investigation>(MOCK_INVESTIGATIONS[0]);
@@ -48,7 +50,7 @@ export default function Home() {
     const newId = `INV-2024-00${investigations.length + 48}`;
     const newInv: Investigation = {
       id: newId,
-      title: `Auditoria: ${data.fileName}`,
+      title: `Audit: ${data.fileName}`,
       documentName: data.fileName,
       documentHash: "a7b3c2d4e5f60718293a4b5c6d7e8f90123456789abcdef0123456789abcdef0",
       fileSizeBytes: data.content.length,
@@ -103,7 +105,7 @@ export default function Home() {
       handleDriftTriggered({
         framework: "GDPR",
         version: "v2.0-2026",
-        description: "Prazo máximo de retenção reduzido para 2 anos (Art. 5(1)(e) GDPR v2).",
+        description: "Maximum retention timeframe reduced to 2 years (Art. 5(1)(e) GDPR v2).",
         invalidatedNodeIds: ["req-gdpr-5", "ev-prazo-90dias", "find-02-node"],
       });
     } else if (step === 4) {
@@ -151,7 +153,7 @@ export default function Home() {
               ...f,
               status: "REOPENED_DRIFT",
               description:
-                "ALERTA DE DRIFT: O GDPR v2 reduziu o prazo máximo para 2 anos. O período contratual de 5 anos se tornou uma violação imediata.",
+                "POLICY DRIFT ALERT: GDPR v2 reduced maximum retention to 2 years. Contractual 5-year retention is now an immediate statutory violation.",
               severity: "CRITICAL",
             }
           : f
@@ -189,7 +191,7 @@ export default function Home() {
 
         {/* Scrollable Content */}
         <main className="flex-1 overflow-y-auto p-6 space-y-6">
-          {/* Controlador da Demo */}
+          {/* Demo Controller */}
           {showDemoController && (
             <DemoFlowController
               currentStep={demoStep}
@@ -198,10 +200,10 @@ export default function Home() {
             />
           )}
 
-          {/* Métricas Superiores */}
+          {/* Top Metrics */}
           <MetricsHeader />
 
-          {/* TAB 1: INVESTIGAÇÕES */}
+          {/* TAB 1: INVESTIGATIONS */}
           {activeTab === "investigations" && (
             <InvestigationsTable
               investigations={investigations}
@@ -213,20 +215,20 @@ export default function Home() {
             />
           )}
 
-          {/* TAB 2: NOVA INVESTIGAÇÃO */}
+          {/* TAB 2: NEW INVESTIGATION */}
           {activeTab === "new-investigation" && (
             <div className="py-2">
               <Dropzone onStartInvestigation={handleStartInvestigation} />
             </div>
           )}
 
-          {/* TAB 3: DASHBOARD & AGENTES & TRUST GRAPH */}
+          {/* TAB 3: DASHBOARD & AGENTS & TRUST GRAPH */}
           {activeTab === "dashboard" && (
             <div className="space-y-6">
               {/* Stepper */}
               <PipelineStepper currentStatus={pipelineStatus} />
 
-              {/* Informações do Documento */}
+              {/* Document Overview */}
               <div className="bg-[#171B1F] border border-[#2A3038] rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2">
@@ -238,7 +240,7 @@ export default function Home() {
                     </span>
                   </div>
                   <p className="text-xs text-[#9096A0] font-mono mt-1">
-                    Hash SHA-256: {currentInvestigation.documentHash}
+                    SHA-256 Hash: {currentInvestigation.documentHash}
                   </p>
                 </div>
 
@@ -247,7 +249,7 @@ export default function Home() {
                     onClick={() => handleDemoStepChange(3)}
                     className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-[#B8843A]/15 hover:bg-[#B8843A]/25 text-[#D4A559] border border-[#B8843A]/30 transition-colors"
                   >
-                    Simular Mudança Regulatória (Drift)
+                    Simulate Regulatory Change (Drift)
                   </button>
                 </div>
               </div>
@@ -266,30 +268,30 @@ export default function Home() {
                 isDrifting={isDriftActive}
               />
 
-              {/* Revisão Adversarial */}
+              {/* Adversarial Review */}
               <AdversarialReviewCard />
 
-              {/* Apontamentos de Auditoria */}
+              {/* Findings Panel */}
               <FindingsPanel
                 findings={findings}
                 onOpenEvidence={(f) => setSelectedFindingForEvidence(f)}
                 onApplyRemediation={(f) => setSelectedFindingForRemediation(f)}
               />
 
-              {/* Frota de Agentes */}
+              {/* Specialist Agent Fleet */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-                      Frota de Agentes Especialistas
+                      Specialist Agent Fleet
                     </h3>
                     <p className="text-xs text-[#9096A0]">
-                      Gemma (PII), Gemini Flash (Especialistas) e Gemini Pro (Adversarial Critic)
+                      Gemma 2B (PII), Gemini 1.5 Flash (Specialists) & Gemini 2.5 Pro (Adversarial Critic)
                     </p>
                   </div>
                   <div className="flex items-center gap-1.5 text-xs text-[#9096A0] font-mono">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#3B8F6B]" />
-                    <span>5 Agentes Provisionados</span>
+                    <span>5 Provisioned Agents</span>
                   </div>
                 </div>
 
@@ -302,7 +304,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* TAB 4: REMEDIAÇÃO & MUDANÇA (POLICY DRIFT) */}
+          {/* TAB 4: REMEDIATION & CHANGE (POLICY DRIFT) */}
           {activeTab === "remediation" && (
             <div className="space-y-6">
               <PolicyDriftPanel
@@ -326,7 +328,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* TAB 5: RELATÓRIO FINAL */}
+          {/* TAB 5: FINAL REPORT */}
           {activeTab === "report" && (
             <ComplianceReportView
               investigation={currentInvestigation}

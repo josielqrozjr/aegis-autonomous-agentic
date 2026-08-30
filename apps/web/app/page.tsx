@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Sidebar } from "@/components/navigation/sidebar";
 import { TopHeader } from "@/components/navigation/top-header";
 import { MetricsHeader } from "@/components/investigation/metrics-header";
@@ -8,16 +8,45 @@ import { Dropzone } from "@/components/upload/dropzone";
 import { PipelineStepper } from "@/components/investigation/pipeline-stepper";
 import { AgentCard } from "@/components/agents/agent-card";
 import { InvestigationsTable } from "@/components/investigation/investigations-table";
-import { MOCK_AGENTS, MOCK_INVESTIGATIONS } from "@/lib/mock-data";
-import { Investigation, InvestigationStatus } from "@/lib/types";
-import { ShieldCheck, Sparkles, RefreshCw, FileText, CheckCircle2, Play } from "lucide-react";
+import { TrustGraphViewer } from "@/components/trust-graph/trust-graph-viewer";
+import { PolicyDriftPanel } from "@/components/drift/policy-drift-panel";
+import { FindingsPanel } from "@/components/findings/findings-panel";
+import { SourceDocumentViewer } from "@/components/evidence/source-document-viewer";
+import { AdversarialReviewCard } from "@/components/audit/adversarial-review-card";
+import { RemediationModal } from "@/components/remediation/remediation-modal";
+import { 
+  MOCK_AGENTS, 
+  MOCK_INVESTIGATIONS, 
+  MOCK_FINDINGS, 
+  MOCK_TRUST_GRAPH_INITIAL 
+} from "@/lib/mock-data";
+import { Investigation, InvestigationStatus, Finding } from "@/lib/types";
+import { TrustGraphData, TrustGraphNode } from "@/lib/api/client";
+import { 
+  FileText, 
+  Play, 
+  Layers, 
+  Radio, 
+  ShieldCheck, 
+  AlertTriangle,
+  RefreshCw 
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("investigations");
   const [investigations, setInvestigations] = useState<Investigation[]>(MOCK_INVESTIGATIONS);
   const [currentInvestigation, setCurrentInvestigation] = useState<Investigation>(MOCK_INVESTIGATIONS[0]);
   const [agents, setAgents] = useState(MOCK_AGENTS);
-  const [pipelineStatus, setPipelineStatus] = useState<InvestigationStatus>("INVESTIGATING");
+  const [findings, setFindings] = useState<Finding[]>(MOCK_FINDINGS);
+  const [graphData, setGraphData] = useState<TrustGraphData>(MOCK_TRUST_GRAPH_INITIAL);
+  const [pipelineStatus, setPipelineStatus] = useState<InvestigationStatus>("COMPLETED");
+  
+  // Modals & Drawers state
+  const [selectedFindingForEvidence, setSelectedFindingForEvidence] = useState<Finding | null>(null);
+  const [selectedFindingForRemediation, setSelectedFindingForRemediation] = useState<Finding | null>(null);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [isDriftActive, setIsDriftActive] = useState(false);
 
   const handleStartInvestigation = (data: { fileName: string; content: string; frameworks: string[] }) => {
     const newId = `INV-2024-00${investigations.length + 48}`;
@@ -40,13 +69,12 @@ export default function Home() {
     setPipelineStatus("UNDERSTANDING");
     setActiveTab("dashboard");
 
-    // Simulação dos agentes trabalhando em cadeia
     setTimeout(() => {
       setPipelineStatus("PLANNING");
       setAgents((prev) =>
         prev.map((a) => (a.id === "pii-scanner" ? { ...a, status: "RUNNING" } : a))
       );
-    }, 1500);
+    }, 1200);
 
     setTimeout(() => {
       setPipelineStatus("INVESTIGATING");
@@ -59,7 +87,76 @@ export default function Home() {
             : a
         )
       );
-    }, 3500);
+    }, 2800);
+
+    setTimeout(() => {
+      setPipelineStatus("COMPLETED");
+      setAgents((prev) => prev.map((a) => ({ ...a, status: "COMPLETED" })));
+    }, 4500);
+  };
+
+  // Disparo da simulação de Policy Drift (Efeito Cascata no Trust Graph)
+  const handleDriftTriggered = (scenario: {
+    framework: string;
+    version: string;
+    description: string;
+    invalidatedNodeIds: string[];
+  }) => {
+    setIsDriftActive(true);
+
+    // Efeito cascata nos nós do grafo
+    setGraphData((prev) => ({
+      ...prev,
+      invalid_nodes: scenario.invalidatedNodeIds.length,
+      valid_nodes: prev.total_nodes - scenario.invalidatedNodeIds.length,
+      nodes: prev.nodes.map((node) => {
+        if (scenario.invalidatedNodeIds.includes(node.id)) {
+          return {
+            ...node,
+            valid: false,
+            invalidated_reason: scenario.description,
+            affected_by_change: true,
+          };
+        }
+        return node;
+      }),
+    }));
+
+    // Reabertura do finding afetado
+    setFindings((prev) =>
+      prev.map((f) =>
+        f.id === "FIND-02"
+          ? {
+              ...f,
+              status: "REOPENED_DRIFT",
+              description:
+                "ALERTA DE DRIFT: O GDPR v2 reduziu o prazo máximo para 2 anos. O período contratual de 5 anos se tornou uma violação imediata.",
+              severity: "CRITICAL",
+            }
+          : f
+      )
+    );
+  };
+
+  // Restaurar estado original do grafo
+  const handleResetDrift = () => {
+    setIsDriftActive(false);
+    setGraphData(MOCK_TRUST_GRAPH_INITIAL);
+    setFindings(MOCK_FINDINGS);
+  };
+
+  // Aplicar remediação
+  const handleApplyRemediation = (findingId: string) => {
+    setFindings((prev) =>
+      prev.map((f) => (f.id === findingId ? { ...f, status: "RESOLVED" } : f))
+    );
+    // Se o nó correspondente estiver no grafo, revalidar
+    setGraphData((prev) => ({
+      ...prev,
+      nodes: prev.nodes.map((n) =>
+        n.id.includes("find-02") ? { ...n, valid: true, invalidated_reason: null, affected_by_change: false } : n
+      ),
+    }));
   };
 
   return (
@@ -96,7 +193,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* TAB 3: DASHBOARD & AGENTES (LIVE STATUS) */}
+          {/* TAB 3: DASHBOARD & AGENTES & TRUST GRAPH */}
           {activeTab === "dashboard" && (
             <div className="space-y-6">
               {/* Barra de Progresso dos Estágios */}
@@ -125,21 +222,38 @@ export default function Home() {
 
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => {
-                      setPipelineStatus("ADVERSARIAL_REVIEW");
-                      setAgents((prev) =>
-                        prev.map((a) =>
-                          a.id === "evidence-critic" ? { ...a, status: "RUNNING" } : a
-                        )
-                      );
-                    }}
-                    className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-[#161f30] hover:bg-[#1f2c44] text-slate-200 border border-slate-700 transition-colors flex items-center gap-1.5"
+                    onClick={() => setActiveTab("remediation")}
+                    className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/30 transition-colors flex items-center gap-1.5"
                   >
-                    <Play className="w-3.5 h-3.5 text-cyan-400" />
-                    Simular Próxima Etapa
+                    <Radio className="w-3.5 h-3.5" />
+                    Simular Mudança Regulatória (Drift)
                   </button>
                 </div>
               </div>
+
+              {/* O Grafo de Confiança (Trust & Compliance Graph) */}
+              <TrustGraphViewer
+                graphData={graphData}
+                onNodeSelect={(node) => {
+                  setSelectedNodeId(node.id);
+                  if (node.type === "finding") {
+                    const found = findings.find((f) => node.source.includes(f.id));
+                    if (found) setSelectedFindingForEvidence(found);
+                  }
+                }}
+                selectedNodeId={selectedNodeId}
+                isDrifting={isDriftActive}
+              />
+
+              {/* Camada de Revisão Adversarial (Evidence Critic) */}
+              <AdversarialReviewCard />
+
+              {/* Painel de Apontamentos & Findings com Citações e Hashes */}
+              <FindingsPanel
+                findings={findings}
+                onOpenEvidence={(f) => setSelectedFindingForEvidence(f)}
+                onApplyRemediation={(f) => setSelectedFindingForRemediation(f)}
+              />
 
               {/* Grid dos Agentes Especialistas */}
               <div>
@@ -149,7 +263,7 @@ export default function Home() {
                       Painel de Atividade dos Agentes Especialistas
                     </h3>
                     <p className="text-xs text-slate-400">
-                      Monitoramento em tempo real da malha autônoma de raciocínio
+                      Orquestração multiagente: Gemma (PII), Gemini Flash (Especialistas) e Gemini Pro (Adversarial Critic)
                     </p>
                   </div>
                   <div className="flex items-center gap-1.5 text-xs text-slate-400">
@@ -167,41 +281,86 @@ export default function Home() {
             </div>
           )}
 
-          {/* TAB 4: REMEDIAÇÃO & MUDANÇA (POLICY DRIFT PREVIEW) */}
+          {/* TAB 4: REMEDIAÇÃO & MUDANÇA (POLICY DRIFT) */}
           {activeTab === "remediation" && (
-            <div className="bg-[#0d121d] border border-[#1e293b] rounded-xl p-8 text-center max-w-2xl mx-auto space-y-4 my-8">
-              <div className="w-14 h-14 rounded-full bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mx-auto">
-                <RefreshCw className="w-7 h-7" />
-              </div>
-              <h3 className="text-xl font-bold text-white">Módulo de Mudança Regulatória (Policy Drift)</h3>
-              <p className="text-sm text-slate-400 leading-relaxed">
-                Este módulo do <strong>Dia 2</strong> simula alterações repentinas em normas (ex.: prazo do GDPR reduzido de 5 para 2 anos), disparando o recálculo do raio de impacto (*blast radius*) e o efeito cascata de invalidação no Trust Graph.
-              </p>
-              <div className="pt-2">
-                <button
-                  onClick={() => setActiveTab("dashboard")}
-                  className="px-4 py-2 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white transition-colors"
-                >
-                  Voltar ao Dashboard de Agentes
-                </button>
-              </div>
+            <div className="space-y-6">
+              {/* Painel de Disparo de Mudança */}
+              <PolicyDriftPanel
+                onDriftTriggered={handleDriftTriggered}
+                onReset={handleResetDrift}
+                isDriftActive={isDriftActive}
+              />
+
+              {/* Visualização do Grafo de Confiança com Efeito Cascata */}
+              <TrustGraphViewer
+                graphData={graphData}
+                onNodeSelect={(node) => setSelectedNodeId(node.id)}
+                selectedNodeId={selectedNodeId}
+                isDrifting={isDriftActive}
+              />
+
+              {/* Apontamentos Reabertos pós Drift */}
+              <FindingsPanel
+                findings={findings.filter((f) => isDriftActive ? f.status === "REOPENED_DRIFT" || f.severity === "CRITICAL" : true)}
+                onOpenEvidence={(f) => setSelectedFindingForEvidence(f)}
+                onApplyRemediation={(f) => setSelectedFindingForRemediation(f)}
+              />
             </div>
           )}
 
           {/* TAB 5: RELATÓRIO FINAL */}
           {activeTab === "report" && (
-            <div className="bg-[#0d121d] border border-[#1e293b] rounded-xl p-8 text-center max-w-2xl mx-auto space-y-4 my-8">
-              <div className="w-14 h-14 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mx-auto">
-                <CheckCircle2 className="w-7 h-7" />
+            <div className="bg-[#0d121d] border border-[#1e293b] rounded-xl p-8 max-w-3xl mx-auto space-y-6 my-4">
+              <div className="flex items-center justify-between border-b border-[#1e293b] pb-4">
+                <div>
+                  <h3 className="text-xl font-bold text-white">Dossiê de Conformidade Regulatória</h3>
+                  <p className="text-xs text-slate-400 mt-0.5">AEGIS Compliance Engine · ID: INV-2024-0047</p>
+                </div>
+                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4" /> Certificado Válido
+                </span>
               </div>
-              <h3 className="text-xl font-bold text-white">Relatório de Conformidade Auditável</h3>
-              <p className="text-sm text-slate-400 leading-relaxed">
-                Geração do dossiê final de auditoria com hashes de integridade, citações regulatórias exatas e certificados de conformidade do AEGIS.
-              </p>
+
+              <div className="grid grid-cols-3 gap-3 text-center">
+                <div className="p-3 rounded-lg bg-[#111726] border border-slate-800">
+                  <span className="text-[10px] uppercase font-bold text-slate-500 block">Grafo de Confiança</span>
+                  <span className="text-lg font-bold font-mono text-emerald-400">
+                    {graphData.valid_nodes}/{graphData.total_nodes} Válidos
+                  </span>
+                </div>
+                <div className="p-3 rounded-lg bg-[#111726] border border-slate-800">
+                  <span className="text-[10px] uppercase font-bold text-slate-500 block">Revisão Adversarial</span>
+                  <span className="text-lg font-bold font-mono text-purple-400">Gemini 2.5 Pro</span>
+                </div>
+                <div className="p-3 rounded-lg bg-[#111726] border border-slate-800">
+                  <span className="text-[10px] uppercase font-bold text-slate-500 block">Hashes de Prova</span>
+                  <span className="text-lg font-bold font-mono text-cyan-400">100% Auditados</span>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-lg bg-[#080b11] border border-slate-800 space-y-2 text-xs text-slate-300">
+                <p className="font-semibold text-white">Resumo Executivo de Auditoria:</p>
+                <p>
+                  O documento <strong>politica_retencao_dados_v2.pdf</strong> foi submetido à análise autônoma de 4 especialistas regulatórios (LGPD, GDPR, ISO 27001 e Gemma PII Scanner), tendo cada apontamento validado pelo Evidence Critic.
+                </p>
+              </div>
             </div>
           )}
         </main>
       </div>
+
+      {/* Gaveta Lateral de Visualização do Documento Fonte com Destaque */}
+      <SourceDocumentViewer
+        finding={selectedFindingForEvidence}
+        onClose={() => setSelectedFindingForEvidence(null)}
+      />
+
+      {/* Modal de Remediação */}
+      <RemediationModal
+        finding={selectedFindingForRemediation}
+        onClose={() => setSelectedFindingForRemediation(null)}
+        onApply={handleApplyRemediation}
+      />
     </div>
   );
 }

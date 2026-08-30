@@ -12,16 +12,35 @@ AEGIS Corp em suas operações no Brasil e na União Europeia.
 2. CLASSIFICAÇÃO DE DADOS E COLETA
 2.1. A empresa coleta dados cadastrais (nome, e-mail, documento de identificação) no momento da contratação.
 2.2. Coletamos dados de geolocalização e histórico de navegação para fins de marketing sem consentimento explícito.
+2.3. Dados sensíveis (biometria, dados de saúde) poderão ser coletados para controle de acesso físico,
+com base no legítimo interesse da empresa.
 
 3. PRAZOS GERAIS DE CUSTÓDIA E BASES LEGAIS
 3.1. Dados de clientes ativos serão mantidos durante a vigência do relacionamento comercial.
 3.2. Todos os dados cadastrais de clientes inativos permanecerão arquivados por prazo fixo de 10 (dez) anos para eventual auditoria interna.
+3.3. A base legal para o tratamento descrito no item 3.2 não foi formalmente documentada.
 
 4. TELEMETRIA, LOGS DE SERVIDORES E AUDITORIA TÉCNICA
 4.1. Logs de auditoria, IPs e telemetria de tráfego de usuários globais (inclusive UE) são retidos por 10 anos em storage frio.
 4.2. Os dados em trânsito são criptografados com TLS 1.2 / TLS 1.3 para assegurar integridade.
+4.3. Logs de acesso de administradores contêm endereço IP de origem, user agent e timestamp completo.
 
 5. PROCEDIMENTO DE EXPURGO E DESCARTE DE MÍDIAS
 5.1. Ao término do prazo estipulado, os dados deverão ser eliminados com segurança.
 5.2. O descarte de dados estruturados em bancos relacionais será executado por exclusão lógica.
 5.3. As mídias e snapshots legados serão apagados periodicamente conforme conveniência operacional da equipe de TI.
+5.4. Não há procedimento documentado de verificação pós-descarte.
+
+6. DIREITOS DOS TITULARES DE DADOS
+6.1. A empresa reconhece o direito de acesso, retificação e portabilidade de dados dos titulares.
+6.2. Solicitações de exclusão (direito ao esquecimento) serão analisadas caso a caso pela equipe jurídica,
+sem prazo máximo definido para resposta.
+6.3. Não há portal de autoatendimento para que o titular exerça seus direitos diretamente.
+6.4. O DPO da empresa acumula funções com o departamento jurídico corporativo.
+
+7. TRANSFERÊNCIA INTERNACIONAL DE DADOS
+7.1. Dados de clientes europeus podem ser processados em servidores localizados no Brasil
+para fins de consolidação de relatórios gerenciais.
+7.2. A transferência é realizada sem cláusulas contratuais padrão (SCCs) ou decisão de adequação vigente.
+7.3. Backups de dados de clientes brasileiros são replicados em data center nos Estados Unidos
+sem avaliação de impacto de transferência internacional (TIA).

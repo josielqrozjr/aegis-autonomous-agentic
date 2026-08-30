@@ -44,37 +44,84 @@ class PrivacyAgent(BaseAgent):
         document = context.get("document", {})
         doc_id = document.get("id", "doc-unknown")
         raw_text = document.get("raw_text") or ""
+        normalized_text = " ".join(raw_text.split()).lower()
 
-        
-        quote = "Todos os dados cadastrais de clientes inativos permanecerão arquivados por prazo fixo de 10 (dez) anos para eventual auditoria interna."
-        if "geolocalização" in raw_text.lower():
-            quote = "Coletamos dados de geolocalização e histórico de navegação para fins de marketing sem consentimento explícito."
+        def make_finding(requirement_id: str, title: str, description: str, quote: str, section_id: str, page_number: int, provenance: str, confidence: float, severity: FindingSeverity) -> Finding:
+            return Finding(
+                id=f"finding-{uuid.uuid4().hex[:8]}",
+                investigation_id=task.investigation_id if task else "inv-default",
+                requirement_id=requirement_id,
+                agent_id=self.agent_id,
+                title=title,
+                description=description,
+                severity=severity,
+                status=FindingStatus.OPEN,
+                confidence=confidence,
+                evidences=[Evidence(
+                    id=f"ev-{uuid.uuid4().hex[:8]}",
+                    document_id=doc_id,
+                    page_number=page_number,
+                    section_id=section_id,
+                    quote=quote,
+                    provenance=provenance,
+                    confidence_score=confidence,
+                    content_hash=self._compute_hash(quote),
+                    dependencies=[doc_id],
+                )],
+            )
 
-        content_hash = self._compute_hash(quote)
+        findings = []
 
-        evidence = Evidence(
-            id=f"ev-{uuid.uuid4().hex[:8]}",
-            document_id=doc_id,
-            page_number=2,
-            section_id="sec-3.2",
-            quote=quote,
-            provenance="Seção 3.2 - Prazos Gerais de Custódia",
-            confidence_score=0.96,
-            content_hash=content_hash,
-            dependencies=[doc_id],
-        )
+        if "dados cadastrais" in normalized_text or "clientes inativos" in normalized_text:
+            findings.append(make_finding(
+                requirement_id="LGPD-ART-16",
+                title="Retenção Excessiva de Dados Cadastrais Após Término da Finalidade",
+                description="A política estipula prazo de retenção automática de 10 anos sem justificativa de base legal ou consentimento para clientes inativos.",
+                quote="Todos os dados cadastrais de clientes inativos permanecerão arquivados por prazo fixo de 10 (dez) anos para eventual auditoria interna.",
+                section_id="sec-3.2",
+                page_number=2,
+                provenance="Seção 3.2 - Prazos Gerais de Custódia",
+                confidence=0.94,
+                severity=FindingSeverity.HIGH,
+            ))
 
-        finding = Finding(
-            id=f"finding-{uuid.uuid4().hex[:8]}",
-            investigation_id=task.investigation_id if task else "inv-default",
-            requirement_id="LGPD-ART-16",
-            agent_id=self.agent_id,
-            title="Retenção Excessiva de Dados Cadastrais Após Término da Finalidade",
-            description="A política estipula prazo de retenção automática de 10 anos sem justificativa de base legal ou consentimento para clientes inativos.",
-            severity=FindingSeverity.HIGH,
-            status=FindingStatus.OPEN,
-            confidence=0.94,
-            evidences=[evidence],
-        )
+        if "geolocalização" in normalized_text or "sem consentimento explícito" in normalized_text:
+            findings.append(make_finding(
+                requirement_id="LGPD-ART-7",
+                title="Coleta de Dados Sem Base Legal Adequada",
+                description="A política descreve coleta de geolocalização e histórico de navegação para marketing sem consentimento explícito, sem base legal robusta para o tratamento.",
+                quote="Coletamos dados de geolocalização e histórico de navegação para fins de marketing sem consentimento explícito.",
+                section_id="sec-2.2",
+                page_number=2,
+                provenance="Seção 2.2 - Classificação de Dados e Coleta",
+                confidence=0.92,
+                severity=FindingSeverity.HIGH,
+            ))
 
-        return {"findings": [finding.model_dump()]}
+        if "exclusão" in normalized_text and ("prazo máximo" in normalized_text or "direito ao esquecimento" in normalized_text):
+            findings.append(make_finding(
+                requirement_id="GDPR-ART-17",
+                title="Ausência de Prazo Máximo para Resposta ao Direito de Exclusão",
+                description="A política não define prazo máximo para responder a solicitações de exclusão do titular, deixando o tratamento dependente do critério interno da equipe jurídica.",
+                quote="Solicitações de exclusão (direito ao esquecimento) serão analisadas caso a caso pela equipe jurídica, sem prazo máximo definido para resposta.",
+                section_id="sec-6.2",
+                page_number=2,
+                provenance="Seção 6.2 - Direitos dos Titulares",
+                confidence=0.9,
+                severity=FindingSeverity.HIGH,
+            ))
+
+        if not findings:
+            findings.append(make_finding(
+                requirement_id="LGPD-ART-16",
+                title="Retenção Excessiva de Dados Cadastrais Após Término da Finalidade",
+                description="A política estipula prazo de retenção automática de 10 anos sem justificativa de base legal ou consentimento para clientes inativos.",
+                quote="Todos os dados cadastrais de clientes inativos permanecerão arquivados por prazo fixo de 10 (dez) anos para eventual auditoria interna.",
+                section_id="sec-3.2",
+                page_number=2,
+                provenance="Seção 3.2 - Prazos Gerais de Custódia",
+                confidence=0.94,
+                severity=FindingSeverity.HIGH,
+            ))
+
+        return {"findings": [f.model_dump() for f in findings]}

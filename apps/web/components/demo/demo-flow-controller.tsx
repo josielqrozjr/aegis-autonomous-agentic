@@ -2,7 +2,6 @@
 
 import React from "react";
 import { cn } from "@/lib/utils";
-import { useLanguage } from "@/lib/i18n/language-context";
 
 interface DemoFlowControllerProps {
   onStepChange: (step: number) => void;
@@ -11,13 +10,11 @@ interface DemoFlowControllerProps {
 }
 
 export function DemoFlowController({ onStepChange, currentStep, onReset }: DemoFlowControllerProps) {
-  const { t } = useLanguage();
-
   const steps = [
-    { step: 1, title: t("demo_step1_title"), desc: t("demo_step1_desc") },
-    { step: 2, title: t("demo_step2_title"), desc: t("demo_step2_desc") },
-    { step: 3, title: t("demo_step3_title"), desc: t("demo_step3_desc") },
-    { step: 4, title: t("demo_step4_title"), desc: t("demo_step4_desc") },
+    { step: 1, title: "1. Upload & PII", desc: "Gemma 2B Scan" },
+    { step: 2, title: "2. Analysis & Critique", desc: "Gemini Flash & Pro" },
+    { step: 3, title: "3. Policy Drift", desc: "GDPR v2 Cascade" },
+    { step: 4, title: "4. Dossier & PDF", desc: "Report Generation" },
   ];
 
   return (
@@ -26,35 +23,32 @@ export function DemoFlowController({ onStepChange, currentStep, onReset }: DemoF
         <div>
           <div className="flex items-center gap-2">
             <h3 className="text-xs font-bold uppercase tracking-wider text-white">
-              {t("demo_title")}
+              4-Step Demonstration
             </h3>
-            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#0D1013] text-[#B8843A] border border-[#2A3038]">
-              {t("demo_step")} {currentStep} {t("demo_of")} 4
-            </span>
           </div>
           <p className="text-[11px] text-[#9096A0] mt-0.5">
-            {t("demo_subtitle")}
+            Automated walkthrough to evaluate multi-agent intelligence and Trust Graph provenance.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <button
             onClick={onReset}
-            className="px-3 py-1.5 rounded text-xs font-medium bg-[#0D1013] hover:bg-[#21262B] text-[#9096A0] hover:text-white border border-[#2A3038] transition-colors"
+            className="px-3 py-1.5 rounded text-xs font-medium bg-[#0D1013] hover:bg-[#21262B] text-[#9096A0] hover:text-white border border-[#2A3038] transition-colors cursor-pointer"
           >
-            {t("demo_reset")}
+            Reset
           </button>
 
           {currentStep < 4 ? (
             <button
               onClick={() => onStepChange(currentStep + 1)}
-              className="px-3.5 py-1.5 rounded text-xs font-semibold bg-[#B8843A] hover:bg-[#CCA159] text-[#0D1013] transition-colors"
+              className="px-3.5 py-1.5 rounded text-xs font-semibold bg-[#B8843A] hover:bg-[#CCA159] text-[#0D1013] transition-colors cursor-pointer"
             >
-              {t("demo_advance")}
+              Next Step
             </button>
           ) : (
             <span className="px-3 py-1.5 rounded text-xs font-medium text-[#3B8F6B] bg-[#3B8F6B]/15 border border-[#3B8F6B]/30 font-mono">
-              {t("demo_done")}
+              ✓ Demo Complete
             </span>
           )}
         </div>
@@ -70,7 +64,7 @@ export function DemoFlowController({ onStepChange, currentStep, onReset }: DemoF
               key={s.step}
               onClick={() => onStepChange(s.step)}
               className={cn(
-                "p-2 rounded-lg border text-left transition-all text-xs",
+                "p-2 rounded-lg border text-left transition-all text-xs cursor-pointer",
                 isActive
                   ? "bg-[#0D1013] border-[#B8843A] text-white"
                   : isDone

@@ -72,11 +72,49 @@ export const MOCK_INVESTIGATIONS: Investigation[] = [
     progressPercent: 100,
     frameworks: ["LGPD", "GDPR", "ISO 27001"],
     findingsCount: {
-      total: 6,
+      total: 4,
       critical: 2,
       high: 2,
+      medium: 0,
+      low: 0,
+    },
+  },
+  {
+    id: "INV-2024-0048",
+    title: "Cloud Security & AI Governance Normative Directive",
+    documentName: "cloud_security_and_ai_governance_normative.pdf",
+    documentHash: "b4c8d1e2f3a4b5c6d7e8f90123456789abcdef0123456789abcdef0123456789",
+    fileSizeBytes: 184200,
+    createdAt: "2026-08-30T16:00:00Z",
+    updatedAt: "2026-08-30T17:15:00Z",
+    status: "COMPLETED",
+    progressPercent: 100,
+    frameworks: ["ISO 27001", "LGPD", "OWASP"],
+    findingsCount: {
+      total: 3,
+      critical: 1,
+      high: 1,
       medium: 1,
-      low: 1,
+      low: 0,
+    },
+  },
+  {
+    id: "INV-2024-0049",
+    title: "Enterprise SaaS Vendor Data Processing Agreement (DPA)",
+    documentName: "enterprise_saas_vendor_dpa_contract.pdf",
+    documentHash: "c5d9e2f3a4b5c6d7e8f90123456789abcdef0123456789abcdef0123456789a1",
+    fileSizeBytes: 312500,
+    createdAt: "2026-08-30T17:30:00Z",
+    updatedAt: "2026-08-30T18:45:00Z",
+    status: "COMPLETED",
+    progressPercent: 100,
+    frameworks: ["GDPR", "LGPD"],
+    findingsCount: {
+      total: 4,
+      critical: 2,
+      high: 1,
+      medium: 1,
+      low: 0,
     },
   },
   {
@@ -91,16 +129,17 @@ export const MOCK_INVESTIGATIONS: Investigation[] = [
     progressPercent: 100,
     frameworks: ["LGPD", "OWASP"],
     findingsCount: {
-      total: 4,
+      total: 2,
       critical: 1,
       high: 1,
-      medium: 1,
-      low: 1,
+      medium: 0,
+      low: 0,
     },
   },
 ];
 
 export const MOCK_FINDINGS: Finding[] = [
+  // Findings for INV-2024-0047 (Retention Policy)
   {
     id: "FIND-01",
     investigationId: "INV-2024-0047",
@@ -171,6 +210,116 @@ export const MOCK_FINDINGS: Finding[] = [
     status: "OPEN",
     challengedByCritic: true,
     criticVerdict: "Critical: Shared credentials eliminate individual session traceability required by ISO 27001.",
+  },
+
+  // Findings for INV-2024-0048 (Normative AI & Cloud Security Directive)
+  {
+    id: "FIND-05",
+    investigationId: "INV-2024-0048",
+    title: "Cleartext Logging of External User PII in AI Inference Prompts",
+    description: "Section 3.1 permits external prompts containing user names, tax IDs (CPF) and bank details to be stored unredacted in cleartext logs.",
+    severity: "CRITICAL",
+    framework: "LGPD",
+    articleOrControl: "Art. 46 (Security Measures) & Art. 6 (Security Principle)",
+    agentId: "pii-scanner",
+    agentName: "PII Scanner (Gemma 2B)",
+    confidence: 0.98,
+    evidenceQuote: "Prompts submitted by external users containing names, tax IDs (CPF), and financial account numbers are logged in cleartext for quality assurance...",
+    evidenceHash: "9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b",
+    remediationSuggestion: "Deploy real-time PII anonymization interceptor (Gemma 2B) before persisting prompt logs.",
+    status: "OPEN",
+    challengedByCritic: true,
+    criticVerdict: "Confirmed: Logging raw CPF and banking numbers in plain text violates basic LGPD security standards.",
+  },
+  {
+    id: "FIND-06",
+    investigationId: "INV-2024-0048",
+    title: "Hardcoded API Keys in Client-Side Configuration Bundles",
+    description: "Section 2.1 authorizes client-side embedding of production LLM API credentials with mere obfuscation, exposing secrets to extraction.",
+    severity: "HIGH",
+    framework: "OWASP",
+    articleOrControl: "OWASP LLM06 (Sensitive Information Disclosure) & ISO A.8.24",
+    agentId: "iso-specialist",
+    agentName: "ISO 27001 Specialist (Gemini Flash)",
+    confidence: 0.94,
+    evidenceQuote: "API keys for production LLM endpoints may be embedded in client-side configuration bundles provided they are obfuscated.",
+    evidenceHash: "3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f",
+    remediationSuggestion: "Enforce server-side proxy gateway architecture with secret management vault (GCP Secret Manager).",
+    status: "OPEN",
+    challengedByCritic: true,
+    criticVerdict: "Validated: Obfuscation is not encryption. Client-side secrets are trivially extractable by reverse engineering.",
+  },
+  {
+    id: "FIND-07",
+    investigationId: "INV-2024-0048",
+    title: "Exemption of Service Accounts from Periodic Credential Rotation",
+    description: "Section 2.2 exempts automated service accounts from regular secret rotation cycles, increasing dormant credential exposure risk.",
+    severity: "MEDIUM",
+    framework: "ISO 27001",
+    articleOrControl: "Control A.5.17 (Authentication Information)",
+    agentId: "iso-specialist",
+    agentName: "ISO 27001 Specialist (Gemini Flash)",
+    confidence: 0.89,
+    evidenceQuote: "...however, service accounts are exempt from periodic credential rotation.",
+    evidenceHash: "2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a",
+    remediationSuggestion: "Enforce automated 90-day key rotation for service accounts or transition to Workload Identity Federation.",
+    status: "OPEN",
+    challengedByCritic: false,
+  },
+
+  // Findings for INV-2024-0049 (Commercial DPA Contract)
+  {
+    id: "FIND-08",
+    investigationId: "INV-2024-0049",
+    title: "Unilateral Sub-Processor Engagement Without Prior Written Notice",
+    description: "Section 2.1 authorizes secondary sub-processors in third countries without prior written notification to the Controller, breaching GDPR Art. 28(2).",
+    severity: "CRITICAL",
+    framework: "GDPR",
+    articleOrControl: "Art. 28(2) & Art. 28(4) (Processor Obligations)",
+    agentId: "gdpr-specialist",
+    agentName: "GDPR Specialist (Gemini Flash)",
+    confidence: 0.96,
+    evidenceQuote: "The Processor is authorized to engage secondary sub-processors in third countries without prior written notification to Controller...",
+    evidenceHash: "4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e",
+    remediationSuggestion: "Require at least 30 days prior written notice with express right to object before onboarding sub-processors.",
+    status: "OPEN",
+    challengedByCritic: true,
+    criticVerdict: "Confirmed: GDPR Article 28(2) strictly prohibits processor appointment of sub-processors without specific or general written authorization.",
+  },
+  {
+    id: "FIND-09",
+    investigationId: "INV-2024-0049",
+    title: "Post-Termination Commercial Retention of Personal Data (7 Years)",
+    description: "Section 4.1 allows Processor to retain unencrypted customer transaction records for 7 years for commercial benchmarking following service termination.",
+    severity: "CRITICAL",
+    framework: "LGPD",
+    articleOrControl: "Art. 16 (Termination of Processing) & GDPR Art. 28(3)(g)",
+    agentId: "lgpd-specialist",
+    agentName: "LGPD Specialist (Gemini Flash)",
+    confidence: 0.95,
+    evidenceQuote: "Upon termination of the Services, Processor shall retain an unencrypted copy of user transaction logs for seven (7) years for commercial benchmarking purposes.",
+    evidenceHash: "1a0b9c8d7e6f5a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b",
+    remediationSuggestion: "Mandate complete deletion or return of all personal data upon termination, barring statutory fiscal retention duties.",
+    status: "OPEN",
+    challengedByCritic: true,
+    criticVerdict: "Validated: Commercial benchmarking is not a statutory lawful basis for post-termination processor retention.",
+  },
+  {
+    id: "FIND-10",
+    investigationId: "INV-2024-0049",
+    title: "Delayed Data Breach Notification Window (7 Business Days)",
+    description: "Section 3.1 extends incident notification to 7 business days following internal technical closure, exceeding standard regulatory urgency thresholds.",
+    severity: "HIGH",
+    framework: "GDPR",
+    articleOrControl: "Art. 33(2) (Notification to Controller Without Undue Delay)",
+    agentId: "gdpr-specialist",
+    agentName: "GDPR Specialist (Gemini Flash)",
+    confidence: 0.91,
+    evidenceQuote: "...Processor shall notify Controller within seven (7) business days of completing its internal technical investigation.",
+    evidenceHash: "7e6f5a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f",
+    remediationSuggestion: "Update notification SLA to maximum 48 hours from initial detection of confirmed security compromise.",
+    status: "OPEN",
+    challengedByCritic: false,
   },
 ];
 
@@ -295,8 +444,10 @@ export const MOCK_TRUST_GRAPH_INITIAL: TrustGraphData = {
 
 export const SAMPLE_POLICIES = [
   {
-    name: "Corporate Data Retention Policy — Synthetic BR/EU",
-    description: "Official multi-jurisdiction demo scenario (LGPD + GDPR + ISO 27001)",
+    name: "Corporate Data Retention Policy (Multi-Jurisdiction)",
+    filename: "corporate_data_retention_policy_v2.pdf",
+    description: "Multi-jurisdiction policy covering user data, server logs and right to erasure (LGPD + GDPR + ISO 27001)",
+    category: "Corporate Policy",
     frameworks: ["LGPD", "GDPR", "ISO 27001"],
     sampleContent: `CORPORATE DATA RETENTION & PRIVACY POLICY
 Version 2.4 — September 2026
@@ -315,5 +466,51 @@ This policy establishes governing rules for storage, processing, and disposal of
 
 4. SECURITY & ENCRYPTION
 4.1. Data in transit is secured with TLS 1.3. Analytical databases utilize shared passwords restricted to the engineering team.`,
+  },
+  {
+    name: "Cloud Security & AI Governance Normative Standard",
+    filename: "cloud_security_and_ai_governance_normative.pdf",
+    description: "Normative directive defining LLM inference, API credential management and audit trails (ISO 27001 + LGPD + OWASP)",
+    category: "Normative Standard",
+    frameworks: ["ISO 27001", "LGPD", "OWASP"],
+    sampleContent: `AEGIS NORMATIVE DIRECTIVE: CLOUD SECURITY & AI SYSTEM GOVERNANCE (ND-2026-04)
+Classification: Internal Corporate Standard
+Applicable Jurisdictions: Global & Brazil Operations
+
+1. OBJECTIVE & NORMATIVE APPLICATION
+This directive defines information security and artificial intelligence controls for large language models (LLMs), automated inference pipelines, and multi-tenant cloud storage.
+
+2. ACCESS CONTROL & CREDENTIAL MANAGEMENT
+2.1. API keys for production LLM endpoints may be embedded in client-side configuration bundles provided they are obfuscated.
+2.2. Multi-factor authentication (MFA) is mandatory for administrative cloud consoles; however, service accounts are exempt from periodic credential rotation.
+
+3. AI INFERENCE & PII PROCESSING
+3.1. Prompts submitted by external users containing names, tax IDs (CPF), and financial account numbers are logged in cleartext for quality assurance and model fine-tuning.
+3.2. Training datasets shall undergo automated sanitization before retention in persistent vector databases.
+
+4. AUDIT TRAILS & CRYPTOGRAPHIC STANDARDS
+4.1. Audit logs are preserved for 180 days with SHA-256 integrity sealing.`,
+  },
+  {
+    name: "Enterprise SaaS Vendor Data Processing Agreement (DPA)",
+    filename: "enterprise_saas_vendor_dpa_contract.pdf",
+    description: "Commercial controller-to-processor contract on international data transfers, sub-processors and breach notification (GDPR + LGPD)",
+    category: "Commercial Contract",
+    frameworks: ["GDPR", "LGPD"],
+    sampleContent: `MASTER SERVICES AGREEMENT: DATA PROCESSING ADDENDUM (DPA-2026-EU/BR)
+Parties: AEGIS Technologies S.A. (Controller) & CloudMatrix Global Ltd. (Processor)
+
+1. SUBJECT MATTER & PROCESSING INSTRUCTIONS
+The Processor agrees to process personal data solely in accordance with Controller's documented instructions and applicable data protection regulations (GDPR Art. 28 and LGPD Art. 39).
+
+2. CROSS-BORDER DATA TRANSFERS & SUB-PROCESSORS
+2.1. The Processor is authorized to engage secondary sub-processors in third countries without prior written notification to Controller, provided standard industry practices are maintained.
+2.2. International transfers of European and Brazilian resident data to jurisdictions lacking adequacy decisions shall rely on internal Processor assurances without Standard Contractual Clauses (SCCs).
+
+3. DATA BREACH NOTIFICATION & INCIDENT RESPONSE
+3.1. In the event of a confirmed personal data breach affecting Controller data, Processor shall notify Controller within seven (7) business days of completing its internal technical investigation.
+
+4. TERMINATION, DATA RETURN & ERASURE
+4.1. Upon termination of the Services, Processor shall retain an unencrypted copy of user transaction logs for seven (7) years for commercial benchmarking purposes.`,
   },
 ];

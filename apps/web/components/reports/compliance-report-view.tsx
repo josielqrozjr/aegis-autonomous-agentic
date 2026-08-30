@@ -20,7 +20,7 @@ export function ComplianceReportView({ investigation, findings, graphData }: Com
   };
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
+    <div className="space-y-6 w-full">
       {/* Top Action Bar */}
       <div className="flex items-center justify-between bg-[#171B1F] border border-[#2A3038] p-4 rounded-xl print:hidden">
         <div>

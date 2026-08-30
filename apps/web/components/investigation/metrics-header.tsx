@@ -1,16 +1,48 @@
 "use client";
 
 import React from "react";
-import { useLanguage } from "@/lib/i18n/language-context";
+import { cn } from "@/lib/utils";
 
-export function MetricsHeader() {
-  const { t } = useLanguage();
+interface MetricsHeaderProps {
+  onNavigate?: (tabId: string) => void;
+  totalInvestigations?: number;
+  activeAgents?: number;
+  findingsCount?: number;
+  remediationsCount?: number;
+}
 
+export function MetricsHeader({
+  onNavigate,
+  totalInvestigations = 2,
+  activeAgents = 5,
+  findingsCount = 4,
+  remediationsCount = 0,
+}: MetricsHeaderProps) {
   const metrics = [
-    { label: t("metric_total"), value: "47", helper: t("metric_total_helper") },
-    { label: t("metric_active"), value: "2", helper: t("metric_active_helper"), highlight: true },
-    { label: t("metric_findings"), value: "18", helper: t("metric_findings_helper") },
-    { label: t("metric_remediations"), value: "9", helper: t("metric_remediations_helper") },
+    {
+      targetTab: "investigations",
+      label: "Total Investigations",
+      value: `${totalInvestigations}`,
+      helper: "audits processed",
+    },
+    {
+      targetTab: "new-investigation",
+      label: "Active AI Fleet",
+      value: `${activeAgents}`,
+      helper: "autonomous agents online",
+    },
+    {
+      targetTab: "dashboard",
+      label: "Findings Identified",
+      value: `${findingsCount}`,
+      helper: "verified audit findings",
+    },
+    {
+      targetTab: "remediation",
+      label: "Remediations Applied",
+      value: `${remediationsCount}`,
+      helper: "compliance patches active",
+    },
   ];
 
   return (
@@ -18,15 +50,19 @@ export function MetricsHeader() {
       {metrics.map((m, idx) => (
         <div
           key={idx}
-          className="bg-[#171B1F] border border-[#2A3038] rounded-xl p-4 transition-colors hover:border-[#38414D]"
+          onClick={() => onNavigate && onNavigate(m.targetTab)}
+          className={cn(
+            "bg-[#171B1F] border border-[#2A3038] rounded-xl p-4 text-center flex flex-col items-center justify-center transition-all duration-200 group",
+            onNavigate && "cursor-pointer hover:border-[#B8843A] hover:shadow-lg hover:shadow-black/40 hover:-translate-y-0.5"
+          )}
         >
-          <div className="text-[11px] font-medium text-[#9096A0] uppercase tracking-wider mb-1">
+          <div className="text-[11px] font-mono font-medium text-[#9096A0] uppercase tracking-wider mb-1 text-center group-hover:text-[#B8843A] transition-colors">
             {m.label}
           </div>
-          <div className="text-2xl font-bold font-mono text-white tracking-tight">
+          <div className="text-3xl font-bold font-mono text-white tracking-tight my-0.5 text-center group-hover:text-[#B8843A] transition-colors">
             {m.value}
           </div>
-          <div className="text-[11px] text-[#5C636E] mt-1 font-mono">
+          <div className="text-[11px] text-[#5C636E] mt-0.5 font-mono text-center">
             {m.helper}
           </div>
         </div>

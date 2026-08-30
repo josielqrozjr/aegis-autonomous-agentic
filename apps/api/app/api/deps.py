@@ -1,25 +1,86 @@
-"""Dependency injection — provides repository instances to route handlers."""
+"""Dependency injection — provides repository instances to route handlers.
 
-from apps.api.app.infrastructure.memory.repositories import (
-    MemoryInvestigationRepository,
-    MemoryDocumentRepository,
-    MemoryFindingRepository,
-    MemoryRemediationRepository,
-    MemoryRegulatoryChangeRepository,
-    MemoryAuditRepository,
-)
+Set PERSISTENCE_BACKEND=firestore to use Firestore (requires google-cloud-firestore).
+Defaults to in-memory for local development.
+"""
+
+import logging
+import os
+
 from aegis.registry.registry import AgentRegistry
 from apps.api.app.domain.trust_graph.graph import TrustGraph
 
-# Singletons — swappable for Firestore adapters later
-_investigation_repo = MemoryInvestigationRepository()
-_document_repo = MemoryDocumentRepository()
-_finding_repo = MemoryFindingRepository()
-_remediation_repo = MemoryRemediationRepository()
-_regulatory_change_repo = MemoryRegulatoryChangeRepository()
-_audit_repo = MemoryAuditRepository()
+logger = logging.getLogger("aegis.deps")
+
+_investigation_repo = None
+_document_repo = None
+_finding_repo = None
+_remediation_repo = None
+_regulatory_change_repo = None
+_audit_repo = None
 _agent_registry: AgentRegistry | None = None
-_trust_graphs: dict[str, TrustGraph] = {}  # investigation_id -> TrustGraph
+_trust_graphs: dict[str, TrustGraph] = {}
+
+
+def _init_repositories() -> None:
+    """Initialize repositories based on PERSISTENCE_BACKEND env var."""
+    global _investigation_repo, _document_repo, _finding_repo
+    global _remediation_repo, _regulatory_change_repo, _audit_repo
+
+    if _investigation_repo is not None:
+        return  # already initialized
+
+    backend = os.environ.get("PERSISTENCE_BACKEND", "memory").lower()
+
+    if backend == "firestore":
+        try:
+            from google.cloud.firestore_v1 import AsyncClient as FirestoreAsyncClient
+            from apps.api.app.infrastructure.firestore.repositories import (
+                FirestoreInvestigationRepository,
+                FirestoreDocumentRepository,
+                FirestoreFindingRepository,
+                FirestoreRemediationRepository,
+                FirestoreRegulatoryChangeRepository,
+                FirestoreAuditRepository,
+            )
+
+            project_id = os.environ.get("GCP_PROJECT_ID")
+            database = os.environ.get("FIRESTORE_DATABASE", "(default)")
+            db = FirestoreAsyncClient(project=project_id, database=database)
+
+            _investigation_repo = FirestoreInvestigationRepository(db)
+            _document_repo = FirestoreDocumentRepository(db)
+            _finding_repo = FirestoreFindingRepository(db)
+            _remediation_repo = FirestoreRemediationRepository(db)
+            _regulatory_change_repo = FirestoreRegulatoryChangeRepository(db)
+            _audit_repo = FirestoreAuditRepository(db)
+            logger.info("Using Firestore persistence (project=%s, db=%s)", project_id, database)
+            return
+        except ImportError:
+            logger.warning("google-cloud-firestore not installed, falling back to memory")
+        except Exception as e:
+            logger.warning("Firestore init failed (%s), falling back to memory", e)
+
+    # Default: in-memory
+    from apps.api.app.infrastructure.memory.repositories import (
+        MemoryInvestigationRepository,
+        MemoryDocumentRepository,
+        MemoryFindingRepository,
+        MemoryRemediationRepository,
+        MemoryRegulatoryChangeRepository,
+        MemoryAuditRepository,
+    )
+    _investigation_repo = MemoryInvestigationRepository()
+    _document_repo = MemoryDocumentRepository()
+    _finding_repo = MemoryFindingRepository()
+    _remediation_repo = MemoryRemediationRepository()
+    _regulatory_change_repo = MemoryRegulatoryChangeRepository()
+    _audit_repo = MemoryAuditRepository()
+    logger.info("Using in-memory persistence")
+
+
+# Ensure repos are initialized on first import
+_init_repositories()
 
 
 def set_agent_registry(registry: AgentRegistry) -> None:
@@ -27,27 +88,27 @@ def set_agent_registry(registry: AgentRegistry) -> None:
     _agent_registry = registry
 
 
-def get_investigation_repo() -> MemoryInvestigationRepository:
+def get_investigation_repo():
     return _investigation_repo
 
 
-def get_document_repo() -> MemoryDocumentRepository:
+def get_document_repo():
     return _document_repo
 
 
-def get_finding_repo() -> MemoryFindingRepository:
+def get_finding_repo():
     return _finding_repo
 
 
-def get_remediation_repo() -> MemoryRemediationRepository:
+def get_remediation_repo():
     return _remediation_repo
 
 
-def get_regulatory_change_repo() -> MemoryRegulatoryChangeRepository:
+def get_regulatory_change_repo():
     return _regulatory_change_repo
 
 
-def get_audit_repo() -> MemoryAuditRepository:
+def get_audit_repo():
     return _audit_repo
 
 

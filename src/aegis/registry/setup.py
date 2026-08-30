@@ -7,6 +7,7 @@ from aegis.agents import (
     SECURITY_AGENT_CONTRACT,
     EVIDENCE_CRITIC_CONTRACT,
     REMEDIATION_AGENT_CONTRACT,
+    CHANGE_DETECTION_CONTRACT,
 )
 
 def init_default_registry(registry: AgentRegistry = default_registry) -> AgentRegistry:
@@ -20,4 +21,5 @@ def init_default_registry(registry: AgentRegistry = default_registry) -> AgentRe
     registry.register(SECURITY_AGENT_CONTRACT)
     registry.register(EVIDENCE_CRITIC_CONTRACT)
     registry.register(REMEDIATION_AGENT_CONTRACT)
+    registry.register(CHANGE_DETECTION_CONTRACT)
     return registry

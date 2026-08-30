@@ -10,6 +10,7 @@ from aegis.agents.governance import GovernanceAgent, GOVERNANCE_AGENT_CONTRACT
 from aegis.agents.security import SecurityAgent, SECURITY_AGENT_CONTRACT
 from aegis.agents.evidence_critic import EvidenceCriticAgent, EVIDENCE_CRITIC_CONTRACT
 from aegis.agents.remediation import RemediationAgent, REMEDIATION_AGENT_CONTRACT
+from aegis.agents.change_detection import ChangeDetectionAgent, CHANGE_DETECTION_CONTRACT
 
 __all__ = [
     "BaseAgent",
@@ -27,4 +28,6 @@ __all__ = [
     "EVIDENCE_CRITIC_CONTRACT",
     "RemediationAgent",
     "REMEDIATION_AGENT_CONTRACT",
+    "ChangeDetectionAgent",
+    "CHANGE_DETECTION_CONTRACT",
 ]

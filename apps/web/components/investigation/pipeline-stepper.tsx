@@ -1,41 +1,23 @@
 "use client";
 
 import React from "react";
-import { Check, Loader2, AlertCircle, ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { InvestigationStatus } from "@/lib/types";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 interface PipelineStepperProps {
   currentStatus: InvestigationStatus;
 }
 
 export function PipelineStepper({ currentStatus }: PipelineStepperProps) {
+  const { t } = useLanguage();
+
   const steps = [
-    {
-      id: "UNDERSTANDING",
-      title: "1. Leitura & Hash",
-      desc: "Gemini 2.5 Flash",
-    },
-    {
-      id: "PLANNING",
-      title: "2. Varredura PII",
-      desc: "Gemma Model Garden",
-    },
-    {
-      id: "INVESTIGATING",
-      title: "3. Agentes em Paralelo",
-      desc: "LGPD, GDPR, ISO 27001",
-    },
-    {
-      id: "ADVERSARIAL_REVIEW",
-      title: "4. Revisão Adversarial",
-      desc: "Gemini 2.5 Pro",
-    },
-    {
-      id: "COMPLETED",
-      title: "5. Trust Graph & Relatório",
-      desc: "Evidências Validadas",
-    },
+    { id: "UNDERSTANDING", title: t("pipeline_step1"), desc: t("pipeline_step1_desc") },
+    { id: "PLANNING", title: t("pipeline_step2"), desc: t("pipeline_step2_desc") },
+    { id: "INVESTIGATING", title: t("pipeline_step3"), desc: t("pipeline_step3_desc") },
+    { id: "ADVERSARIAL_REVIEW", title: t("pipeline_step4"), desc: t("pipeline_step4_desc") },
+    { id: "COMPLETED", title: t("pipeline_step5"), desc: t("pipeline_step5_desc") },
   ];
 
   const getStepState = (stepIndex: number) => {
@@ -46,63 +28,46 @@ export function PipelineStepper({ currentStatus }: PipelineStepperProps) {
       "ADVERSARIAL_REVIEW",
       "COMPLETED",
     ];
-
     const currentIndex = statusOrder.indexOf(currentStatus);
 
-    if (stepIndex < currentIndex || currentStatus === "COMPLETED") {
-      return "completed";
-    }
-    if (stepIndex === currentIndex) {
-      return "active";
-    }
+    if (stepIndex < currentIndex || currentStatus === "COMPLETED") return "completed";
+    if (stepIndex === currentIndex) return "active";
     return "pending";
   };
 
   return (
-    <div className="bg-[#0d121d] border border-[#1e293b] rounded-xl p-5 mb-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-white tracking-wide">
-          Estágios do Pipeline de Investigação Autônoma
+    <div className="bg-[#171B1F] border border-[#2A3038] rounded-xl p-4">
+      <div className="flex items-center justify-between pb-3 border-b border-[#2A3038] mb-3">
+        <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+          {t("pipeline_title")}
         </h3>
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">
-          <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-ping" />
-          Status Atual: {currentStatus}
+        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#0D1013] text-[#B8843A] border border-[#2A3038]">
+          {t("pipeline_status")}: {currentStatus}
         </span>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-2.5">
         {steps.map((step, idx) => {
           const state = getStepState(idx);
           return (
             <div
               key={step.id}
               className={cn(
-                "p-3 rounded-lg border transition-all duration-200 flex flex-col justify-between",
-                state === "completed" && "bg-emerald-950/20 border-emerald-500/40 text-emerald-300",
-                state === "active" && "bg-blue-600/15 border-blue-500/50 text-blue-200 shadow-md shadow-blue-500/10",
-                state === "pending" && "bg-[#111622] border-slate-800 text-slate-500 opacity-60"
+                "p-3 rounded-lg border text-xs transition-colors",
+                state === "completed" && "bg-[#0D1013] border-[#2A3038] text-white",
+                state === "active" && "bg-[#0D1013] border-[#B8843A] text-white",
+                state === "pending" && "bg-[#0D1013]/30 border-transparent text-[#5C636E]"
               )}
             >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold font-mono">ETAPA 0{idx + 1}</span>
-                {state === "completed" && (
-                  <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400">
-                    <Check className="w-3 h-3" />
-                  </div>
-                )}
-                {state === "active" && (
-                  <div className="w-5 h-5 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400">
-                    <Loader2 className="w-3 h-3 animate-spin" />
-                  </div>
-                )}
-                {state === "pending" && (
-                  <span className="w-2 h-2 rounded-full bg-slate-700" />
-                )}
+              <div className="flex items-center justify-between font-mono text-[10px] text-[#5C636E] mb-1">
+                <span>0{idx + 1}</span>
+                {state === "completed" && <span className="text-[#3B8F6B]">✓</span>}
+                {state === "active" && <span className="w-1.5 h-1.5 rounded-full bg-[#B8843A] animate-ping" />}
               </div>
-              <div>
-                <div className="text-xs font-semibold text-white">{step.title}</div>
-                <div className="text-[10px] text-slate-400 mt-0.5">{step.desc}</div>
+              <div className={cn("font-medium text-xs", state === "active" ? "text-[#B8843A]" : "text-white")}>
+                {step.title}
               </div>
+              <div className="text-[10px] text-[#9096A0] mt-0.5 font-mono">{step.desc}</div>
             </div>
           );
         })}

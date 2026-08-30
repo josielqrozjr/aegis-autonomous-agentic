@@ -1,17 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
-import { 
-  Sparkles, 
-  Play, 
-  CheckCircle2, 
-  ArrowRight, 
-  Flame, 
-  Wrench, 
-  RotateCcw,
-  ShieldCheck
-} from "lucide-react";
+import React from "react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n/language-context";
 
 interface DemoFlowControllerProps {
   onStepChange: (step: number) => void;
@@ -20,84 +11,57 @@ interface DemoFlowControllerProps {
 }
 
 export function DemoFlowController({ onStepChange, currentStep, onReset }: DemoFlowControllerProps) {
+  const { t } = useLanguage();
+
   const steps = [
-    {
-      step: 1,
-      title: "1. Upload & Leitura",
-      desc: "Ingestão da política e varredura PII com Gemma 2B",
-      action: "Iniciar Auditoria",
-    },
-    {
-      step: 2,
-      title: "2. Análise Multiagente",
-      desc: "Especialistas LGPD/GDPR e Evidence Critic (Gemini Pro)",
-      action: "Ver Grafo de Confiança",
-    },
-    {
-      step: 3,
-      title: "3. Policy Drift (GDPR v2)",
-      desc: "Mudança regulatória ➔ Invalidação em cascata no Grafo",
-      action: "Simular Mudança de Lei",
-    },
-    {
-      step: 4,
-      title: "4. Remediação & Relatório",
-      desc: "Correção automática da IA e emissão do dossiê final",
-      action: "Concluir Demonstração",
-    },
+    { step: 1, title: t("demo_step1_title"), desc: t("demo_step1_desc") },
+    { step: 2, title: t("demo_step2_title"), desc: t("demo_step2_desc") },
+    { step: 3, title: t("demo_step3_title"), desc: t("demo_step3_desc") },
+    { step: 4, title: t("demo_step4_title"), desc: t("demo_step4_desc") },
   ];
 
   return (
-    <div className="bg-gradient-to-r from-blue-950/40 via-[#0d121d] to-cyan-950/40 border border-cyan-500/30 rounded-xl p-4 shadow-lg shadow-cyan-950/20 mb-6">
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        {/* Title */}
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-400">
-            <Sparkles className="w-5 h-5 animate-pulse" />
+    <div className="bg-[#171B1F] border border-[#2A3038] rounded-xl p-4 mb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#2A3038]">
+        <div>
+          <div className="flex items-center gap-2">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-white">
+              {t("demo_title")}
+            </h3>
+            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#0D1013] text-[#B8843A] border border-[#2A3038]">
+              {t("demo_step")} {currentStep} {t("demo_of")} 4
+            </span>
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="font-bold text-sm text-white tracking-wide">
-                Modo Demonstração Rápida dos Jurados (Regra dos ≤ 3 Cliques)
-              </h3>
-              <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
-                Demo Flow
-              </span>
-            </div>
-            <p className="text-xs text-slate-400">
-              Guia passo a passo para avaliar a inteligência multiagente, o Trust Graph e o Policy Drift em poucos segundos.
-            </p>
-          </div>
+          <p className="text-[11px] text-[#9096A0] mt-0.5">
+            {t("demo_subtitle")}
+          </p>
         </div>
 
-        {/* Controller actions */}
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2">
           <button
             onClick={onReset}
-            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors flex items-center gap-1.5"
+            className="px-3 py-1.5 rounded text-xs font-medium bg-[#0D1013] hover:bg-[#21262B] text-[#9096A0] hover:text-white border border-[#2A3038] transition-colors"
           >
-            <RotateCcw className="w-3.5 h-3.5" />
-            Reiniciar Demo
+            {t("demo_reset")}
           </button>
 
           {currentStep < 4 ? (
             <button
               onClick={() => onStepChange(currentStep + 1)}
-              className="px-4 py-2 rounded-lg text-xs font-bold bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white transition-all shadow-md shadow-blue-600/30 flex items-center gap-2"
+              className="px-3.5 py-1.5 rounded text-xs font-semibold bg-[#B8843A] hover:bg-[#CCA159] text-[#0D1013] transition-colors"
             >
-              <span>Avançar para: {steps[currentStep].title}</span>
-              <ArrowRight className="w-4 h-4" />
+              {t("demo_advance")}
             </button>
           ) : (
-            <span className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Demonstração Completa!
+            <span className="px-3 py-1.5 rounded text-xs font-medium text-[#3B8F6B] bg-[#3B8F6B]/15 border border-[#3B8F6B]/30 font-mono">
+              {t("demo_done")}
             </span>
           )}
         </div>
       </div>
 
-      {/* Step Indicators */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-3 pt-3 border-t border-[#1e293b]/80">
+      {/* Steps bar */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 pt-3">
         {steps.map((s) => {
           const isActive = currentStep === s.step;
           const isDone = currentStep > s.step;
@@ -106,20 +70,21 @@ export function DemoFlowController({ onStepChange, currentStep, onReset }: DemoF
               key={s.step}
               onClick={() => onStepChange(s.step)}
               className={cn(
-                "p-2.5 rounded-lg border text-left transition-all flex flex-col justify-between",
-                isActive && "bg-blue-600/15 border-cyan-400/50 text-white shadow-sm",
-                isDone && "bg-emerald-950/20 border-emerald-500/30 text-slate-300",
-                !isActive && !isDone && "bg-[#111622]/60 border-slate-800/80 text-slate-500"
+                "p-2 rounded-lg border text-left transition-all text-xs",
+                isActive
+                  ? "bg-[#0D1013] border-[#B8843A] text-white"
+                  : isDone
+                  ? "bg-[#0D1013]/60 border-[#2A3038] text-[#B8BDC7]"
+                  : "bg-[#0D1013]/30 border-transparent text-[#5C636E]"
               )}
             >
-              <div className="flex items-center justify-between text-[11px] font-semibold mb-1">
-                <span className={cn(isActive ? "text-cyan-300" : isDone ? "text-emerald-400" : "text-slate-400")}>
+              <div className="flex items-center justify-between font-mono text-[11px] mb-0.5">
+                <span className={isActive ? "text-[#B8843A] font-bold" : isDone ? "text-[#3B8F6B]" : "text-[#5C636E]"}>
                   {s.title}
                 </span>
-                {isDone && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />}
-                {isActive && <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />}
+                {isDone && <span className="text-[10px] text-[#3B8F6B]">✓</span>}
               </div>
-              <p className="text-[10px] text-slate-400 line-clamp-1">{s.desc}</p>
+              <p className="text-[10px] text-[#9096A0] truncate">{s.desc}</p>
             </button>
           );
         })}

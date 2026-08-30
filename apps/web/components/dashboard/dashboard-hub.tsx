@@ -5,13 +5,27 @@ import { cn } from "@/lib/utils";
 
 interface DashboardHubProps {
   onNavigate: (tabId: string) => void;
+  investigationsCount?: number;
+  agentsCount?: number;
+  findingsCount?: number;
+  driftNodesCount?: number;
+  compliancePercent?: number;
 }
 
-export function DashboardHub({ onNavigate }: DashboardHubProps) {
+export function DashboardHub({
+  onNavigate,
+  investigationsCount = 2,
+  agentsCount = 5,
+  findingsCount = 4,
+  driftNodesCount = 3,
+  compliancePercent = 100,
+}: DashboardHubProps) {
+  const formatNumber = (num: number) => (num < 10 ? `0${num}` : `${num}`);
+
   const bigNumberCards = [
     {
       id: "investigations",
-      number: "47",
+      number: formatNumber(investigationsCount),
       label: "Total Investigations",
       subLabel: "Audited Regulatory Records",
       helper: "Repository across LGPD, GDPR and ISO 27001",
@@ -19,15 +33,15 @@ export function DashboardHub({ onNavigate }: DashboardHubProps) {
     },
     {
       id: "new-investigation",
-      number: "02",
-      label: "Active Scans",
+      number: formatNumber(agentsCount),
+      label: "Active AI Fleet",
       subLabel: "Real-Time Pipeline Execution",
-      helper: "Gemma 2B PII scanning & document ingestion",
+      helper: "Gemma 2B, Gemini 1.5 Flash & Gemini 2.5 Pro",
       targetName: "New Investigation",
     },
     {
       id: "dashboard",
-      number: "18",
+      number: formatNumber(findingsCount),
       label: "Audit Findings",
       subLabel: "Verified Evidence Chains",
       helper: "DAG nodes validated by Gemini 2.5 Pro Critic",
@@ -35,15 +49,15 @@ export function DashboardHub({ onNavigate }: DashboardHubProps) {
     },
     {
       id: "remediation",
-      number: "03",
-      label: "Policy Drift",
-      subLabel: "Cascade Invalidation Nodes",
+      number: formatNumber(driftNodesCount),
+      label: "Policy Drift Nodes",
+      subLabel: "Cascade Invalidation Simulation",
       helper: "Dynamic regulatory simulation & patch generation",
       targetName: "Remediation & Drift",
     },
     {
       id: "report",
-      number: "100%",
+      number: `${compliancePercent}%`,
       label: "Verified Dossier",
       subLabel: "Cryptographic Seal Active",
       helper: "Board-ready audit certificate & PDF export",

@@ -7,13 +7,12 @@ import { MetricsHeader } from "@/components/investigation/metrics-header";
 import { DashboardHub } from "@/components/dashboard/dashboard-hub";
 import { Dropzone } from "@/components/upload/dropzone";
 import { PipelineStepper } from "@/components/investigation/pipeline-stepper";
-import { AgentCard } from "@/components/agents/agent-card";
 import { InvestigationsTable } from "@/components/investigation/investigations-table";
+import { TrustGraphTabView } from "@/components/trust-graph/trust-graph-tab-view";
 import { TrustGraphViewer } from "@/components/trust-graph/trust-graph-viewer";
 import { PolicyDriftPanel } from "@/components/drift/policy-drift-panel";
 import { FindingsPanel } from "@/components/findings/findings-panel";
 import { SourceDocumentViewer } from "@/components/evidence/source-document-viewer";
-import { AdversarialReviewCard } from "@/components/audit/adversarial-review-card";
 import { RemediationModal } from "@/components/remediation/remediation-modal";
 import { DemoFlowController } from "@/components/demo/demo-flow-controller";
 import { ComplianceReportView } from "@/components/reports/compliance-report-view";
@@ -44,6 +43,10 @@ export default function Home() {
   const [selectedFindingForRemediation, setSelectedFindingForRemediation] = useState<Finding | null>(null);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [isDriftActive, setIsDriftActive] = useState(false);
+
+  // Dynamic Real Metrics
+  const resolvedFindingsCount = findings.filter((f) => f.status === "RESOLVED").length;
+  const activeAgentsCount = agents.filter((a) => a.status === "COMPLETED" || a.status === "RUNNING").length;
 
   const handleStartInvestigation = (data: { fileName: string; content: string; frameworks: string[] }) => {
     const newId = `INV-2024-00${investigations.length + 48}`;
@@ -185,13 +188,13 @@ export default function Home() {
 
       {/* Main Column */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Top Header */}
-        <TopHeader currentInvestigationId={currentInvestigation.id} />
+        {/* Top Header com título dinâmico */}
+        <TopHeader currentInvestigationId={currentInvestigation.id} activeTab={activeTab} />
 
         {/* Scrollable Content */}
         <main className="flex-1 overflow-y-auto p-6 space-y-6">
-          {/* Demo Controller (only on detailed tabs, excluded from Overview) */}
-          {showDemoController && activeTab !== "overview" && (
+          {/* Demo Controller (EXCLUSIVAMENTE na aba Investigations) */}
+          {showDemoController && activeTab === "investigations" && (
             <DemoFlowController
               currentStep={demoStep}
               onStepChange={handleDemoStepChange}
@@ -199,12 +202,27 @@ export default function Home() {
             />
           )}
 
-          {/* Top Metrics on Detailed Tabs */}
-          {activeTab !== "overview" && <MetricsHeader />}
+          {/* Top Metrics Header (EXCLUSIVAMENTE na aba Investigations) */}
+          {activeTab === "investigations" && (
+            <MetricsHeader
+              onNavigate={setActiveTab}
+              totalInvestigations={investigations.length}
+              activeAgents={activeAgentsCount}
+              findingsCount={findings.length}
+              remediationsCount={resolvedFindingsCount}
+            />
+          )}
 
-          {/* TAB 0: OVERVIEW (HOME PAGE - BIG NUMBERS ONLY) */}
+          {/* TAB 0: OVERVIEW (HOME PAGE - REAL BIG NUMBERS) */}
           {activeTab === "overview" && (
-            <DashboardHub onNavigate={setActiveTab} />
+            <DashboardHub
+              onNavigate={setActiveTab}
+              investigationsCount={investigations.length}
+              agentsCount={activeAgentsCount}
+              findingsCount={findings.length}
+              driftNodesCount={isDriftActive ? graphData.invalid_nodes : 3}
+              compliancePercent={currentInvestigation.progressPercent}
+            />
           )}
 
           {/* TAB 1: INVESTIGATIONS */}
@@ -226,86 +244,37 @@ export default function Home() {
             </div>
           )}
 
-          {/* TAB 3: DASHBOARD & AGENTS & TRUST GRAPH */}
+          {/* TAB 3: TRUST GRAPH & AGENTS (REDESIGNED TAB VIEW) */}
           {activeTab === "dashboard" && (
-            <div className="space-y-6">
-              {/* Stepper */}
-              <PipelineStepper currentStatus={pipelineStatus} />
-
-              {/* Document Overview */}
-              <div className="bg-[#171B1F] border border-[#2A3038] rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-white text-base tracking-tight">
-                      {currentInvestigation.title}
-                    </h3>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#0D1013] text-[#B8843A] border border-[#2A3038]">
-                      {currentInvestigation.id}
-                    </span>
-                  </div>
-                  <p className="text-xs text-[#9096A0] font-mono mt-1">
-                    SHA-256 Hash: {currentInvestigation.documentHash}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => handleDemoStepChange(3)}
-                    className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-[#B8843A]/15 hover:bg-[#B8843A]/25 text-[#D4A559] border border-[#B8843A]/30 transition-colors"
-                  >
-                    Simulate Regulatory Change (Drift)
-                  </button>
-                </div>
-              </div>
-
-              {/* Trust & Compliance Graph */}
-              <TrustGraphViewer
-                graphData={graphData}
-                onNodeSelect={(node) => {
-                  setSelectedNodeId(node.id);
-                  if (node.type === "finding") {
-                    const found = findings.find((f) => node.source.includes(f.id));
-                    if (found) setSelectedFindingForEvidence(found);
-                  }
-                }}
-                selectedNodeId={selectedNodeId}
-                isDrifting={isDriftActive}
-              />
-
-              {/* Adversarial Review */}
-              <AdversarialReviewCard />
-
-              {/* Findings Panel */}
-              <FindingsPanel
-                findings={findings}
-                onOpenEvidence={(f) => setSelectedFindingForEvidence(f)}
-                onApplyRemediation={(f) => setSelectedFindingForRemediation(f)}
-              />
-
-              {/* Specialist Agent Fleet */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-                      Specialist Agent Fleet
-                    </h3>
-                    <p className="text-xs text-[#9096A0]">
-                      Gemma 2B (PII), Gemini 1.5 Flash (Specialists) & Gemini 2.5 Pro (Adversarial Critic)
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-xs text-[#9096A0] font-mono">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#3B8F6B]" />
-                    <span>5 Provisioned Agents</span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
-                  {agents.map((agent) => (
-                    <AgentCard key={agent.id} agent={agent} />
-                  ))}
-                </div>
-              </div>
-            </div>
+            <TrustGraphTabView
+              investigations={investigations}
+              currentInvestigation={currentInvestigation}
+              onSelectInvestigation={(inv) => setCurrentInvestigation(inv)}
+              findings={findings}
+              agents={agents}
+              graphData={graphData}
+              isDriftActive={isDriftActive}
+              selectedNodeId={selectedNodeId}
+              onSelectNode={(node) => {
+                setSelectedNodeId(node.id);
+                if (node.type === "finding") {
+                  const found = findings.find((f) => node.source.includes(f.id));
+                  if (found) setSelectedFindingForEvidence(found);
+                }
+              }}
+              onOpenEvidence={(f) => setSelectedFindingForEvidence(f)}
+              onApplyRemediation={(f) => setSelectedFindingForRemediation(f)}
+              onTriggerDrift={() =>
+                handleDriftTriggered({
+                  framework: "GDPR",
+                  version: "v2.0-2026",
+                  description:
+                    "Maximum retention timeframe reduced to 2 years (Art. 5(1)(e) GDPR v2).",
+                  invalidatedNodeIds: ["req-gdpr-5", "ev-prazo-90dias", "find-02-node"],
+                })
+              }
+              onResetDrift={handleResetDrift}
+            />
           )}
 
           {/* TAB 4: REMEDIATION & CHANGE (POLICY DRIFT) */}

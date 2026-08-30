@@ -11,14 +11,33 @@ interface DropzoneProps {
 export function Dropzone({ onStartInvestigation }: DropzoneProps) {
   const [dragActive, setDragActive] = useState(false);
   const [selectedFile, setSelectedFile] = useState<{ name: string; size: number; content: string } | null>(null);
-  const [selectedFrameworks, setSelectedFrameworks] = useState<string[]>(["LGPD", "GDPR", "ISO 27001"]);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const availableFrameworks = [
-    { id: "LGPD", label: "LGPD (Brazil)", desc: "Privacy, retention and data subject rights (Law 13,709/2018)" },
-    { id: "GDPR", label: "GDPR (European Union)", desc: "Art. 5(1)(e) storage limitation & right to erasure" },
-    { id: "ISO 27001", label: "ISO/IEC 27001", desc: "Control A.8.10 information deletion & security controls" },
-    { id: "OWASP", label: "OWASP Top 10", desc: "Data security, access control & API integrity" },
+  const activeFrameworks = [
+    {
+      id: "LGPD",
+      label: "LGPD (Brazil)",
+      agent: "LGPD Specialist (Gemini 1.5 Flash)",
+      desc: "Law 13,709/2018 · Privacy, lawful bases and data subject rights",
+    },
+    {
+      id: "GDPR",
+      label: "GDPR (European Union)",
+      agent: "GDPR Specialist (Gemini 1.5 Flash)",
+      desc: "Art. 5(1)(e) Storage limitation & Art. 17 right to erasure",
+    },
+    {
+      id: "ISO 27001",
+      label: "ISO/IEC 27001",
+      agent: "ISO Specialist (Gemini 1.5 Flash)",
+      desc: "Controls A.8.10 information deletion & A.5.15 access control",
+    },
+    {
+      id: "OWASP",
+      label: "OWASP Top 10 / LLM",
+      agent: "PII & Security Mesh (Gemma 2B)",
+      desc: "Sensitive prompt redaction & API secret exposure checks",
+    },
   ];
 
   const handleDrag = (e: React.DragEvent) => {
@@ -61,17 +80,10 @@ export function Dropzone({ onStartInvestigation }: DropzoneProps) {
 
   const loadSample = (sample: typeof SAMPLE_POLICIES[0]) => {
     setSelectedFile({
-      name: "corporate_data_retention_policy_v2.pdf",
-      size: 245800,
+      name: sample.filename,
+      size: sample.sampleContent.length * 15,
       content: sample.sampleContent,
     });
-    setSelectedFrameworks(sample.frameworks);
-  };
-
-  const toggleFramework = (id: string) => {
-    setSelectedFrameworks((prev) =>
-      prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id]
-    );
   };
 
   const handleStart = () => {
@@ -81,37 +93,24 @@ export function Dropzone({ onStartInvestigation }: DropzoneProps) {
       onStartInvestigation({
         fileName: selectedFile.name,
         content: selectedFile.content,
-        frameworks: selectedFrameworks,
+        frameworks: ["LGPD", "GDPR", "ISO 27001", "OWASP"],
       });
       setIsProcessing(false);
     }, 500);
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-5">
+    <div className="w-full space-y-6">
       {/* Header */}
-      <div>
-        <h2 className="text-lg font-bold text-white tracking-tight">Initiate New Audit</h2>
+      <div className="pb-3 border-b border-[#2A3038]">
+        <h2 className="text-sm font-bold text-white uppercase tracking-wider">
+          New Investigation
+        </h2>
         <p className="text-xs text-[#9096A0] mt-0.5">
-          Upload a corporate policy document to launch autonomous compliance scanning across the multi-agent mesh.
+          Upload a corporate policy, normative standard or commercial contract to launch autonomous compliance scanning.
         </p>
       </div>
 
-      {/* Quick Sample Template */}
-      <div className="bg-[#171B1F] border border-[#2A3038] rounded-xl p-4 flex items-center justify-between">
-        <div>
-          <h4 className="text-xs font-bold text-white uppercase tracking-wider">Official Demo Scenario</h4>
-          <p className="text-xs text-[#9096A0] mt-0.5">
-            Corporate Data Retention Policy (Synthetic Multi-Jurisdiction BR + EU)
-          </p>
-        </div>
-        <button
-          onClick={() => loadSample(SAMPLE_POLICIES[0])}
-          className="px-3 py-1.5 rounded text-xs font-semibold bg-[#B8843A] hover:bg-[#CCA159] text-[#0D1013] transition-colors cursor-pointer"
-        >
-          Load Sample Document
-        </button>
-      </div>
 
       {/* Drag and Drop Zone */}
       <div
@@ -137,92 +136,89 @@ export function Dropzone({ onStartInvestigation }: DropzoneProps) {
 
         {selectedFile ? (
           <div className="py-2 space-y-1">
-            <span className="text-[10px] font-mono uppercase text-[#3B8F6B] font-bold">Selected File</span>
+            <span className="text-[10px] font-mono uppercase text-[#3B8F6B] font-bold">Selected Document Ready</span>
             <h3 className="text-sm font-bold text-white">{selectedFile.name}</h3>
             <p className="text-xs text-[#9096A0] font-mono">
-              {(selectedFile.size / 1024).toFixed(1)} KB · SHA-256 Ready for Validation
+              {(selectedFile.size / 1024).toFixed(1)} KB · SHA-256 Checksum Computed
             </p>
             <div className="pt-2">
               <label
                 htmlFor="file-upload"
                 className="text-xs text-[#4C8FA6] hover:underline cursor-pointer font-mono"
               >
-                Choose another file
+                Upload different file from computer
               </label>
             </div>
           </div>
         ) : (
           <div className="py-4 space-y-2">
-            <h3 className="text-sm font-semibold text-white">
-              Drag and drop your document here
-            </h3>
-            <p className="text-xs text-[#9096A0] max-w-sm mx-auto">
-              Supports PDF, Markdown, and TXT corporate policy files.
+            <div className="w-10 h-10 rounded-full bg-[#21262B] flex items-center justify-center mx-auto text-[#B8843A]">
+              📄
+            </div>
+            <div className="text-xs font-semibold text-white">
+              Drag & Drop your audit document here
+            </div>
+            <p className="text-[11px] text-[#9096A0]">
+              Supports corporate policies, normative standards, and commercial contracts (PDF, MD, TXT)
             </p>
             <div className="pt-2">
               <label
                 htmlFor="file-upload"
-                className="px-3.5 py-1.5 rounded text-xs font-medium bg-[#0D1013] hover:bg-[#21262B] text-[#9096A0] hover:text-white border border-[#2A3038] cursor-pointer transition-colors"
+                className="px-4 py-2 rounded-lg text-xs font-semibold bg-[#21262B] hover:bg-[#2A3038] text-white border border-[#2A3038] transition-colors cursor-pointer inline-block"
               >
-                Select from Computer
+                Browse Files
               </label>
             </div>
           </div>
         )}
       </div>
 
-      {/* Regulatory Standards Selection */}
-      <div className="bg-[#171B1F] border border-[#2A3038] rounded-xl p-4 space-y-3">
+      {/* Automated Regulatory Benchmarking (Centralized Layout) */}
+      <div className="space-y-3">
         <div>
-          <h4 className="text-xs font-bold text-white uppercase tracking-wider">Applicable Regulatory Frameworks</h4>
+          <h3 className="text-xs font-bold uppercase tracking-wider text-white">
+            Automated Regulatory Benchmarking
+          </h3>
           <p className="text-xs text-[#9096A0] mt-0.5">
-            Select the governing standards for specialist agent auditing:
+            The multi-agent mesh automatically provisions specialists across global and local legislations:
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-          {availableFrameworks.map((fw) => {
-            const isSelected = selectedFrameworks.includes(fw.id);
-            return (
-              <div
-                key={fw.id}
-                onClick={() => toggleFramework(fw.id)}
-                className={cn(
-                  "p-3 rounded-lg border cursor-pointer transition-all text-xs flex items-start gap-2.5",
-                  isSelected
-                    ? "bg-[#0D1013] border-[#B8843A]/60 text-white"
-                    : "bg-[#0D1013]/40 border-[#2A3038] text-[#9096A0] hover:border-[#38414D]"
-                )}
-              >
-                <input
-                  type="checkbox"
-                  checked={isSelected}
-                  onChange={() => {}}
-                  className="mt-0.5 rounded border-[#2A3038] bg-[#0D1013] text-[#B8843A] focus:ring-0 cursor-pointer"
-                />
-                <div>
-                  <div className="font-semibold text-white">{fw.label}</div>
-                  <div className="text-[10px] text-[#9096A0] mt-0.5">{fw.desc}</div>
-                </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {activeFrameworks.map((fw) => (
+            <div
+              key={fw.id}
+              className="p-4 rounded-xl border bg-[#171B1F] border-[#2A3038] hover:border-[#38414D] text-center flex flex-col items-center justify-center space-y-1.5 transition-colors"
+            >
+              <div className="font-bold text-xs text-white">
+                {fw.label}
               </div>
-            );
-          })}
+              <div>
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#0D1013] text-[#B8843A] border border-[#2A3038] inline-block">
+                  {fw.agent}
+                </span>
+              </div>
+              <div className="text-[11px] text-[#9096A0] font-mono max-w-sm">
+                {fw.desc}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Trigger Button */}
-      <div className="flex justify-end pt-1">
+      {/* Start Button */}
+      <div className="pt-2 flex justify-end">
         <button
           onClick={handleStart}
-          disabled={!selectedFile || selectedFrameworks.length === 0 || isProcessing}
+          disabled={!selectedFile || isProcessing}
           className={cn(
-            "px-5 py-2.5 rounded-lg font-semibold text-xs transition-colors cursor-pointer",
-            selectedFile && selectedFrameworks.length > 0
-              ? "bg-[#B8843A] hover:bg-[#CCA159] text-[#0D1013]"
-              : "bg-[#171B1F] text-[#5C636E] border border-[#2A3038] cursor-not-allowed"
+            "px-6 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-lg",
+            selectedFile && !isProcessing
+              ? "bg-[#B8843A] hover:bg-[#CCA159] text-[#0D1013] hover:shadow-black/50"
+              : "bg-[#21262B] text-[#5C636E] cursor-not-allowed border border-[#2A3038]"
           )}
         >
-          {isProcessing ? "Launching Autonomous Fleet..." : "Launch Multi-Agent Investigation →"}
+          {isProcessing ? "Deploying Multi-Agent Fleet..." : "Launch Autonomous Investigation →"}
         </button>
       </div>
     </div>

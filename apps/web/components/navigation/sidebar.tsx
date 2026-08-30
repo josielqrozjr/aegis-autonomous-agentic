@@ -11,12 +11,12 @@ interface SidebarProps {
 
 export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
   const menuItems = [
-    { id: "overview", label: "Dashboard", badge: null },
-    { id: "investigations", label: "Investigations", badge: "47" },
-    { id: "new-investigation", label: "New Investigation", badge: null },
-    { id: "dashboard", label: "Trust Graph & Agents", badge: "Graph" },
-    { id: "remediation", label: "Remediation & Drift", badge: "Drift" },
-    { id: "report", label: "Final Report", badge: "PDF" },
+    { id: "overview", label: "Dashboard" },
+    { id: "investigations", label: "Investigations" },
+    { id: "new-investigation", label: "New Investigation" },
+    { id: "dashboard", label: "Trust Graph & Agents" },
+    { id: "remediation", label: "Remediation & Drift" },
+    { id: "report", label: "Final Report" },
   ];
 
   return (
@@ -38,7 +38,7 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
           </div>
         </div>
 
-        {/* Menu Items */}
+        {/* Menu Items (Clean, sem badges) */}
         <nav className="p-3 space-y-1">
           {menuItems.map((item) => {
             const isActive = activeTab === item.id;
@@ -47,25 +47,13 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
                 key={item.id}
                 onClick={() => onTabChange(item.id)}
                 className={cn(
-                  "w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-all text-left cursor-pointer",
+                  "w-full flex items-center px-3 py-2.5 rounded-lg text-xs font-medium transition-all text-left cursor-pointer",
                   isActive
                     ? "bg-[#171B1F] text-[#B8843A] border-l-2 border-[#B8843A] pl-2.5 font-semibold"
                     : "text-[#9096A0] hover:text-white hover:bg-[#171B1F]/40"
                 )}
               >
                 <span className="truncate">{item.label}</span>
-                {item.badge && (
-                  <span
-                    className={cn(
-                      "text-[9px] font-mono px-1.5 py-0.5 rounded shrink-0 ml-1.5",
-                      isActive
-                        ? "bg-[#B8843A]/15 text-[#D4A559]"
-                        : "bg-[#171B1F] text-[#5C636E]"
-                    )}
-                  >
-                    {item.badge}
-                  </span>
-                )}
               </button>
             );
           })}

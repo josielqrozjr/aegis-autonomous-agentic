@@ -87,8 +87,8 @@ export const MOCK_INVESTIGATIONS: Investigation[] = [
     fileSizeBytes: 184200,
     createdAt: "2026-08-30T16:00:00Z",
     updatedAt: "2026-08-30T17:15:00Z",
-    status: "COMPLETED",
-    progressPercent: 100,
+    status: "INVESTIGATING",
+    progressPercent: 75,
     frameworks: ["ISO 27001", "LGPD", "OWASP"],
     findingsCount: {
       total: 3,
@@ -106,8 +106,8 @@ export const MOCK_INVESTIGATIONS: Investigation[] = [
     fileSizeBytes: 312500,
     createdAt: "2026-08-30T17:30:00Z",
     updatedAt: "2026-08-30T18:45:00Z",
-    status: "COMPLETED",
-    progressPercent: 100,
+    status: "PENDING_REVIEW",
+    progressPercent: 90,
     frameworks: ["GDPR", "LGPD"],
     findingsCount: {
       total: 4,
@@ -125,7 +125,7 @@ export const MOCK_INVESTIGATIONS: Investigation[] = [
     fileSizeBytes: 112400,
     createdAt: "2026-08-29T10:15:00Z",
     updatedAt: "2026-08-29T11:45:00Z",
-    status: "COMPLETED",
+    status: "POLICY_DRIFT",
     progressPercent: 100,
     frameworks: ["LGPD", "OWASP"],
     findingsCount: {

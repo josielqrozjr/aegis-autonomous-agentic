@@ -38,8 +38,11 @@ export function TrustGraphTabView({
   onResetDrift,
 }: TrustGraphTabViewProps) {
   // Estado para controlar a visão: Lista de Documentos vs Detalhes do Documento
-  const [selectedDocId, setSelectedDocId] = useState<string | null>(currentInvestigation.id);
+  const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [criticalityFilter, setCriticalityFilter] = useState<string>("ALL");
+  const [agentFilter, setAgentFilter] = useState<string>("ALL");
   const [frameworkFilter, setFrameworkFilter] = useState<string>("ALL");
   const [severityFilter, setSeverityFilter] = useState<string>("ALL");
   const [isGraphExpanded, setIsGraphExpanded] = useState<boolean>(true);
@@ -47,18 +50,63 @@ export function TrustGraphTabView({
   // Documento selecionado atualmente
   const activeDoc = investigations.find((inv) => inv.id === selectedDocId) || currentInvestigation;
 
-  // Filtra a lista de documentos pelo termo de busca e norma
+  // Filtra a lista de documentos pelo termo de busca, status, criticidade, IAs e norma
   const filteredInvestigations = investigations.filter((inv) => {
+    const invGaps = findings.filter(
+      (f) =>
+        f.investigationId === inv.id ||
+        (!findings.some((x) => x.investigationId === inv.id) &&
+          f.investigationId === "INV-2024-0047")
+    );
+
     const matchesSearch =
       inv.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       inv.documentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       inv.id.toLowerCase().includes(searchQuery.toLowerCase());
 
+    const matchesStatus =
+      statusFilter === "ALL" ||
+      (statusFilter === "COMPLETED" && inv.status === "COMPLETED") ||
+      (statusFilter === "IN_PROGRESS" &&
+        (inv.status === "INVESTIGATING" ||
+          inv.status === "UNDERSTANDING" ||
+          inv.status === "PLANNING")) ||
+      (statusFilter === "PENDING_REVIEW" && inv.status === "PENDING_REVIEW") ||
+      (statusFilter === "POLICY_DRIFT" &&
+        (inv.status === "POLICY_DRIFT" || (inv.id === "INV-2024-0047" && isDriftActive)));
+
     const matchesFramework =
       frameworkFilter === "ALL" || inv.frameworks.includes(frameworkFilter);
 
-    return matchesSearch && matchesFramework;
+    const matchesCriticality =
+      criticalityFilter === "ALL" ||
+      invGaps.some((f) => f.severity === criticalityFilter);
+
+    const matchesAgent =
+      agentFilter === "ALL" ||
+      invGaps.some(
+        (f) =>
+          f.agentId === agentFilter ||
+          (f.agentName && f.agentName.toLowerCase().includes(agentFilter.toLowerCase()))
+      );
+
+    return matchesSearch && matchesStatus && matchesFramework && matchesCriticality && matchesAgent;
   });
+
+  const isAnyFilterActive =
+    searchQuery !== "" ||
+    statusFilter !== "ALL" ||
+    frameworkFilter !== "ALL" ||
+    criticalityFilter !== "ALL" ||
+    agentFilter !== "ALL";
+
+  const handleResetFilters = () => {
+    setSearchQuery("");
+    setStatusFilter("ALL");
+    setFrameworkFilter("ALL");
+    setCriticalityFilter("ALL");
+    setAgentFilter("ALL");
+  };
 
   // Apontamentos pertencentes ao documento selecionado
   const docFindings = findings.filter(
@@ -82,6 +130,52 @@ export function TrustGraphTabView({
     onSelectInvestigation(inv);
   };
 
+  // Helper para renderizar a badge de status de forma padronizada e limpa (sem ícones)
+  const renderStatusBadge = (inv: Investigation) => {
+    if (inv.id === "INV-2024-0047" && isDriftActive) {
+      return (
+        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#A24438]/20 text-[#E06C5D] border border-[#A24438]/40">
+          Policy Drift Active
+        </span>
+      );
+    }
+
+    switch (inv.status) {
+      case "COMPLETED":
+        return (
+          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#3B8F6B]/15 text-[#3B8F6B] border border-[#3B8F6B]/30">
+            Completed
+          </span>
+        );
+      case "INVESTIGATING":
+      case "UNDERSTANDING":
+      case "PLANNING":
+        return (
+          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#4C8FA6]/20 text-[#7EB5CC] border border-[#4C8FA6]/40">
+            In Progress ({inv.progressPercent}%)
+          </span>
+        );
+      case "PENDING_REVIEW":
+        return (
+          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#B8843A]/20 text-[#D4A559] border border-[#B8843A]/40">
+            Pending Remediation
+          </span>
+        );
+      case "POLICY_DRIFT":
+        return (
+          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#A24438]/20 text-[#E06C5D] border border-[#A24438]/40">
+            Policy Drift Active
+          </span>
+        );
+      default:
+        return (
+          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#0D1013] text-[#9096A0] border border-[#2A3038]">
+            {inv.status}
+          </span>
+        );
+    }
+  };
+
   return (
     <div className="space-y-6 w-full">
       {/* ========================================================================= */}
@@ -99,48 +193,109 @@ export function TrustGraphTabView({
             </p>
           </div>
 
-          {/* Barra de Pesquisa e Filtros por Legislação */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-[#171B1F] border border-[#2A3038] p-4 rounded-xl">
-            {/* Input de Busca */}
-            <div className="relative flex-1 max-w-lg">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by title, file name, hash or ID..."
-                className="w-full bg-[#0D1013] border border-[#2A3038] hover:border-[#38414D] focus:border-[#B8843A] rounded-lg px-3.5 py-2 text-xs text-white placeholder-[#5C636E] focus:outline-none transition-colors"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-2.5 text-xs text-[#9096A0] hover:text-white"
-                >
-                  ✕
-                </button>
-              )}
+          {/* Barra de Pesquisa e Filtros Avançados (Status, Criticidade, IAs, Legislação) */}
+          <div className="bg-[#171B1F] border border-[#2A3038] p-4 rounded-xl space-y-3">
+            {/* Linha 1: Input de Busca + Indicador de Resultados */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <div className="relative flex-1 max-w-xl">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search by title, file name, hash or ID..."
+                  className="w-full bg-[#0D1013] border border-[#2A3038] hover:border-[#38414D] focus:border-[#B8843A] rounded-lg px-3.5 py-2 text-xs text-white placeholder-[#5C636E] focus:outline-none transition-colors"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-3 top-2.5 text-xs text-[#9096A0] hover:text-white"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+
+              <div className="flex items-center gap-3 text-xs font-mono text-[#9096A0]">
+                <span>
+                  Showing <strong className="text-white">{filteredInvestigations.length}</strong> of{" "}
+                  {investigations.length} documents
+                </span>
+                {isAnyFilterActive && (
+                  <button
+                    onClick={handleResetFilters}
+                    className="text-[#E06C5D] hover:underline cursor-pointer"
+                  >
+                    Reset Filters
+                  </button>
+                )}
+              </div>
             </div>
 
-            {/* Filtros por Norma */}
-            <div className="flex flex-wrap items-center gap-1 bg-[#0D1013] p-1 rounded-lg border border-[#2A3038]">
-              {["ALL", "LGPD", "GDPR", "ISO 27001", "OWASP"].map((fw) => (
-                <button
-                  key={fw}
-                  onClick={() => setFrameworkFilter(fw)}
-                  className={cn(
-                    "px-3 py-1.5 rounded text-xs font-mono font-medium transition-colors cursor-pointer",
-                    frameworkFilter === fw
-                      ? "bg-[#171B1F] text-[#B8843A] font-semibold border border-[#B8843A]/30"
-                      : "text-[#9096A0] hover:text-white"
-                  )}
+            {/* Linha 2: 4 Filtros Estruturados (Status, Criticidade, IAs e Frameworks) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2 border-t border-[#2A3038]/60 text-xs">
+              {/* Filtro 1: Status do Documento */}
+              <div>
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full bg-[#0D1013] border border-[#2A3038] hover:border-[#B8843A] rounded-lg px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#B8843A] cursor-pointer"
                 >
-                  {fw === "ALL" ? "All Frameworks" : fw}
-                </button>
-              ))}
+                  <option value="ALL">All Statuses</option>
+                  <option value="COMPLETED">Completed</option>
+                  <option value="IN_PROGRESS">In Progress</option>
+                  <option value="PENDING_REVIEW">Pending Remediation</option>
+                  <option value="POLICY_DRIFT">Policy Drift Active</option>
+                </select>
+              </div>
+
+              {/* Filtro 2: Criticidade */}
+              <div>
+                <select
+                  value={criticalityFilter}
+                  onChange={(e) => setCriticalityFilter(e.target.value)}
+                  className="w-full bg-[#0D1013] border border-[#2A3038] hover:border-[#B8843A] rounded-lg px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#B8843A] cursor-pointer"
+                >
+                  <option value="ALL">All Severities</option>
+                  <option value="CRITICAL">Critical Gaps Only</option>
+                  <option value="HIGH">High Priority Gaps Only</option>
+                  <option value="MEDIUM">Medium Gaps Only</option>
+                </select>
+              </div>
+
+              {/* Filtro 3: Especialistas de IA */}
+              <div>
+                <select
+                  value={agentFilter}
+                  onChange={(e) => setAgentFilter(e.target.value)}
+                  className="w-full bg-[#0D1013] border border-[#2A3038] hover:border-[#B8843A] rounded-lg px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#B8843A] cursor-pointer"
+                >
+                  <option value="ALL">All AI Models & Specialists</option>
+                  <option value="pii-scanner">PII Scanner (Gemma 2B)</option>
+                  <option value="lgpd-specialist">LGPD Specialist (Gemini Flash)</option>
+                  <option value="gdpr-specialist">GDPR Specialist (Gemini Flash)</option>
+                  <option value="iso-specialist">ISO 27001 Specialist (Gemini Flash)</option>
+                </select>
+              </div>
+
+              {/* Filtro 4: Legislação / Framework */}
+              <div>
+                <select
+                  value={frameworkFilter}
+                  onChange={(e) => setFrameworkFilter(e.target.value)}
+                  className="w-full bg-[#0D1013] border border-[#2A3038] hover:border-[#B8843A] rounded-lg px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#B8843A] cursor-pointer"
+                >
+                  <option value="ALL">All Frameworks</option>
+                  <option value="LGPD">LGPD (Brazil)</option>
+                  <option value="GDPR">GDPR (European Union)</option>
+                  <option value="ISO 27001">ISO/IEC 27001</option>
+                  <option value="OWASP">OWASP Top 10 / LLM</option>
+                </select>
+              </div>
             </div>
           </div>
 
-          {/* Grid / Lista de Documentos Auditados */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Lista de Documentos Auditados em Linhas Horizontais */}
+          <div className="space-y-3">
             {filteredInvestigations.map((inv) => {
               const invGaps = findings.filter(
                 (f) =>
@@ -150,64 +305,79 @@ export function TrustGraphTabView({
               );
               const crits = invGaps.filter((f) => f.severity === "CRITICAL").length;
               const highs = invGaps.filter((f) => f.severity === "HIGH").length;
+              const meds = invGaps.filter((f) => f.severity === "MEDIUM").length;
 
               return (
                 <div
                   key={inv.id}
                   onClick={() => handleOpenDocDetails(inv)}
-                  className="bg-[#171B1F] border border-[#2A3038] hover:border-[#B8843A] rounded-xl p-5 flex flex-col justify-between space-y-4 transition-all duration-200 cursor-pointer hover:shadow-lg hover:shadow-black/50 hover:-translate-y-0.5"
+                  className="bg-[#171B1F] border border-[#2A3038] hover:border-[#B8843A] rounded-xl p-5 grid grid-cols-1 md:grid-cols-12 items-center gap-6 transition-all duration-200 cursor-pointer hover:shadow-lg hover:shadow-black/50 hover:bg-[#1C2126] group"
                 >
-                  {/* Top Header do Card */}
-                  <div className="flex items-center justify-between gap-2">
+                  {/* Coluna 1 (Esquerda - 6 cols): ID + Título + Nome do Arquivo */}
+                  <div className="md:col-span-6 space-y-1.5 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#0D1013] text-[#B8843A] border border-[#2A3038]">
                         {inv.id}
                       </span>
-                      <span className="text-[10px] font-mono text-[#3B8F6B] bg-[#3B8F6B]/15 px-2 py-0.5 rounded border border-[#3B8F6B]/30">
-                        ✓ Verified Audit
-                      </span>
                     </div>
 
-                    <span className="text-[10px] font-mono text-[#5C636E]">
-                      {(inv.fileSizeBytes / 1024).toFixed(1)} KB
-                    </span>
+                    <div className="space-y-0.5">
+                      <h3 className="text-sm font-bold text-white tracking-tight group-hover:text-[#B8843A] transition-colors leading-snug">
+                        {inv.title}
+                      </h3>
+                      <p className="text-xs text-[#9096A0] font-mono">
+                        File: {inv.documentName}
+                      </p>
+                    </div>
                   </div>
 
-                  {/* Título e Nome do Arquivo */}
-                  <div className="space-y-1">
-                    <h3 className="text-sm font-bold text-white tracking-tight group-hover:text-[#B8843A] transition-colors">
-                      {inv.title}
-                    </h3>
-                    <p className="text-xs text-[#9096A0] font-mono truncate">
-                      File: {inv.documentName}
-                    </p>
+                  {/* Coluna 2 (Centro Exato - 2 cols): Status Centralizado */}
+                  <div className="md:col-span-2 flex justify-start md:justify-center items-center">
+                    {renderStatusBadge(inv)}
                   </div>
 
-                  {/* Frameworks e Gaps Breakdown */}
-                  <div className="pt-3 border-t border-[#2A3038] flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex items-center gap-1.5">
-                      {inv.frameworks.map((fw) => (
-                        <span
-                          key={fw}
-                          className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-[#0D1013] text-[#9096A0] border border-[#2A3038]"
-                        >
-                          {fw}
-                        </span>
-                      ))}
+                  {/* Coluna 3 (Direita - 4 cols): Gaps na linha de cima + Frameworks na linha de baixo + Botão Access */}
+                  <div className="md:col-span-4 flex items-center justify-between md:justify-end gap-6 pt-3 md:pt-0 border-t md:border-t-0 border-[#2A3038]">
+                    <div className="space-y-1.5 text-center flex flex-col items-center justify-center">
+                      {/* Linha de Cima: Gaps (sem o número e centralizado) */}
+                      <div className="text-xs font-mono font-bold text-white">
+                        Gaps
+                      </div>
+
+                      {/* Linha do Meio: Badges de Severidade (centralizados) */}
+                      <div className="flex items-center gap-1.5 justify-center">
+                        {crits > 0 && (
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-[#A24438]/20 text-[#E06C5D] font-bold border border-[#A24438]/40">
+                            {crits} Critical
+                          </span>
+                        )}
+                        {highs > 0 && (
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-[#B8843A]/20 text-[#D4A559] border border-[#B8843A]/40">
+                            {highs} High
+                          </span>
+                        )}
+                        {meds > 0 && (
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-[#4C8FA6]/20 text-[#7EB5CC] border border-[#4C8FA6]/40">
+                            {meds} Medium
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Linha de Baixo: Frameworks (centralizados) */}
+                      <div className="flex flex-wrap items-center gap-1.5 justify-center pt-0.5">
+                        {inv.frameworks.map((fw) => (
+                          <span
+                            key={fw}
+                            className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-[#0D1013] text-[#9096A0] border border-[#2A3038]"
+                          >
+                            {fw}
+                          </span>
+                        ))}
+                      </div>
                     </div>
 
-                    <div className="flex items-center gap-2 text-xs font-mono">
-                      <span className="text-white font-bold">{invGaps.length} Gaps:</span>
-                      {crits > 0 && (
-                        <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#A24438]/20 text-[#E06C5D] font-bold">
-                          {crits} Critical
-                        </span>
-                      )}
-                      {highs > 0 && (
-                        <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#B8843A]/20 text-[#D4A559]">
-                          {highs} High
-                        </span>
-                      )}
+                    <div className="text-xs font-mono font-semibold text-[#B8843A] group-hover:text-[#CCA159] transition-colors pl-2">
+                      <span>Access</span>
                     </div>
                   </div>
                 </div>
@@ -241,6 +411,7 @@ export function TrustGraphTabView({
                   <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#0D1013] text-[#B8843A] border border-[#2A3038]">
                     {activeDoc.id}
                   </span>
+                  {renderStatusBadge(activeDoc)}
                 </div>
               </div>
 
@@ -261,11 +432,6 @@ export function TrustGraphTabView({
                     Simulate Regulatory Drift (GDPR v2)
                   </button>
                 )}
-
-                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#0D1013] border border-[#2A3038] text-xs font-mono">
-                  <span className="w-2 h-2 rounded-full bg-[#3B8F6B]" />
-                  <span className="text-[#3B8F6B] font-bold">Verified Audit</span>
-                </div>
               </div>
             </div>
 
@@ -428,7 +594,7 @@ export function TrustGraphTabView({
                     {/* Lado Esquerdo: O que foi Identificado no Documento */}
                     <div className="p-5 space-y-3 bg-[#171B1F]">
                       <div className="flex items-center justify-between text-[11px] font-mono font-bold uppercase tracking-wider text-[#E06C5D]">
-                        <span>👈 Identified Clause & Evidence</span>
+                        <span>Identified Clause & Evidence</span>
                         <span className="text-[#5C636E]">Original Document</span>
                       </div>
 
@@ -445,7 +611,7 @@ export function TrustGraphTabView({
                           onClick={() => onOpenEvidence(finding)}
                           className="text-[#4C8FA6] hover:text-[#7EB5CC] transition-colors cursor-pointer flex items-center gap-1.5"
                         >
-                          <span>🔍 View in Full Document (Drawer)</span>
+                          <span>View in Full Document (Drawer)</span>
                         </button>
 
                         <span className="text-[11px] text-[#5C636E]">
@@ -457,7 +623,7 @@ export function TrustGraphTabView({
                     {/* Lado Direito: Sugestão para ser Atualizado e Remediado */}
                     <div className="p-5 space-y-3 bg-[#14181C]">
                       <div className="flex items-center justify-between text-[11px] font-mono font-bold uppercase tracking-wider text-[#3B8F6B]">
-                        <span>👉 Proposed Remediation & Patch</span>
+                        <span>Proposed Remediation & Patch</span>
                         <span className="text-[#B8843A]">Recommended Fix</span>
                       </div>
 
@@ -487,8 +653,8 @@ export function TrustGraphTabView({
                           )}
                         >
                           {finding.status === "RESOLVED"
-                            ? "✓ Remediated & Sealed"
-                            : "⚡ Apply Remediation Patch"}
+                            ? "Remediated & Sealed"
+                            : "Apply Remediation Patch"}
                         </button>
                       </div>
                     </div>
@@ -512,7 +678,7 @@ export function TrustGraphTabView({
                     Trust & Compliance Graph (DAG Provenance)
                   </h3>
                   {isDriftActive && (
-                    <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#A24438]/20 text-[#E06C5D] border border-[#A24438]/40 animate-pulse">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#A24438]/20 text-[#E06C5D] border border-[#A24438]/40">
                       Policy Drift Active
                     </span>
                   )}
@@ -523,7 +689,7 @@ export function TrustGraphTabView({
               </div>
 
               <div className="flex items-center gap-3 text-xs font-mono text-[#B8843A]">
-                <span>{isGraphExpanded ? "Hide Graph ▲" : "Show Full Graph ▼"}</span>
+                <span>{isGraphExpanded ? "Hide Graph" : "Show Full Graph"}</span>
               </div>
             </div>
 

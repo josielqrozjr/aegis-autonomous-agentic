@@ -14,8 +14,10 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+/lib/
+/lib64/
+!apps/web/lib/
+
 parts/
 sdist/
 var/
@@ -224,3 +226,10 @@ __marimo__/
 .terraform.lock.hcl
 terraform.tfvars
 crash.log
+
+# Web & Agents
+node_modules/
+.next/
+.agents/
+.env
+

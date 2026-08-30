@@ -1,0 +1,16 @@
+# ── Agents .dockerignore ──
+# Excludes frontend, infra, and non-agent code from agent images.
+
+node_modules
+.next
+apps/web
+infra/
+planner/
+docs/
+tests/
+__pycache__
+*.pyc
+.pytest_cache
+.env
+.venv
+.git

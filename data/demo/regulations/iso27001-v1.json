@@ -1,0 +1,13 @@
+{
+  "framework": "ISO27001",
+  "version": "2022",
+  "jurisdiction": "GLOBAL",
+  "title": "ISO/IEC 27001:2022 Information Security Management Systems",
+  "requirements": [
+    {
+      "code": "ISO27001-A.8.10",
+      "title": "Information Deletion",
+      "description": "Information stored in information systems, devices or in any other storage media shall be deleted when no longer required, in accordance with applicable statutory, regulatory, and contractual requirements."
+    }
+  ]
+}

@@ -92,8 +92,10 @@ class ChangeDetectionAgent(BaseAgent):
                     # Invalidação no Trust Graph
                     if graph:
                         for ev in finding.evidences:
-                            inv_res = graph.invalidate(ev.id, f"Invalidado por mudança normativa em {change.framework}")
+                            target_id = ev.id if graph.get_node(ev.id) else (f"ev-{ev.id}" if graph.get_node(f"ev-{ev.id}") else ev.id)
+                            inv_res = graph.invalidate(target_id, f"Invalidado por mudança normativa em {change.framework}")
                             invalidated_nodes.extend(inv_res)
+
 
             if reopened_findings:
                 affected_inv_ids.append(inv.id)

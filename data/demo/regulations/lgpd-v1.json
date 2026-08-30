@@ -1,0 +1,18 @@
+{
+  "framework": "LGPD",
+  "version": "1.0",
+  "jurisdiction": "BR",
+  "title": "Lei Geral de Proteção de Dados Pessoais (Lei 13.709/2018)",
+  "requirements": [
+    {
+      "code": "LGPD-ART-15",
+      "title": "Término do Tratamento de Dados",
+      "description": "O término do tratamento de dados pessoais ocorrerá quando verificada que a finalidade foi alcançada ou quando os dados deixaram de ser necessários."
+    },
+    {
+      "code": "LGPD-ART-16",
+      "title": "Eliminação dos Dados Pessoais",
+      "description": "Os dados pessoais serão eliminados após o término de seu tratamento, autorizada a conservação apenas para cumprimento de obrigação legal ou regulatória específica."
+    }
+  ]
+}

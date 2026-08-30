@@ -1,0 +1,27 @@
+================================================================================
+AEGIS CORP GLOBAL — POLÍTICA CORPORATIVA DE RETENÇÃO E DESCARTE DE DADOS
+Versão: 2026.1 | Jurisdições Aplicáveis: Brasil (LGPD), União Europeia (GDPR), Global (ISO 27001)
+Contato do Encarregado de Dados (DPO): dpo@aegis-corp.com | CPF: 123.456.789-00
+================================================================================
+
+1. OBJETIVO E ESCOPO
+Esta política estabelece os prazos máximos e procedimentos para armazenamento, arquivamento
+e eliminação definitiva de dados pessoais, registros financeiros e logs de conexão mantidos pela
+AEGIS Corp em suas operações no Brasil e na União Europeia.
+
+2. CLASSIFICAÇÃO DE DADOS E COLETA
+2.1. A empresa coleta dados cadastrais (nome, e-mail, documento de identificação) no momento da contratação.
+2.2. Coletamos dados de geolocalização e histórico de navegação para fins de marketing sem consentimento explícito.
+
+3. PRAZOS GERAIS DE CUSTÓDIA E BASES LEGAIS
+3.1. Dados de clientes ativos serão mantidos durante a vigência do relacionamento comercial.
+3.2. Todos os dados cadastrais de clientes inativos permanecerão arquivados por prazo fixo de 10 (dez) anos para eventual auditoria interna.
+
+4. TELEMETRIA, LOGS DE SERVIDORES E AUDITORIA TÉCNICA
+4.1. Logs de auditoria, IPs e telemetria de tráfego de usuários globais (inclusive UE) são retidos por 10 anos em storage frio.
+4.2. Os dados em trânsito são criptografados com TLS 1.2 / TLS 1.3 para assegurar integridade.
+
+5. PROCEDIMENTO DE EXPURGO E DESCARTE DE MÍDIAS
+5.1. Ao término do prazo estipulado, os dados deverão ser eliminados com segurança.
+5.2. O descarte de dados estruturados em bancos relacionais será executado por exclusão lógica.
+5.3. As mídias e snapshots legados serão apagados periodicamente conforme conveniência operacional da equipe de TI.

@@ -1,0 +1,18 @@
+{
+  "framework": "GDPR",
+  "version": "1.0",
+  "jurisdiction": "EU",
+  "title": "General Data Protection Regulation (Regulation (EU) 2016/679)",
+  "requirements": [
+    {
+      "code": "GDPR-ART-5-1-E",
+      "title": "Storage Limitation Principle",
+      "description": "Personal data must be kept in a form which permits identification of data subjects for no longer than is necessary for the purposes for which the personal data are processed; baseline permits maximum 10 years for historical telemetry."
+    },
+    {
+      "code": "GDPR-ART-17",
+      "title": "Right to Erasure ('Right to be Forgotten')",
+      "description": "The data subject shall have the right to obtain from the controller the erasure of personal data without undue delay."
+    }
+  ]
+}

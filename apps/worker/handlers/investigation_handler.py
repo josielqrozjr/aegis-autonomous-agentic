@@ -194,25 +194,27 @@ class InvestigationHandler:
 
                 # Add nodes to trust graph
                 if self._trust_graph:
+                    doc_node_id = f"doc-{inv.document.id}" if self._trust_graph.get_node(f"doc-{inv.document.id}") else inv.document.id
                     for ev in finding.evidences:
                         self._trust_graph.add_node(TrustNode(
-                            node_id=f"ev-{ev.id}",
+                            node_id=ev.id,
                             node_type=TrustNodeType.EVIDENCE,
                             source=ev.provenance,
                             agent_id=task.agent_id,
                             confidence=ev.confidence_score,
                             content_hash=ev.content_hash or hashlib.sha256(ev.quote.encode()).hexdigest(),
-                            dependencies=[f"doc-{inv.document.id}"],
+                            dependencies=[doc_node_id],
                         ))
                     self._trust_graph.add_node(TrustNode(
-                        node_id=f"finding-{finding.id}",
+                        node_id=finding.id,
                         node_type=TrustNodeType.FINDING,
                         source=task.agent_id,
                         agent_id=task.agent_id,
                         confidence=finding.confidence,
-                        dependencies=[f"ev-{ev.id}" for ev in finding.evidences],
+                        dependencies=[ev.id for ev in finding.evidences],
                         metadata={"requirement_id": finding.requirement_id},
                     ))
+
 
             task.status = TaskStatus.COMPLETED
             task.completed_at = datetime.now(timezone.utc)

@@ -1,0 +1,19 @@
+{
+  "framework": "GDPR",
+  "version": "2.0",
+  "jurisdiction": "EU",
+  "title": "EDPB Updated Guidelines on Storage Limitation (2026 Revision)",
+  "change_summary": "Prazo máximo estrito de retenção de logs e telemetria de tráfego reduzido de 10 para 5 anos. Exige anonimização ou expurgo obrigatório de IPs.",
+  "requirements": [
+    {
+      "code": "GDPR-ART-5-1-E",
+      "title": "Storage Limitation Principle (Updated 2026)",
+      "description": "Retention of user connection logs, telemetry, and IP traces must not exceed 5 years under any circumstances for EU residents."
+    },
+    {
+      "code": "GDPR-ART-17",
+      "title": "Right to Erasure ('Right to be Forgotten')",
+      "description": "Immediate erasure required upon subject request without undue delay."
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+# ── Web (Next.js) .dockerignore ──
+# Excludes backend, python, and build artifacts from web image.
+
+# Python backend
+apps/api
+apps/worker
+src/
+__pycache__
+*.pyc
+.pytest_cache
+.venv
+venv
+
+# Node build artifacts
+node_modules
+.next
+.turbo
+out/
+
+# Infra
+infra/
+planner/
+docs/
+tests/
+
+# Env / Git
+.env
+.envrc
+.git
+.gitignore

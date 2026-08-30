@@ -1,0 +1,16 @@
+# ──────────────────────────────────────────────────────────────
+# AEGIS — Preencha com os seus valores e renomeie para terraform.tfvars
+# ──────────────────────────────────────────────────────────────
+
+project_id          = "seu-project-id"           # ex: aegis-mvp-2026
+region              = "us-central1"              # região free-tier friendly
+uploads_bucket_name = "aegis-uploads-UNIQUE"     # precisa ser globalmente único
+
+# Deixe vazio na primeira vez (terraform apply cria a infra).
+# Após dar push das imagens no Artifact Registry, preencha e rode apply de novo.
+api_image    = ""
+worker_image = ""
+web_image    = ""
+
+# Gemini API Key (não commite esse arquivo!)
+google_api_key = ""

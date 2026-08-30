@@ -169,15 +169,24 @@ export default function Home() {
     setFindings(MOCK_FINDINGS);
   };
 
-  const handleApplyRemediation = (findingId: string) => {
+  const handleApplyRemediation = (findingOrId: Finding | string) => {
+    const findingId = typeof findingOrId === "string" ? findingOrId : findingOrId.id;
     setFindings((prev) =>
-      prev.map((f) => (f.id === findingId ? { ...f, status: "RESOLVED" } : f))
+      prev.map((f) =>
+        f.id === findingId
+          ? { ...f, status: f.status === "RESOLVED" ? "OPEN" : "RESOLVED" }
+          : f
+      )
     );
     setGraphData((prev) => ({
       ...prev,
-      nodes: prev.nodes.map((n) =>
-        n.id.includes("find-02") ? { ...n, valid: true, invalidated_reason: null, affected_by_change: false } : n
-      ),
+      nodes: prev.nodes.map((n) => {
+        const lowerId = findingId.toLowerCase().replace("-", "");
+        if (n.id.toLowerCase().includes(lowerId) || (n.source && n.source.toLowerCase().includes(lowerId))) {
+          return { ...n, valid: true, invalidated_reason: null, affected_by_change: false };
+        }
+        return n;
+      }),
     }));
   };
 
@@ -263,7 +272,7 @@ export default function Home() {
                 }
               }}
               onOpenEvidence={(f) => setSelectedFindingForEvidence(f)}
-              onApplyRemediation={(f) => setSelectedFindingForRemediation(f)}
+              onApplyRemediation={(f) => handleApplyRemediation(f)}
               onTriggerDrift={() =>
                 handleDriftTriggered({
                   framework: "GDPR",

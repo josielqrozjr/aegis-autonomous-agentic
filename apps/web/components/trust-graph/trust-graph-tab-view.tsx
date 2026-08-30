@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { Finding, Investigation, AgentInfo } from "@/lib/types";
 import { TrustGraphData, TrustGraphNode } from "@/lib/api/client";
 import { TrustGraphViewer } from "./trust-graph-viewer";
+import { RemediatedDocumentViewer } from "@/components/evidence/remediated-document-viewer";
 
 interface TrustGraphTabViewProps {
   investigations: Investigation[];
@@ -46,6 +47,7 @@ export function TrustGraphTabView({
   const [frameworkFilter, setFrameworkFilter] = useState<string>("ALL");
   const [severityFilter, setSeverityFilter] = useState<string>("ALL");
   const [isGraphExpanded, setIsGraphExpanded] = useState<boolean>(true);
+  const [isPreviewDocOpen, setIsPreviewDocOpen] = useState<boolean>(false);
 
   // Documento selecionado atualmente
   const activeDoc = investigations.find((inv) => inv.id === selectedDocId) || currentInvestigation;
@@ -415,8 +417,15 @@ export function TrustGraphTabView({
                 </div>
               </div>
 
-              {/* Ações de Simulação e Status */}
-              <div className="flex items-center gap-3 shrink-0">
+              {/* Ações de Simulação, Visualização e Status */}
+              <div className="flex flex-wrap items-center gap-3 shrink-0">
+                <button
+                  onClick={() => setIsPreviewDocOpen(true)}
+                  className="px-3.5 py-2 rounded-lg text-xs font-semibold bg-[#3B8F6B]/15 hover:bg-[#3B8F6B]/25 text-[#3B8F6B] border border-[#3B8F6B]/30 transition-colors cursor-pointer"
+                >
+                  Preview Remediated Document
+                </button>
+
                 {isDriftActive ? (
                   <button
                     onClick={onResetDrift}
@@ -532,21 +541,38 @@ export function TrustGraphTabView({
                 </p>
               </div>
 
-              <div className="flex items-center gap-1 bg-[#12161A] p-1 rounded-lg border border-[#2A3038] self-start sm:self-auto">
-                {["ALL", "CRITICAL", "HIGH", "MEDIUM"].map((lvl) => (
-                  <button
-                    key={lvl}
-                    onClick={() => setSeverityFilter(lvl)}
-                    className={cn(
-                      "px-2.5 py-1 rounded text-xs font-medium transition-colors cursor-pointer",
-                      severityFilter === lvl
-                        ? "bg-[#21262B] text-[#B8843A] font-semibold"
-                        : "text-[#9096A0] hover:text-white"
-                    )}
-                  >
-                    {lvl === "ALL" ? "All" : lvl}
-                  </button>
-                ))}
+              <div className="flex flex-wrap items-center gap-3 self-start sm:self-auto">
+                <button
+                  onClick={() => {
+                    filteredFindings.forEach((f) => {
+                      if (f.status !== "RESOLVED") {
+                        onApplyRemediation(f);
+                      }
+                    });
+                  }}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#3B8F6B]/15 hover:bg-[#3B8F6B]/25 text-[#3B8F6B] border border-[#3B8F6B]/30 transition-all cursor-pointer"
+                >
+                  {filteredFindings.every((f) => f.status === "RESOLVED")
+                    ? "✓ All Remediations Sealed"
+                    : "Apply All Remediations"}
+                </button>
+
+                <div className="flex items-center gap-1 bg-[#12161A] p-1 rounded-lg border border-[#2A3038]">
+                  {["ALL", "CRITICAL", "HIGH", "MEDIUM"].map((lvl) => (
+                    <button
+                      key={lvl}
+                      onClick={() => setSeverityFilter(lvl)}
+                      className={cn(
+                        "px-2.5 py-1 rounded text-xs font-medium transition-colors cursor-pointer",
+                        severityFilter === lvl
+                          ? "bg-[#21262B] text-[#B8843A] font-semibold"
+                          : "text-[#9096A0] hover:text-white"
+                      )}
+                    >
+                      {lvl === "ALL" ? "All" : lvl}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -706,6 +732,15 @@ export function TrustGraphTabView({
           </div>
         </div>
       )}
+
+      {/* Visualizador do Documento Integral com Correções e Patches Aplicados */}
+      <RemediatedDocumentViewer
+        isOpen={isPreviewDocOpen}
+        onClose={() => setIsPreviewDocOpen(false)}
+        investigation={activeDoc}
+        findings={docFindings}
+        isDriftActive={isDriftActive}
+      />
     </div>
   );
 }

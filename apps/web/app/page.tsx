@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Sidebar } from "@/components/navigation/sidebar";
 import { TopHeader } from "@/components/navigation/top-header";
 import { MetricsHeader } from "@/components/investigation/metrics-header";
+import { DashboardHub } from "@/components/dashboard/dashboard-hub";
 import { Dropzone } from "@/components/upload/dropzone";
 import { PipelineStepper } from "@/components/investigation/pipeline-stepper";
 import { AgentCard } from "@/components/agents/agent-card";
@@ -24,11 +25,9 @@ import {
 } from "@/lib/mock-data";
 import { Investigation, InvestigationStatus, Finding } from "@/lib/types";
 import { TrustGraphData } from "@/lib/api/client";
-import { useLanguage } from "@/lib/i18n/language-context";
 
 export default function Home() {
-  const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState("investigations");
+  const [activeTab, setActiveTab] = useState("overview");
   const [investigations, setInvestigations] = useState<Investigation[]>(MOCK_INVESTIGATIONS);
   const [currentInvestigation, setCurrentInvestigation] = useState<Investigation>(MOCK_INVESTIGATIONS[0]);
   const [agents, setAgents] = useState(MOCK_AGENTS);
@@ -118,7 +117,7 @@ export default function Home() {
     setIsDriftActive(false);
     setGraphData(MOCK_TRUST_GRAPH_INITIAL);
     setFindings(MOCK_FINDINGS);
-    setActiveTab("investigations");
+    setActiveTab("overview");
   };
 
   const handleDriftTriggered = (scenario: {
@@ -191,8 +190,8 @@ export default function Home() {
 
         {/* Scrollable Content */}
         <main className="flex-1 overflow-y-auto p-6 space-y-6">
-          {/* Demo Controller */}
-          {showDemoController && (
+          {/* Demo Controller (only on detailed tabs, excluded from Overview) */}
+          {showDemoController && activeTab !== "overview" && (
             <DemoFlowController
               currentStep={demoStep}
               onStepChange={handleDemoStepChange}
@@ -200,8 +199,13 @@ export default function Home() {
             />
           )}
 
-          {/* Top Metrics */}
-          <MetricsHeader />
+          {/* Top Metrics on Detailed Tabs */}
+          {activeTab !== "overview" && <MetricsHeader />}
+
+          {/* TAB 0: OVERVIEW (HOME PAGE - BIG NUMBERS ONLY) */}
+          {activeTab === "overview" && (
+            <DashboardHub onNavigate={setActiveTab} />
+          )}
 
           {/* TAB 1: INVESTIGATIONS */}
           {activeTab === "investigations" && (

@@ -11,6 +11,8 @@ interface TrustGraphTabViewProps {
   investigations: Investigation[];
   currentInvestigation: Investigation;
   onSelectInvestigation: (inv: Investigation) => void;
+  selectedDocId?: string | null;
+  onSelectDocId?: (id: string | null) => void;
   findings: Finding[];
   agents: AgentInfo[];
   graphData: TrustGraphData;
@@ -29,6 +31,8 @@ export function TrustGraphTabView({
   investigations,
   currentInvestigation,
   onSelectInvestigation,
+  selectedDocId: controlledSelectedDocId,
+  onSelectDocId,
   findings,
   agents,
   graphData,
@@ -43,7 +47,15 @@ export function TrustGraphTabView({
   onResetDrift,
 }: TrustGraphTabViewProps) {
   // Estado para controlar a visão: Lista de Documentos vs Detalhes do Documento
-  const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
+  const [internalSelectedDocId, setInternalSelectedDocId] = useState<string | null>(null);
+  const selectedDocId = controlledSelectedDocId !== undefined ? controlledSelectedDocId : internalSelectedDocId;
+
+  const setSelectedDocId = (id: string | null) => {
+    if (onSelectDocId) {
+      onSelectDocId(id);
+    }
+    setInternalSelectedDocId(id);
+  };
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [criticalityFilter, setCriticalityFilter] = useState<string>("ALL");
@@ -369,8 +381,8 @@ export function TrustGraphTabView({
                   onClick={() => handleOpenDocDetails(inv)}
                   className="bg-[#171B1F] border border-[#2A3038] hover:border-[#B8843A] rounded-xl p-5 grid grid-cols-1 md:grid-cols-12 items-center gap-6 transition-all duration-200 cursor-pointer hover:shadow-lg hover:shadow-black/50 hover:bg-[#1C2126] group"
                 >
-                  {/* Coluna 1 (Esquerda - 6 cols): ID + Título + Nome do Arquivo */}
-                  <div className="md:col-span-6 space-y-1.5 min-w-0">
+                  {/* Coluna 1 (Esquerda - 5 cols): ID + Título + Nome do Arquivo */}
+                  <div className="md:col-span-5 space-y-1.5 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#0D1013] text-[#B8843A] border border-[#2A3038]">
                         {inv.id}
@@ -392,55 +404,56 @@ export function TrustGraphTabView({
                     {renderStatusBadge(inv)}
                   </div>
 
-                  {/* Coluna 3 (Direita - 4 cols): Gaps na linha de cima + Frameworks na linha de baixo + Botão Access */}
-                  <div className="md:col-span-4 flex items-center justify-between md:justify-end gap-6 pt-3 md:pt-0 border-t md:border-t-0 border-[#2A3038]">
-                    <div className="space-y-1.5 text-center flex flex-col items-center justify-center">
-                      {/* Linha de Cima: Gaps (sem o número e centralizado) */}
-                      <div className="text-xs font-mono font-bold text-white">
-                        Gaps
-                      </div>
-
-                      {/* Linha do Meio: Badges de Severidade (centralizados) */}
-                      <div className="flex items-center gap-1.5 justify-center">
-                        {docState.open === 0 && docState.total > 0 ? (
-                          <span className="text-[10px] px-2.5 py-0.5 rounded bg-[#3B8F6B]/20 text-[#3B8F6B] font-bold border border-[#3B8F6B]/40">
-                            Remediated
-                          </span>
-                        ) : (
-                          <>
-                            {openCrits > 0 && (
-                              <span className="text-[10px] px-2 py-0.5 rounded bg-[#A24438]/20 text-[#E06C5D] font-bold border border-[#A24438]/40">
-                                {openCrits} Critical
-                              </span>
-                            )}
-                            {openHighs > 0 && (
-                              <span className="text-[10px] px-2 py-0.5 rounded bg-[#B8843A]/20 text-[#D4A559] border border-[#B8843A]/40">
-                                {openHighs} High
-                              </span>
-                            )}
-                            {openMeds > 0 && (
-                              <span className="text-[10px] px-2 py-0.5 rounded bg-[#4C8FA6]/20 text-[#7EB5CC] border border-[#4C8FA6]/40">
-                                {openMeds} Medium
-                              </span>
-                            )}
-                          </>
-                        )}
-                      </div>
-
-                      {/* Linha de Baixo: Frameworks (centralizados) */}
-                      <div className="flex flex-wrap items-center gap-1.5 justify-center pt-0.5">
-                        {inv.frameworks.map((fw) => (
-                          <span
-                            key={fw}
-                            className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-[#0D1013] text-[#9096A0] border border-[#2A3038]"
-                          >
-                            {fw}
-                          </span>
-                        ))}
-                      </div>
+                  {/* Coluna 3 (Gaps e Frameworks - 3 cols): Centralizado com respiro */}
+                  <div className="md:col-span-3 space-y-1.5 text-center flex flex-col items-center justify-center pt-3 md:pt-0 border-t md:border-t-0 border-[#2A3038]">
+                    {/* Linha de Cima: Gaps (sem o número e centralizado) */}
+                    <div className="text-xs font-mono font-bold text-white">
+                      Gaps
                     </div>
 
-                    <div className="text-xs font-mono font-semibold text-[#B8843A] group-hover:text-[#CCA159] transition-colors pl-2">
+                    {/* Linha do Meio: Badges de Severidade (centralizados) */}
+                    <div className="flex items-center gap-1.5 justify-center">
+                      {docState.open === 0 && docState.total > 0 ? (
+                        <span className="text-[10px] px-2.5 py-0.5 rounded bg-[#3B8F6B]/20 text-[#3B8F6B] font-bold border border-[#3B8F6B]/40">
+                          Remediated
+                        </span>
+                      ) : (
+                        <>
+                          {openCrits > 0 && (
+                            <span className="text-[10px] px-2 py-0.5 rounded bg-[#A24438]/20 text-[#E06C5D] font-bold border border-[#A24438]/40">
+                              {openCrits} Critical
+                            </span>
+                          )}
+                          {openHighs > 0 && (
+                            <span className="text-[10px] px-2 py-0.5 rounded bg-[#B8843A]/20 text-[#D4A559] border border-[#B8843A]/40">
+                              {openHighs} High
+                            </span>
+                          )}
+                          {openMeds > 0 && (
+                            <span className="text-[10px] px-2 py-0.5 rounded bg-[#4C8FA6]/20 text-[#7EB5CC] border border-[#4C8FA6]/40">
+                              {openMeds} Medium
+                            </span>
+                          )}
+                        </>
+                      )}
+                    </div>
+
+                    {/* Linha de Baixo: Frameworks (centralizados) */}
+                    <div className="flex flex-wrap items-center gap-1.5 justify-center pt-0.5">
+                      {inv.frameworks.map((fw) => (
+                        <span
+                          key={fw}
+                          className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-[#0D1013] text-[#9096A0] border border-[#2A3038]"
+                        >
+                          {fw}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Coluna 4 (Direita - 2 cols): Botão / Link Access */}
+                  <div className="md:col-span-2 flex items-center justify-end">
+                    <div className="px-3.5 py-1.5 rounded-lg bg-[#0D1013] group-hover:bg-[#B8843A] text-xs font-mono font-semibold text-[#B8843A] group-hover:text-[#0D1013] border border-[#2A3038] group-hover:border-[#B8843A] transition-all flex items-center justify-center shadow-sm">
                       <span>Access</span>
                     </div>
                   </div>

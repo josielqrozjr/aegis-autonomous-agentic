@@ -287,6 +287,16 @@ export default function Home() {
     }));
   };
 
+  const [selectedDocIdForGraph, setSelectedDocIdForGraph] = useState<string | null>(null);
+
+  const handleTabChange = (tabId: string) => {
+    if (tabId === "dashboard") {
+      // Quando clica no menu "Trust Graph & Agents", direciona sempre para a lista Audited Documents Repository
+      setSelectedDocIdForGraph(null);
+    }
+    setActiveTab(tabId);
+  };
+
   const handleUpdateRemediationSuggestion = (findingId: string, newSuggestion: string) => {
     setFindings((prev) =>
       prev.map((f) =>
@@ -300,7 +310,7 @@ export default function Home() {
   return (
     <div className="flex h-screen overflow-hidden bg-[#0D1013]">
       {/* Sidebar */}
-      <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
+      <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
 
       {/* Main Column */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
@@ -321,7 +331,7 @@ export default function Home() {
           {/* Top Metrics Header (EXCLUSIVAMENTE na aba Investigations) */}
           {activeTab === "investigations" && (
             <MetricsHeader
-              onNavigate={setActiveTab}
+              onNavigate={handleTabChange}
               investigationsCount={investigations.length}
               agentsCount={activeAgentsCount}
               findingsCount={findings.length}
@@ -333,7 +343,7 @@ export default function Home() {
           {/* TAB 0: DASHBOARD HUB (HOME PAGE - BIG NUMBERS) */}
           {activeTab === "overview" && (
             <DashboardHub
-              onNavigate={setActiveTab}
+              onNavigate={handleTabChange}
               investigationsCount={investigations.length}
               agentsCount={activeAgentsCount}
               findingsCount={findings.length}
@@ -348,6 +358,7 @@ export default function Home() {
               investigations={investigations}
               onSelect={(inv) => {
                 setCurrentInvestigation(inv);
+                setSelectedDocIdForGraph(inv.id);
                 setActiveTab("dashboard");
               }}
               onNew={() => setActiveTab("new-investigation")}
@@ -366,6 +377,8 @@ export default function Home() {
             <TrustGraphTabView
               investigations={investigations}
               currentInvestigation={currentInvestigation}
+              selectedDocId={selectedDocIdForGraph}
+              onSelectDocId={setSelectedDocIdForGraph}
               onSelectInvestigation={(inv) => setCurrentInvestigation(inv)}
               findings={findings}
               agents={agents}

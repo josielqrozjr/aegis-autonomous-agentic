@@ -556,27 +556,27 @@ Roteiro:
 ### Owner: Alana
 
 ### Dia 1
-- [ ] Documento da demo: política de retenção de dados (sintético, multi-jurisdição BR+EU)
-- [ ] Requisitos regulatórios verificáveis (LGPD, GDPR, ISO 27001)
-- [ ] Expected outputs para fallback determinístico
-- [ ] Integration tests
-- [ ] Validate shared contracts
-- [ ] **Evento regulatório preparado** (GDPR prazo alterado)
+- [x] Documento da demo: política de retenção de dados (sintético, multi-jurisdição BR+EU)
+- [x] Requisitos regulatórios verificáveis (LGPD, GDPR, ISO 27001)
+- [x] Expected outputs para fallback determinístico
+- [x] Integration tests
+- [x] Validate shared contracts
+- [x] **Evento regulatório preparado** (GDPR prazo alterado)
 
 ### Dia 2
-- [ ] End-to-end integration (cenário completo da demo)
-- [ ] Trust Graph data validation
-- [ ] Adversarial scenario testado
-- [ ] Regulatory Change scenario testado
-- [ ] Failure handling scenario testado
-- [ ] Regression tests
-- [ ] **Deterministic demo fallback** (gravação de respostas)
+- [x] End-to-end integration (cenário completo da demo)
+- [x] Trust Graph data validation
+- [x] Adversarial scenario testado
+- [x] Regulatory Change scenario testado
+- [x] Failure handling scenario testado
+- [x] Regression tests
+- [x] **Deterministic demo fallback** (gravação de respostas)
 
 ### Dia 3
-- [ ] Final integration
-- [ ] README com Verified Evidence table
-- [ ] Architecture diagram (Mermaid)
-- [ ] Setup guide com reprodução local
+- [x] Final integration
+- [x] README com Verified Evidence table
+- [x] Architecture diagram (Mermaid)
+- [x] Setup guide com reprodução local
 - [ ] Video script + gravação
 - [ ] Devpost completo
 - [ ] Submission QA

@@ -5,7 +5,12 @@ import { cn } from "@/lib/utils";
 import { Finding, Investigation, AgentInfo } from "@/lib/types";
 import { TrustGraphData, TrustGraphNode } from "@/lib/api/client";
 import { TrustGraphViewer } from "./trust-graph-viewer";
-import { RemediatedDocumentViewer } from "@/components/evidence/remediated-document-viewer";
+import {
+  RemediatedDocumentViewer,
+  generateFinalDocumentContent,
+  downloadDocumentFile,
+  printDocumentAsPdf,
+} from "@/components/evidence/remediated-document-viewer";
 
 interface TrustGraphTabViewProps {
   investigations: Investigation[];
@@ -491,13 +496,21 @@ export function TrustGraphTabView({
                 </div>
               </div>
 
-              {/* Ação de Visualização e Aprovação do Documento */}
+              {/* Ação de Visualização, Download e Aprovação do Documento */}
               <div className="flex flex-wrap items-center gap-3 shrink-0">
                 <button
                   onClick={() => setIsPreviewDocOpen(true)}
-                  className="px-3.5 py-2 rounded-lg text-xs font-semibold bg-[#3B8F6B]/15 hover:bg-[#3B8F6B]/25 text-[#3B8F6B] border border-[#3B8F6B]/30 transition-colors cursor-pointer"
+                  className="px-3.5 py-2 rounded-lg text-xs font-semibold bg-[#3B8F6B]/15 hover:bg-[#3B8F6B]/25 text-[#3B8F6B] border border-[#3B8F6B]/30 transition-colors cursor-pointer flex items-center gap-1.5"
                 >
-                  Preview Remediated Document
+                  <span>Preview Remediated Document</span>
+                </button>
+
+                <button
+                  onClick={() => printDocumentAsPdf(activeDoc, docFindings, isDriftActive)}
+                  className="px-3.5 py-2 rounded-lg text-xs font-semibold bg-[#0D1013] hover:bg-[#21262B] text-white border border-[#2A3038] hover:border-[#B8843A] transition-colors cursor-pointer flex items-center gap-1.5"
+                  title="Save / Download Final Document as PDF"
+                >
+                  <span>Save PDF</span>
                 </button>
 
                 <button

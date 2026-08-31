@@ -577,9 +577,9 @@ Roteiro:
 - [x] README com Verified Evidence table
 - [x] Architecture diagram (Mermaid)
 - [x] Setup guide com reprodução local
-- [ ] Video script + gravação
-- [ ] Devpost completo
-- [ ] Submission QA
+- [x] Video script + gravação
+- [x] Devpost completo
+- [x] Submission QA
 
 ---
 

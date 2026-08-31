@@ -130,6 +130,90 @@ make dev    # or: PYTHONPATH=src:. uvicorn apps.api.app.main:app --reload --port
 
 ---
 
+## 🧪 Reproducible Testing Instructions
+
+All tests run **locally without any cloud credentials or API keys** — the system automatically uses deterministic fallback mode when Gemini is not configured.
+
+### Prerequisites
+- Python 3.13+
+- Node.js 20+ (for frontend only)
+- Git
+
+### Step-by-Step Reproduction
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/josielqrozjr/aegis-autonomous-agentic.git
+cd aegis-autonomous-agentic
+
+# 2. Create virtual environment
+python3 -m venv .venv
+source .venv/bin/activate   # On Windows: .venv\Scripts\activate
+
+# 3. Install dependencies
+pip install -r requirements.txt
+
+# 4. Run the full test suite (79 tests — zero external dependencies)
+make test
+# Or directly: PYTHONPATH=src:. pytest tests/ -v
+```
+
+### Expected Output
+```
+tests/test_agent_architecture.py       ✓  2 passed
+tests/test_api.py                      ✓ 12 passed
+tests/test_demo_runner.py              ✓  1 passed
+tests/test_e2e.py                      ✓  7 passed
+tests/test_impact_analysis.py          ✓  5 passed
+tests/test_model_layer.py              ✓  4 passed
+tests/test_policy_drift_e2e.py         ✓  1 passed
+tests/test_state_and_failure.py        ✓  8 passed
+tests/test_state_machine.py            ✓ 15 passed
+tests/test_trust_graph.py              ✓ 14 passed
+tests/test_worker.py                   ✓ 10 passed
+──────────────────────────────────────────────
+79 passed in ~8s
+```
+
+### What the Tests Cover
+
+| Test Suite | What It Validates |
+|---|---|
+| `test_api.py` | All REST endpoints (health, agents, conformance, CRUD, upload) |
+| `test_state_machine.py` | Investigation pipeline state transitions (valid & invalid) |
+| `test_state_and_failure.py` | Failure handling (retry → substitute → degrade → block) |
+| `test_trust_graph.py` | Trust Graph invalidation cascade, blast radius, cycle safety |
+| `test_impact_analysis.py` | Regulatory change → finding reopening → investigation reopen |
+| `test_worker.py` | Pipeline execution, idempotency, resume from any state |
+| `test_e2e.py` | Full demo scenario: upload → analyze → drift → reopen |
+| `test_model_layer.py` | Multi-model registry, deterministic fallback, Gemma PII scanner |
+| `test_policy_drift_e2e.py` | End-to-end policy drift with selective recovery |
+| `test_agent_architecture.py` | Agent registry discovery, capability matching |
+| `test_demo_runner.py` | CLI demo runner execution |
+
+### Running the Live API Locally (Optional)
+```bash
+# Start the API (uses in-memory persistence, no cloud needed)
+make dev
+
+# In another terminal, run smoke tests against the local API
+make smoke
+
+# Or run a full E2E flow via curl:
+curl -X POST http://localhost:8080/api/v1/documents -F "file=@your-policy.pdf"
+# → returns { "id": "doc-xxx" }
+
+curl -X POST http://localhost:8080/api/v1/investigations \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Test", "document_id": "doc-xxx"}'
+# → returns { "id": "inv-xxx", "status": "queued" }
+
+curl -X POST http://localhost:8080/api/v1/investigations/inv-xxx/run
+# → returns { "final_status": "completed", "steps_executed": [...] }
+```
+
+---
+
 ## 📁 Repository Structure
 
 ```text

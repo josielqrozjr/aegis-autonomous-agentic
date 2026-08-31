@@ -2,15 +2,11 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-ARG NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1
-
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-
 COPY apps/web/package*.json ./
 RUN npm ci
 
 COPY apps/web/ .
-RUN npm run build
+RUN mkdir -p public && npm run build
 
 FROM node:20-alpine AS runner
 
@@ -23,4 +19,5 @@ COPY --from=builder /app/public ./public
 
 EXPOSE 3000
 
+# BACKEND_API_URL is set at runtime via Cloud Run env vars
 CMD ["node", "server.js"]

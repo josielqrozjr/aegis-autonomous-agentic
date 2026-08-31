@@ -43,7 +43,12 @@ export interface BlastRadiusResult {
   by_type: Record<string, number>;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+// In production: browser calls /api/proxy/* (same origin), Next.js server adds OIDC and forwards.
+// Locally: calls the backend API directly.
+const IS_BROWSER = typeof window !== "undefined";
+const API_BASE_URL = IS_BROWSER
+  ? "/api/proxy"  // Browser → Next.js proxy → Backend (with OIDC)
+  : (process.env.BACKEND_API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1");
 
 export async function fetchInvestigations(): Promise<Investigation[]> {
   try {
@@ -149,9 +154,9 @@ export async function fetchInvestigation(investigationId: string): Promise<any> 
 }
 
 export async function fetchAgents(): Promise<any> {
-  // Use the root /agents endpoint (no /api/v1 prefix)
-  const rootUrl = API_BASE_URL.replace(/\/api\/v1$/, "");
-  const res = await fetch(`${rootUrl}/agents`);
+  // Root endpoint — use /api/backend/ proxy (not /api/proxy/ which maps to /api/v1/)
+  const rootProxy = IS_BROWSER ? "/api/backend" : (process.env.BACKEND_API_URL || "http://localhost:8080").replace(/\/api\/v1$/, "");
+  const res = await fetch(`${rootProxy}/agents`);
   if (!res.ok) throw new Error(`Fetch agents failed: HTTP ${res.status}`);
   return await res.json();
 }

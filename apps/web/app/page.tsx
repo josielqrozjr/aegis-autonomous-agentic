@@ -37,14 +37,40 @@ import {
   transformAgents,
 } from "@/lib/api/client";
 
+const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "true";
+
+const EMPTY_INVESTIGATION: Investigation = {
+  id: "",
+  title: "",
+  documentName: "",
+  documentHash: "",
+  fileSizeBytes: 0,
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+  status: "UNDERSTANDING",
+  progressPercent: 0,
+  frameworks: [],
+  findingsCount: { total: 0, critical: 0, high: 0, medium: 0, low: 0 },
+};
+
+const EMPTY_GRAPH: TrustGraphData = {
+  investigation_id: "",
+  nodes: [],
+  edges: [],
+  total_nodes: 0,
+  valid_nodes: 0,
+  invalid_nodes: 0,
+};
+
 export default function Home() {
   const [activeTab, setActiveTab] = useState("overview");
-  const [investigations, setInvestigations] = useState<Investigation[]>(MOCK_INVESTIGATIONS);
-  const [currentInvestigation, setCurrentInvestigation] = useState<Investigation>(MOCK_INVESTIGATIONS[0]);
+  const [investigations, setInvestigations] = useState<Investigation[]>(USE_MOCK ? MOCK_INVESTIGATIONS : []);
+  const [currentInvestigation, setCurrentInvestigation] = useState<Investigation>(USE_MOCK ? MOCK_INVESTIGATIONS[0] : EMPTY_INVESTIGATION);
   const [agents, setAgents] = useState(MOCK_AGENTS);
-  const [findings, setFindings] = useState<Finding[]>(MOCK_FINDINGS);
-  const [graphData, setGraphData] = useState<TrustGraphData>(MOCK_TRUST_GRAPH_INITIAL);
-  const [pipelineStatus, setPipelineStatus] = useState<InvestigationStatus>("COMPLETED");
+  const [findings, setFindings] = useState<Finding[]>(USE_MOCK ? MOCK_FINDINGS : []);
+  const [graphData, setGraphData] = useState<TrustGraphData>(USE_MOCK ? MOCK_TRUST_GRAPH_INITIAL : EMPTY_GRAPH);
+  const [pipelineStatus, setPipelineStatus] = useState<InvestigationStatus>(USE_MOCK ? "COMPLETED" : "UNDERSTANDING");
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   
   // Demo Flow state
   const [demoStep, setDemoStep] = useState(1);
@@ -76,14 +102,20 @@ export default function Home() {
   const realDriftCount = isDriftActive ? graphData.invalid_nodes : 0;
 
   const handleStartInvestigation = async (data: { fileName: string; content: string; frameworks: string[]; file?: File }) => {
-    // Create a placeholder investigation for immediate UI feedback
+    setIsAnalyzing(true);
+
+    // Show pipeline progress immediately
+    setPipelineStatus("UNDERSTANDING");
+    setActiveTab("dashboard");
+
+    // Create placeholder for immediate UI feedback
     const placeholderId = `INV-${Date.now()}`;
     const placeholderInv: Investigation = {
       id: placeholderId,
       title: `Audit: ${data.fileName}`,
       documentName: data.fileName,
       documentHash: "computing...",
-      fileSizeBytes: data.content.length,
+      fileSizeBytes: data.file?.size || data.content.length,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       status: "UNDERSTANDING",
@@ -91,15 +123,12 @@ export default function Home() {
       frameworks: data.frameworks,
       findingsCount: { total: 0, critical: 0, high: 0, medium: 0, low: 0 },
     };
-
-    setInvestigations([placeholderInv, ...investigations]);
     setCurrentInvestigation(placeholderInv);
-    setPipelineStatus("UNDERSTANDING");
-    setActiveTab("dashboard");
-    setAgents((prev) => prev.map((a) => ({ ...a, status: "IDLE" as const })));
+    setInvestigations((prev) => [placeholderInv, ...prev]);
+    setFindings([]);
 
     try {
-      // 1. Upload document to API
+      // 1. Upload document
       let fileToUpload: File;
       if (data.file) {
         fileToUpload = data.file;
@@ -111,30 +140,25 @@ export default function Home() {
 
       // 2. Create investigation
       setPipelineStatus("PLANNING");
-      setAgents((prev) => prev.map((a) => (a.id === "pii-scanner" ? { ...a, status: "RUNNING" as const } : a)));
       const invResult = await createInvestigation(`Audit: ${data.fileName}`, uploadResult.id);
       console.log("[AEGIS] Investigation created:", invResult.id);
 
-      // 3. Run pipeline (real Gemini analysis)
+      // 3. Run pipeline (REAL Gemini analysis)
       setPipelineStatus("INVESTIGATING");
-      setAgents((prev) => prev.map((a) => a.id.includes("specialist") ? { ...a, status: "RUNNING" as const } : a));
       const runResult = await runInvestigation(invResult.id);
-      console.log("[AEGIS] Pipeline completed:", runResult.final_status, "Steps:", runResult.steps_executed);
+      console.log("[AEGIS] Pipeline:", runResult.final_status, runResult.steps_executed);
 
-      // 4. Fetch full investigation with findings
+      // 4. Fetch full investigation with real findings
       setPipelineStatus("ADVERSARIAL_REVIEW");
-      setAgents((prev) => prev.map((a) => a.id === "evidence-critic" ? { ...a, status: "RUNNING" as const } : a));
       const fullInv = await fetchInvestigation(invResult.id);
 
-      // 5. Transform and set real data
+      // 5. Transform backend → frontend types
       const realFindings: Finding[] = (fullInv.findings || []).map((f: any) =>
         transformFinding(f, invResult.id)
       );
-
-      // Add remediation suggestions from remediations
       if (fullInv.remediations) {
         for (const rem of fullInv.remediations) {
-          const finding = realFindings.find((f) => f.id === rem.finding_id);
+          const finding = realFindings.find((f: Finding) => f.id === rem.finding_id);
           if (finding) {
             finding.remediationSuggestion = rem.recommendation;
             finding.remediationStatus = "PROPOSED";
@@ -142,42 +166,45 @@ export default function Home() {
         }
       }
 
-      const realInvestigation = transformInvestigation(fullInv, data.fileName, data.content.length);
+      const realInvestigation = transformInvestigation(fullInv, data.fileName, data.file?.size || data.content.length);
 
       // 6. Fetch trust graph
       const graphResult = await fetchTrustGraph(invResult.id);
 
-      // 7. Fetch agents
+      // 7. Fetch real agents
       try {
         const agentsResult = await fetchAgents();
-        if (agentsResult.agents) {
+        if (agentsResult?.agents) {
           setAgents(transformAgents(agentsResult.agents));
         }
-      } catch { /* keep existing agents */ }
+      } catch { /* keep existing */ }
 
-      // 8. Update UI with real data
+      // 8. Update ALL state with real data
       setFindings(realFindings);
       setCurrentInvestigation(realInvestigation);
-      setInvestigations([realInvestigation, ...investigations.filter((i) => i.id !== placeholderId)]);
+      setSelectedDocIdForGraph(realInvestigation.id);
+      setInvestigations((prev) => [realInvestigation, ...prev.filter((i) => i.id !== placeholderId)]);
       if (graphResult) {
-        setGraphData({
-          ...graphResult,
-          investigation_id: invResult.id,
-        });
+        setGraphData({ ...graphResult, investigation_id: invResult.id });
       }
       setPipelineStatus("COMPLETED");
       setAgents((prev) => prev.map((a) => ({ ...a, status: "COMPLETED" as const })));
       setDemoStep(2);
+      setActiveTab("dashboard"); // Navigate to findings/trust graph view
 
       console.log("[AEGIS] ✅ Real analysis complete:", realFindings.length, "findings");
 
     } catch (err) {
-      console.error("[AEGIS] API error, falling back to mock data:", err);
-      // Fallback to mock behavior if API is down
-      setPipelineStatus("COMPLETED");
-      setAgents((prev) => prev.map((a) => ({ ...a, status: "COMPLETED" as const })));
-      setFindings(MOCK_FINDINGS);
-      setDemoStep(2);
+      console.error("[AEGIS] ❌ API error:", err);
+      if (USE_MOCK) {
+        setPipelineStatus("COMPLETED");
+        setFindings(MOCK_FINDINGS);
+        setDemoStep(2);
+      } else {
+        setPipelineStatus("FAILED");
+      }
+    } finally {
+      setIsAnalyzing(false);
     }
   };
 
@@ -203,8 +230,8 @@ export default function Home() {
   const handleResetDemo = () => {
     setDemoStep(1);
     setIsDriftActive(false);
-    setGraphData(MOCK_TRUST_GRAPH_INITIAL);
-    setFindings(MOCK_FINDINGS);
+    setGraphData(USE_MOCK ? MOCK_TRUST_GRAPH_INITIAL : EMPTY_GRAPH);
+    setFindings(USE_MOCK ? MOCK_FINDINGS : []);
     setActiveTab("overview");
   };
 
@@ -250,8 +277,8 @@ export default function Home() {
 
   const handleResetDrift = () => {
     setIsDriftActive(false);
-    setGraphData(MOCK_TRUST_GRAPH_INITIAL);
-    setFindings(MOCK_FINDINGS);
+    setGraphData(USE_MOCK ? MOCK_TRUST_GRAPH_INITIAL : graphData);
+    setFindings((prev) => prev.map((f) => f.status === "REOPENED_DRIFT" ? { ...f, status: "REVIEWED" as const } : f));
   };
 
   const handleApplyRemediation = (findingOrId: Finding | string) => {

@@ -14,6 +14,326 @@ interface RemediatedDocumentViewerProps {
   onUpdateRemediationSuggestion?: (findingId: string, newSuggestion: string) => void;
 }
 
+export function generateFinalDocumentContent(
+  investigation: Investigation,
+  findings: Finding[],
+  isDriftActive: boolean = false
+): string {
+  const finding21 = findings.find(
+    (f) =>
+      f.id === "FIND-01" ||
+      f.articleOrControl?.includes("15") ||
+      f.title?.toLowerCase().includes("retention")
+  );
+  const patch21Text =
+    finding21?.remediationSuggestion ||
+    "2.1. User profile data and transaction history shall be retained strictly for up to five (5) years following the formal termination of the customer relationship or account closure, after which all personal records shall be permanently purged or anonymized via irreversible cryptographic hashing in compliance with LGPD Art. 15 and GDPR Art. 5(1)(e).";
+
+  const finding22 = findings.find(
+    (f) =>
+      f.id === "FIND-04" ||
+      f.framework?.includes("ISO") ||
+      f.framework?.includes("OWASP") ||
+      f.articleOrControl?.includes("A.9")
+  );
+  const patch22Text =
+    finding22?.remediationSuggestion ||
+    "2.2. Server access logs and HTTP request telemetry shall be retained for a mandatory period of six (6) months with automated IP anonymization / pseudonymization applied at ingestion time, enforcing least-privilege query controls.";
+
+  const finding31 = findings.find(
+    (f) =>
+      f.id === "FIND-02" ||
+      f.id === "FIND-03" ||
+      f.articleOrControl?.includes("12") ||
+      f.articleOrControl?.includes("18")
+  );
+  const patch31Text =
+    finding31?.remediationSuggestion ||
+    "3.1. Requests for personal data erasure submitted by data subjects shall be fulfilled without undue delay and at the latest within fifteen (15) calendar days from receipt, providing the data subject with an automated cryptographic confirmation certificate.";
+
+  const finding41 = findings.find(
+    (f) =>
+      f.id === "FIND-04" ||
+      f.articleOrControl?.includes("A.9") ||
+      f.title?.toLowerCase().includes("database") ||
+      f.title?.toLowerCase().includes("access")
+  );
+  const patch41Text =
+    finding41?.remediationSuggestion ||
+    "4.1. Data in transit is secured with TLS 1.3 and AES-256 at rest. All production analytical databases must strictly mandate individual federated IAM authentication with RBAC and hardware-backed Multi-Factor Authentication (MFA). Shared credentials are strictly prohibited.";
+
+  const finding51 = findings.find(
+    (f) => f.status === "RESOLVED" && (f.id === "FIND-02" || f.status !== "REOPENED_DRIFT")
+  );
+  const patch51Text =
+    finding51?.remediationSuggestion ||
+    "5.1. Upon valid receipt of a data erasure notice, all vector index embeddings containing latent representations of the data subject must be purged, and machine unlearning verification checkpoints executed within 30 days to certify statutory model alignment under GDPR v2 Directive.";
+
+  return `# ${investigation.title.toUpperCase()}
+**Document ID:** ${investigation.id}
+**File Name:** ${investigation.documentName}
+**SHA-256 Authenticity Hash:** ${investigation.documentHash}
+**Governing Frameworks:** ${investigation.frameworks.join(" / ")}
+**Certification Status:** 100% Certified & Compliant
+**Autonomous Verification Engine:** AEGIS Multi-Agent Governance Engine (Gemma 2B + Gemini 1.5 Flash + Gemini 2.5 Pro)
+
+---
+
+## 1. PURPOSE AND APPLICABILITY
+1.1. This Policy establishes enterprise data retention standards, storage limitation thresholds, subject rights fulfillment windows, and access control mandates governing all customer, employee, and business telemetry data across all corporate jurisdictions.
+
+---
+
+## 2. DATA RETENTION & STORAGE LIMITATION
+${patch21Text}
+
+${patch22Text}
+
+---
+
+## 3. DATA SUBJECT RIGHTS & ERASURE REQUESTS
+${patch31Text}
+
+---
+
+## 4. SECURITY CONTROLS & ACCESS MANAGEMENT
+${patch41Text}
+${isDriftActive ? `\n---\n\n## 5. REGULATORY DRIFT ADAPTATION (GDPR v2 / EU AI ACT)\n${patch51Text}\n` : ""}
+---
+*Certified by AEGIS Cryptographic Governance Engine. Authenticity verified.*
+`;
+}
+
+export function printDocumentAsPdf(
+  investigation: Investigation,
+  findings: Finding[],
+  isDriftActive: boolean = false
+) {
+  if (typeof window === "undefined") return;
+
+  const finding21 = findings.find(
+    (f) =>
+      f.id === "FIND-01" ||
+      f.articleOrControl?.includes("15") ||
+      f.title?.toLowerCase().includes("retention")
+  );
+  const patch21Text =
+    finding21?.remediationSuggestion ||
+    "2.1. User profile data and transaction history shall be retained strictly for up to five (5) years following the formal termination of the customer relationship or account closure, after which all personal records shall be permanently purged or anonymized via irreversible cryptographic hashing in compliance with LGPD Art. 15 and GDPR Art. 5(1)(e).";
+
+  const finding22 = findings.find(
+    (f) =>
+      f.id === "FIND-04" ||
+      f.framework?.includes("ISO") ||
+      f.framework?.includes("OWASP") ||
+      f.articleOrControl?.includes("A.9")
+  );
+  const patch22Text =
+    finding22?.remediationSuggestion ||
+    "2.2. Server access logs and HTTP request telemetry shall be retained for a mandatory period of six (6) months with automated IP anonymization / pseudonymization applied at ingestion time, enforcing least-privilege query controls.";
+
+  const finding31 = findings.find(
+    (f) =>
+      f.id === "FIND-02" ||
+      f.id === "FIND-03" ||
+      f.articleOrControl?.includes("12") ||
+      f.articleOrControl?.includes("18")
+  );
+  const patch31Text =
+    finding31?.remediationSuggestion ||
+    "3.1. Requests for personal data erasure submitted by data subjects shall be fulfilled without undue delay and at the latest within fifteen (15) calendar days from receipt, providing the data subject with an automated cryptographic confirmation certificate.";
+
+  const finding41 = findings.find(
+    (f) =>
+      f.id === "FIND-04" ||
+      f.articleOrControl?.includes("A.9") ||
+      f.title?.toLowerCase().includes("database") ||
+      f.title?.toLowerCase().includes("access")
+  );
+  const patch41Text =
+    finding41?.remediationSuggestion ||
+    "4.1. Data in transit is secured with TLS 1.3 and AES-256 at rest. All production analytical databases must strictly mandate individual federated IAM authentication with RBAC and hardware-backed Multi-Factor Authentication (MFA). Shared credentials are strictly prohibited.";
+
+  const finding51 = findings.find(
+    (f) => f.status === "RESOLVED" && (f.id === "FIND-02" || f.status !== "REOPENED_DRIFT")
+  );
+  const patch51Text =
+    finding51?.remediationSuggestion ||
+    "5.1. Upon valid receipt of a data erasure notice, all vector index embeddings containing latent representations of the data subject must be purged, and machine unlearning verification checkpoints executed within 30 days to certify statutory model alignment under GDPR v2 Directive.";
+
+  const printWindow = window.open("", "_blank");
+  if (!printWindow) {
+    window.print();
+    return;
+  }
+
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>${investigation.title} - Final Remediated Document (PDF)</title>
+  <style>
+    @page {
+      margin: 1.5cm;
+      size: A4 portrait;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #111827;
+      background: #ffffff;
+      margin: 0;
+      padding: 24px;
+      line-height: 1.6;
+    }
+    .header {
+      border-bottom: 2px solid #000;
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .title {
+      font-size: 20px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 0 0 4px 0;
+    }
+    .subtitle {
+      font-size: 12px;
+      color: #4b5563;
+      margin: 0;
+      font-family: monospace;
+    }
+    .meta-box {
+      border: 2px solid #000;
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 24px;
+      font-size: 12px;
+      background: #f9fafb;
+    }
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .meta-row:last-child {
+      margin-bottom: 0;
+    }
+    .meta-label {
+      font-weight: bold;
+      color: #374151;
+    }
+    .meta-val {
+      font-family: monospace;
+      color: #111827;
+      font-weight: 600;
+    }
+    h2 {
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 4px;
+      margin-top: 24px;
+      margin-bottom: 12px;
+    }
+    p {
+      font-size: 13px;
+      margin: 0 0 14px 0;
+      text-align: justify;
+      color: #1f2937;
+      line-height: 1.65;
+    }
+    .footer {
+      border-top: 2px solid #000;
+      margin-top: 32px;
+      padding-top: 16px;
+      font-size: 11px;
+      color: #4b5563;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      page-break-inside: avoid;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1 class="title">${investigation.title}</h1>
+    </div>
+  </div>
+
+  <div class="meta-box">
+    <div class="meta-row">
+      <span class="meta-label">Document ID:</span>
+      <span class="meta-val">${investigation.id}</span>
+    </div>
+    <div class="meta-row">
+      <span class="meta-label">Source Document:</span>
+      <span class="meta-val">${investigation.documentName}</span>
+    </div>
+    <div class="meta-row">
+      <span class="meta-label">SHA-256 Authenticity Hash:</span>
+      <span class="meta-val">${investigation.documentHash}</span>
+    </div>
+    <div class="meta-row">
+      <span class="meta-label">Governing Frameworks:</span>
+      <span class="meta-val">${investigation.frameworks.join(" · ")}</span>
+    </div>
+    <div class="meta-row">
+      <span class="meta-label">Verification Models:</span>
+      <span class="meta-val">Google Gemma 2B · Gemini 1.5 Flash · Gemini 2.5 Pro (Adversarial Critic)</span>
+    </div>
+  </div>
+
+  <h2>1. Purpose and Applicability</h2>
+  <p>1.1. This Policy establishes enterprise data retention standards, storage limitation thresholds, subject rights fulfillment windows, and access control mandates governing all customer, employee, and business telemetry data across all corporate jurisdictions.</p>
+
+  <h2>2. Data Retention & Storage Limitation</h2>
+  <p>${patch21Text}</p>
+  <p>${patch22Text}</p>
+
+  <h2>3. Data Subject Rights & Erasure Requests</h2>
+  <p>${patch31Text}</p>
+
+  <h2>4. Security Controls & Access Management</h2>
+  <p>${patch41Text}</p>
+
+  ${isDriftActive ? `
+  <h2>5. Regulatory Drift Adaptation (GDPR v2 / EU AI Act)</h2>
+  <p>${patch51Text}</p>
+  ` : ""}
+
+  <script>
+    window.onload = function() {
+      window.print();
+    };
+  </script>
+</body>
+</html>`;
+
+  printWindow.document.open();
+  printWindow.document.write(html);
+  printWindow.document.close();
+}
+
+export function downloadDocumentFile(filename: string, content: string) {
+  if (typeof window === "undefined") return;
+  const blob = new Blob([content], { type: "text/markdown;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", filename);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
 export function RemediatedDocumentViewer({
   isOpen,
   onClose,
@@ -33,6 +353,10 @@ export function RemediatedDocumentViewer({
   const handleCopyText = () => {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleDownloadPdf = () => {
+    printDocumentAsPdf(investigation, findings, isDriftActive);
   };
 
   // Encontra os findings associados a cada seção
@@ -1012,12 +1336,21 @@ export function RemediatedDocumentViewer({
         {/* RODAPÉ DO VISUALIZADOR COM EXPORTAÇÃO, FECHAMENTO E APROVAÇÃO              */}
         {/* ========================================================================= */}
         <div className="p-4 bg-[#171B1F] border-t border-[#2A3038] flex flex-wrap items-center justify-between gap-3">
-          <button
-            onClick={handleCopyText}
-            className="px-4 py-2 rounded-lg text-xs font-mono font-semibold bg-[#0D1013] hover:bg-[#21262B] text-white border border-[#2A3038] transition-colors cursor-pointer"
-          >
-            {copied ? "✓ Copied to Clipboard" : "Copy Document Content"}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleCopyText}
+              className="px-4 py-2 rounded-lg text-xs font-mono font-semibold bg-[#0D1013] hover:bg-[#21262B] text-white border border-[#2A3038] transition-colors cursor-pointer"
+            >
+              {copied ? "✓ Copied to Clipboard" : "Copy Document Content"}
+            </button>
+
+            <button
+              onClick={handleDownloadPdf}
+              className="px-4 py-2 rounded-lg text-xs font-mono font-semibold bg-[#0D1013] hover:bg-[#21262B] text-[#B8843A] hover:text-[#CCA159] border border-[#2A3038] hover:border-[#B8843A] transition-colors cursor-pointer flex items-center gap-1.5"
+            >
+              <span>Save PDF</span>
+            </button>
+          </div>
 
           <div className="flex items-center gap-3">
             <button

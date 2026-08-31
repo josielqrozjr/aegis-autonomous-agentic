@@ -21,54 +21,29 @@ export function generateFinalDocumentContent(
   isDriftActive: boolean = false
 ): string {
   const finding21 = findings.find(
-    (f) =>
-      f.id === "FIND-01" ||
-      f.articleOrControl?.includes("15") ||
-      f.title?.toLowerCase().includes("retention")
+    (f) => f.articleOrControl?.includes("LGPD") || f.framework === "LGPD" ||
+           f.title?.toLowerCase().includes("retenção") || f.title?.toLowerCase().includes("retention")
   );
-  const patch21Text =
-    finding21?.remediationSuggestion ||
-    "2.1. User profile data and transaction history shall be retained strictly for up to five (5) years following the formal termination of the customer relationship or account closure, after which all personal records shall be permanently purged or anonymized via irreversible cryptographic hashing in compliance with LGPD Art. 15 and GDPR Art. 5(1)(e).";
+  const patch21Text = finding21?.remediationSuggestion || finding21?.description || "Compliance patch pending.";
 
   const finding22 = findings.find(
-    (f) =>
-      f.id === "FIND-04" ||
-      f.framework?.includes("ISO") ||
-      f.framework?.includes("OWASP") ||
-      f.articleOrControl?.includes("A.9")
+    (f) => (f.framework === "ISO 27001" || f.articleOrControl?.includes("ISO")) && f.id !== finding21?.id
   );
-  const patch22Text =
-    finding22?.remediationSuggestion ||
-    "2.2. Server access logs and HTTP request telemetry shall be retained for a mandatory period of six (6) months with automated IP anonymization / pseudonymization applied at ingestion time, enforcing least-privilege query controls.";
+  const patch22Text = finding22?.remediationSuggestion || finding22?.description || "ISO 27001 compliance patch pending.";
 
   const finding31 = findings.find(
-    (f) =>
-      f.id === "FIND-02" ||
-      f.id === "FIND-03" ||
-      f.articleOrControl?.includes("12") ||
-      f.articleOrControl?.includes("18")
+    (f) => (f.framework === "GDPR" || f.articleOrControl?.includes("GDPR")) &&
+           f.id !== finding21?.id && f.id !== finding22?.id
   );
-  const patch31Text =
-    finding31?.remediationSuggestion ||
-    "3.1. Requests for personal data erasure submitted by data subjects shall be fulfilled without undue delay and at the latest within fifteen (15) calendar days from receipt, providing the data subject with an automated cryptographic confirmation certificate.";
+  const patch31Text = finding31?.remediationSuggestion || finding31?.description || "GDPR compliance patch pending.";
 
   const finding41 = findings.find(
-    (f) =>
-      f.id === "FIND-04" ||
-      f.articleOrControl?.includes("A.9") ||
-      f.title?.toLowerCase().includes("database") ||
-      f.title?.toLowerCase().includes("access")
+    (f) => f.id !== finding21?.id && f.id !== finding22?.id && f.id !== finding31?.id
   );
-  const patch41Text =
-    finding41?.remediationSuggestion ||
-    "4.1. Data in transit is secured with TLS 1.3 and AES-256 at rest. All production analytical databases must strictly mandate individual federated IAM authentication with RBAC and hardware-backed Multi-Factor Authentication (MFA). Shared credentials are strictly prohibited.";
+  const patch41Text = finding41?.remediationSuggestion || finding41?.description || "Additional compliance controls pending.";
 
-  const finding51 = findings.find(
-    (f) => f.status === "RESOLVED" && (f.id === "FIND-02" || true)
-  );
-  const patch51Text =
-    finding51?.remediationSuggestion ||
-    "5.1. Upon valid receipt of a data erasure notice, all vector index embeddings containing latent representations of the data subject must be purged, and machine unlearning verification checkpoints executed within 30 days to certify statutory model alignment under GDPR v2 Directive.";
+  const finding51 = isDriftActive ? findings.find((f) => f.status === "REOPENED_DRIFT" || f.status === "OPEN") : null;
+  const patch51Text = finding51?.remediationSuggestion || finding51?.description || "Regulatory drift adaptation pending.";
 
   return `# ${investigation.title.toUpperCase()}
 **Document ID:** ${investigation.id}
@@ -113,54 +88,29 @@ export function printDocumentAsPdf(
   if (typeof window === "undefined") return;
 
   const finding21 = findings.find(
-    (f) =>
-      f.id === "FIND-01" ||
-      f.articleOrControl?.includes("15") ||
-      f.title?.toLowerCase().includes("retention")
+    (f) => f.articleOrControl?.includes("LGPD") || f.framework === "LGPD" ||
+           f.title?.toLowerCase().includes("retenção") || f.title?.toLowerCase().includes("retention")
   );
-  const patch21Text =
-    finding21?.remediationSuggestion ||
-    "2.1. User profile data and transaction history shall be retained strictly for up to five (5) years following the formal termination of the customer relationship or account closure, after which all personal records shall be permanently purged or anonymized via irreversible cryptographic hashing in compliance with LGPD Art. 15 and GDPR Art. 5(1)(e).";
+  const patch21Text = finding21?.remediationSuggestion || finding21?.description || "LGPD compliance patch pending.";
 
   const finding22 = findings.find(
-    (f) =>
-      f.id === "FIND-04" ||
-      f.framework?.includes("ISO") ||
-      f.framework?.includes("OWASP") ||
-      f.articleOrControl?.includes("A.9")
+    (f) => (f.framework === "ISO 27001" || f.articleOrControl?.includes("ISO")) && f.id !== finding21?.id
   );
-  const patch22Text =
-    finding22?.remediationSuggestion ||
-    "2.2. Server access logs and HTTP request telemetry shall be retained for a mandatory period of six (6) months with automated IP anonymization / pseudonymization applied at ingestion time, enforcing least-privilege query controls.";
+  const patch22Text = finding22?.remediationSuggestion || finding22?.description || "ISO 27001 compliance patch pending.";
 
   const finding31 = findings.find(
-    (f) =>
-      f.id === "FIND-02" ||
-      f.id === "FIND-03" ||
-      f.articleOrControl?.includes("12") ||
-      f.articleOrControl?.includes("18")
+    (f) => (f.framework === "GDPR" || f.articleOrControl?.includes("GDPR")) &&
+           f.id !== finding21?.id && f.id !== finding22?.id
   );
-  const patch31Text =
-    finding31?.remediationSuggestion ||
-    "3.1. Requests for personal data erasure submitted by data subjects shall be fulfilled without undue delay and at the latest within fifteen (15) calendar days from receipt, providing the data subject with an automated cryptographic confirmation certificate.";
+  const patch31Text = finding31?.remediationSuggestion || finding31?.description || "GDPR compliance patch pending.";
 
   const finding41 = findings.find(
-    (f) =>
-      f.id === "FIND-04" ||
-      f.articleOrControl?.includes("A.9") ||
-      f.title?.toLowerCase().includes("database") ||
-      f.title?.toLowerCase().includes("access")
+    (f) => f.id !== finding21?.id && f.id !== finding22?.id && f.id !== finding31?.id
   );
-  const patch41Text =
-    finding41?.remediationSuggestion ||
-    "4.1. Data in transit is secured with TLS 1.3 and AES-256 at rest. All production analytical databases must strictly mandate individual federated IAM authentication with RBAC and hardware-backed Multi-Factor Authentication (MFA). Shared credentials are strictly prohibited.";
+  const patch41Text = finding41?.remediationSuggestion || finding41?.description || "Additional controls pending.";
 
-  const finding51 = findings.find(
-    (f) => f.status === "RESOLVED" && (f.id === "FIND-02" || true)
-  );
-  const patch51Text =
-    finding51?.remediationSuggestion ||
-    "5.1. Upon valid receipt of a data erasure notice, all vector index embeddings containing latent representations of the data subject must be purged, and machine unlearning verification checkpoints executed within 30 days to certify statutory model alignment under GDPR v2 Directive.";
+  const finding51 = isDriftActive ? findings.find((f) => f.status === "REOPENED_DRIFT" || f.status === "OPEN") : null;
+  const patch51Text = finding51?.remediationSuggestion || finding51?.description || "Drift adaptation pending.";
 
   const printWindow = window.open("", "_blank");
   if (!printWindow) {
@@ -360,56 +310,53 @@ export function RemediatedDocumentViewer({
     printDocumentAsPdf(investigation, findings, isDriftActive);
   };
 
-  // Encontra os findings associados a cada seção
+  // Match findings dynamically by regulation pattern (works with real API data)
   const finding21 = findings.find(
     (f) =>
-      f.id === "FIND-01" ||
+      f.articleOrControl?.includes("LGPD") ||
       f.articleOrControl?.includes("15") ||
-      f.title?.toLowerCase().includes("retention")
+      f.articleOrControl?.includes("16") ||
+      f.title?.toLowerCase().includes("retention") ||
+      f.title?.toLowerCase().includes("retenção") ||
+      f.framework === "LGPD"
   );
   const patch21Text =
-    finding21?.remediationSuggestion ||
-    "2.1. User profile data and transaction history shall be retained strictly for up to five (5) years following the formal termination of the customer relationship or account closure, after which all personal records shall be permanently purged or anonymized via irreversible cryptographic hashing in compliance with LGPD Art. 15 and GDPR Art. 5(1)(e).";
+    finding21?.remediationSuggestion || finding21?.description ||
+    "Data shall be retained strictly for the minimum period necessary, in compliance with LGPD Art. 15-16.";
 
   const finding22 = findings.find(
     (f) =>
-      f.id === "FIND-04" ||
-      f.framework?.includes("ISO") ||
-      f.framework?.includes("OWASP") ||
-      f.articleOrControl?.includes("A.9")
+      (f.framework === "ISO 27001" || f.articleOrControl?.includes("ISO") || f.articleOrControl?.includes("A.8")) &&
+      f.id !== finding21?.id
   );
   const patch22Text =
-    finding22?.remediationSuggestion ||
-    "2.2. Server access logs and HTTP request telemetry shall be retained for a mandatory period of six (6) months with automated IP anonymization / pseudonymization applied at ingestion time, enforcing least-privilege query controls.";
+    finding22?.remediationSuggestion || finding22?.description ||
+    "Information retention management shall follow ISO 27001 A.8.10 controls.";
 
   const finding31 = findings.find(
     (f) =>
-      f.id === "FIND-02" ||
-      f.id === "FIND-03" ||
-      f.articleOrControl?.includes("12") ||
-      f.articleOrControl?.includes("18")
+      (f.articleOrControl?.includes("GDPR") || f.articleOrControl?.includes("5-1") || f.articleOrControl?.includes("17") ||
+       f.framework === "GDPR") &&
+      f.id !== finding21?.id && f.id !== finding22?.id
   );
   const patch31Text =
-    finding31?.remediationSuggestion ||
-    "3.1. Requests for personal data erasure submitted by data subjects shall be fulfilled without undue delay and at the latest within fifteen (15) calendar days from receipt, providing the data subject with an automated cryptographic confirmation certificate.";
+    finding31?.remediationSuggestion || finding31?.description ||
+    "Data shall not be kept longer than necessary, in compliance with GDPR Art. 5(1)(e).";
 
   const finding41 = findings.find(
     (f) =>
-      f.id === "FIND-04" ||
-      f.articleOrControl?.includes("A.9") ||
-      f.title?.toLowerCase().includes("database") ||
-      f.title?.toLowerCase().includes("access")
+      f.id !== finding21?.id && f.id !== finding22?.id && f.id !== finding31?.id
   );
   const patch41Text =
-    finding41?.remediationSuggestion ||
-    "4.1. Data in transit is secured with TLS 1.3 and AES-256 at rest. All production analytical databases must strictly mandate individual federated IAM authentication with RBAC and hardware-backed Multi-Factor Authentication (MFA). Shared credentials are strictly prohibited.";
+    finding41?.remediationSuggestion || finding41?.description ||
+    "Security controls shall be applied per applicable framework requirements.";
 
-  const finding51 = findings.find(
-    (f) => f.status === "RESOLVED" && (f.id === "FIND-02" || true)
-  );
+  const finding51 = isDriftActive ? findings.find(
+    (f) => f.status === "REOPENED_DRIFT" || f.status === "OPEN"
+  ) : null;
   const patch51Text =
-    finding51?.remediationSuggestion ||
-    "5.1. Upon valid receipt of a data erasure notice, all vector index embeddings containing latent representations of the data subject must be purged, and machine unlearning verification checkpoints executed within 30 days to certify statutory model alignment under GDPR v2 Directive.";
+    finding51?.remediationSuggestion || finding51?.description ||
+    "Regulatory drift detected — updated compliance patch pending.";
 
   // Verificação dinâmica de cada cláusula com base no status dos achados
   const isSec21Resolved = Boolean(finding21 && finding21.status === "RESOLVED");
@@ -622,10 +569,10 @@ export function RemediatedDocumentViewer({
                     <div className="p-3 rounded-lg bg-[#A24438]/10 border border-[#A24438]/30 text-[#E06C5D] space-y-1">
                       <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider">
                         <span>Original Non-Compliant Clause (Identified Gap)</span>
-                        <span>LGPD Art. 15 · Critical</span>
+                        <span>{finding21?.articleOrControl || "LGPD"} · {finding21?.severity || "CRITICAL"}</span>
                       </div>
                       <p className="line-through text-xs opacity-80">
-                        "2.1. User profile data and transaction history shall be stored indefinitely for business intelligence and service personalization purposes."
+                        {finding21?.evidenceQuote || "Original non-compliant clause identified by analysis."}
                       </p>
                     </div>
 
@@ -912,7 +859,7 @@ export function RemediatedDocumentViewer({
                         <span>LGPD Art. 18 / GDPR Art. 12 · Critical</span>
                       </div>
                       <p className="line-through text-xs opacity-80">
-                        "3.1. Requests for personal data deletion submitted by data subjects will be reviewed by the legal team within 90 business days."
+                        {finding31?.evidenceQuote || "Original non-compliant clause identified by analysis."}
                       </p>
                     </div>
 
@@ -1250,7 +1197,7 @@ export function RemediatedDocumentViewer({
                                 Cancel
                               </button>
                               <button
-                                onClick={() => handleSaveEditClause(finding51)}
+                                onClick={() => handleSaveEditClause(finding51 || undefined)}
                                 className="px-3 py-1 rounded text-[10px] font-bold text-[#0D1013] bg-[#3B8F6B] hover:bg-[#4EAC83] cursor-pointer"
                               >
                                 Save
@@ -1305,7 +1252,7 @@ export function RemediatedDocumentViewer({
                               Cancel
                             </button>
                             <button
-                              onClick={() => handleSaveEditClause(finding51)}
+                              onClick={() => handleSaveEditClause(finding51 || undefined)}
                               className="px-3 py-1 rounded text-[10px] font-bold text-[#0D1013] bg-[#3B8F6B] hover:bg-[#4EAC83] cursor-pointer"
                             >
                               Save

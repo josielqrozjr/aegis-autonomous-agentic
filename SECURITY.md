@@ -161,7 +161,7 @@ Every action generates a record:
     "agent_id": "agent-privacy-specialist",
     "action": "finding_created",
     "target_id": "finding-xyz789",
-    "model_used": "gemini-2.5-flash",
+    "model_used": "gemini-3.6-flash",
     "input_hash": "sha256:...",
     "output_hash": "sha256:...",
     "duration_ms": 1842

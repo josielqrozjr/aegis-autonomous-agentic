@@ -1,7 +1,7 @@
 # AEGIS — Autonomous Enterprise Governance Intelligence System
 
-[![CI Tests](https://img.shields.io/badge/tests-78%20passed-brightgreen.svg)](tests/)
-[![Python](https://img.shields.io/badge/python-3.14%2B-blue.svg)](requirements.txt)
+[![CI Tests](https://img.shields.io/badge/tests-79%20passed-brightgreen.svg)](tests/)
+[![Python](https://img.shields.io/badge/python-3.13%2B-blue.svg)](requirements.txt)
 [![Track](https://img.shields.io/badge/Track-Fortified%20Enterprise%20Fleet-orange.svg)](#)
 [![Multi--Model Bonus](https://img.shields.io/badge/Google%20Multi--Model%20Bonus-%2B0.4%20pts-purple.svg)](#multi-model-ai-architecture)
 
@@ -17,12 +17,12 @@ AEGIS implements a fortified multi-model strategy utilizing specialized Google m
 
 | Agent / Component | Model | Role & Purpose | Bonus Justification |
 |---|---|---|:---:|
-| **PII Gate Scanner** | **Gemma (Model Garden)** | Pre-flight privacy sanitization of sensitive documents (CPF, emails, tokens, IP traces) before any LLM ingestion. | (Specialized Open Model) |
-| **Document Understanding & Planner** | **Gemini 2.5 Flash** | Sub-second extraction of jurisdictions, obligations, and dynamic specialist task routing. | Core Multi-Agent Fleet |
-| **Domain Specialists (Privacy, Security, Governance)** | **Gemini 2.5 Flash** | High-throughput regulatory compliance auditing against legal frameworks with exact citation extraction. | Core Multi-Agent Fleet |
+| **PII Gate Scanner** | **Gemma 2 (Model Garden)** | Pre-flight privacy sanitization of sensitive documents (CPF, emails, tokens, IP traces) before any LLM ingestion. | (Specialized Open Model) |
+| **Document Understanding & Planner** | **Gemini 3.6 Flash** | Sub-second extraction of jurisdictions, obligations, and dynamic specialist task routing. | Core Multi-Agent Fleet |
+| **Domain Specialists (Privacy, Security, Governance)** | **Gemini 3.6 Flash** | High-throughput regulatory compliance auditing against legal frameworks with exact citation extraction. | Core Multi-Agent Fleet |
 | **Evidence Critic (Red Team Auditor)** | **Gemini 2.5 Pro** | Adversarial auditor with deep reasoning to challenge findings, detect false positives, and verify citation provenance. | (Adversarial Pro Reasoning) |
-| **Remediation Specialist** | **Gemini 2.5 Flash** | Actionable corrective planning, assigned owners, and deadline estimation. | Core Multi-Agent Fleet |
-| **Change Detection Agent** | **Gemini 2.5 Flash** | Real-time monitoring of regulatory updates and autonomous Selective Recovery orchestration. | Showstopper Engine |
+| **Remediation Specialist** | **Gemini 3.6 Flash** | Actionable corrective planning, assigned owners, and deadline estimation. | Core Multi-Agent Fleet |
+| **Change Detection Agent** | **Gemini 3.6 Flash** | Real-time monitoring of regulatory updates and autonomous Selective Recovery orchestration. | Showstopper Engine |
 
 ---
 
@@ -103,17 +103,30 @@ pip install -r requirements.txt
 python demo_runner.py --auto --delay 0.5
 ```
 
-### 3. Run the Automated Test Suite (78 Tests)
+### 3. Run the Automated Test Suite (79 Tests)
 ```bash
-pytest tests/ -v
+make test   # or: PYTHONPATH=src:. pytest tests/ -v
 ```
 
 ### 4. Inspect Public Model Conformance Endpoint
 Start the API and inspect the live model conformance report:
 ```bash
-uvicorn apps.api.app.main:app --reload --port 8000
-# Access http://localhost:8000/api/v1/conformance
+make dev    # or: PYTHONPATH=src:. uvicorn apps.api.app.main:app --reload --port 8080
+# Access http://localhost:8080/conformance
 ```
+
+---
+
+## 🌐 Live Deployment
+
+| Service | URL |
+|---|---|
+| **Frontend** | https://aegis-web-1067561492307.us-central1.run.app |
+| **API** | IAM-protected (OIDC service-to-service auth) |
+| **Health** | `/health` (8 agents, 3 models, Firestore) |
+| **Conformance** | `/conformance` (verified evidence report) |
+
+**Infrastructure:** Cloud Run · Firestore · Cloud Storage · Artifact Registry · Terraform
 
 ---
 
@@ -123,15 +136,21 @@ uvicorn apps.api.app.main:app --reload --port 8000
 aegis/
 ├── apps/
 │   ├── api/          # FastAPI REST Gateway, Trust Graph endpoints, Conformance route
-│   └── worker/       # Async Pipeline Handler (Investigation & Regulatory Change)
+│   ├── worker/       # Async Pipeline Handler (Investigation & Regulatory Change)
+│   └── web/          # Next.js Frontend (Trust Graph UI, Findings, Remediation, Reports)
 ├── src/aegis/
-│   ├── models/       # Multi-Model AI Layer (Gemini Flash, Gemini Pro, Gemma, Fallback)
+│   ├── models/       # Multi-Model AI Layer (Gemini 3.6 Flash, Gemini 2.5 Pro, Gemma 2, Fallback)
 │   ├── agents/       # Specialist Fleet, Evidence Critic, Remediation, Change Detection
 │   ├── registry/     # Dynamic Capability Registry & Agent Discovery
-│   └── schemas/      # Pydantic v Strict Contracts & Trust Graph Nodes
+│   └── schemas/      # Pydantic Strict Contracts & Trust Graph Nodes
+├── infra/
+│   ├── terraform/    # Full GCP provisioning (Cloud Run, Firestore, Storage, IAM)
+│   ├── docker/       # Dockerfiles for API, Worker, Web
+│   └── scripts/      # deploy.sh, smoke_test.sh
 ├── data/demo/        # Synthetic Multi-Jurisdiction Policy & Versioned Regulations
 ├── demo_runner.py    # Live CLI Video Pitch Orchestrator
-└── tests/            # End-to-end and unit tests suite (78 tests)
+├── Makefile          # make dev, make test, make docker-up, make smoke
+└── tests/            # End-to-end and unit tests suite (79 tests)
 ```
 
 ---

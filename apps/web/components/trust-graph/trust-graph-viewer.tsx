@@ -176,7 +176,7 @@ export function TrustGraphViewer({
           </div>
 
           <div className="flex items-center gap-3 text-[11px] font-mono text-[#9096A0]">
-            <span>Hash: {inspectingNode.content_hash.slice(0, 16)}...</span>
+            <span>Hash: {inspectingNode.content_hash ? `${inspectingNode.content_hash.slice(0, 16)}...` : "N/A"}</span>
             <button
               onClick={() => setInspectingNode(null)}
               className="text-[#9096A0] hover:text-white px-2.5 py-1 rounded bg-[#171B1F] border border-[#2A3038] transition-colors"

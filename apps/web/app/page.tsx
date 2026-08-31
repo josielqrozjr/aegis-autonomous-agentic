@@ -437,6 +437,8 @@ export default function Home() {
           {activeTab === "report" && (
             <ComplianceReportView
               investigation={currentInvestigation}
+              investigations={investigations}
+              onSelectInvestigation={(inv) => setCurrentInvestigation(inv)}
               findings={findings}
               graphData={graphData}
             />

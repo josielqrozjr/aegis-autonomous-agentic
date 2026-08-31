@@ -192,14 +192,10 @@ export default function Home() {
     );
     const totalGaps = invFindings.length;
     const resolvedGaps = invFindings.filter((f) => f.status === "RESOLVED").length;
-    const progressPercent = totalGaps > 0 ? Math.round((resolvedGaps / totalGaps) * 100) : 100;
+    const progressPercent = totalGaps > 0 ? Math.round((resolvedGaps / totalGaps) * 100) : 0;
 
-    const newStatus =
-      resolvedGaps === totalGaps
-        ? "COMPLETED"
-        : resolvedGaps > 0
-        ? "INVESTIGATING"
-        : "PENDING_REVIEW";
+    // O status acompanha a atualização das remediações (Pending se 0, In Progress se 1..total). Só é COMPLETED após aprovação explícita.
+    const newStatus = resolvedGaps > 0 ? "INVESTIGATING" : "PENDING_REVIEW";
 
     // Atualiza o status e percentual na lista global de investigações
     setInvestigations((prev) =>
@@ -207,7 +203,7 @@ export default function Home() {
         inv.id === targetInvId
           ? {
               ...inv,
-              status: newStatus,
+              status: inv.status === "COMPLETED" && resolvedGaps === totalGaps ? "COMPLETED" : newStatus,
               progressPercent,
               findingsCount: {
                 ...inv.findingsCount,
@@ -224,7 +220,7 @@ export default function Home() {
     if (currentInvestigation.id === targetInvId) {
       setCurrentInvestigation((prev) => ({
         ...prev,
-        status: newStatus,
+        status: prev.status === "COMPLETED" && resolvedGaps === totalGaps ? "COMPLETED" : newStatus,
         progressPercent,
       }));
     }
@@ -240,6 +236,65 @@ export default function Home() {
         return n;
       }),
     }));
+  };
+
+  const handleApproveDocument = (invId: string) => {
+    // Marca todos os achados do documento como RESOLVED
+    const updatedFindings = findings.map((f) =>
+      f.investigationId === invId || (!findings.some((x) => x.investigationId === invId) && f.investigationId === "INV-2024-0047")
+        ? { ...f, status: "RESOLVED" as const }
+        : f
+    );
+    setFindings(updatedFindings);
+
+    // Atualiza o status do documento para COMPLETED com 100% de conformidade
+    setInvestigations((prev) =>
+      prev.map((inv) =>
+        inv.id === invId
+          ? {
+              ...inv,
+              status: "COMPLETED",
+              progressPercent: 100,
+              findingsCount: {
+                ...inv.findingsCount,
+                critical: 0,
+                high: 0,
+                medium: 0,
+              },
+            }
+          : inv
+      )
+    );
+
+    if (currentInvestigation.id === invId) {
+      setCurrentInvestigation((prev) => ({
+        ...prev,
+        status: "COMPLETED",
+        progressPercent: 100,
+      }));
+    }
+
+    // Valida todos os nós correspondentes no grafo DAG
+    setGraphData((prev) => ({
+      ...prev,
+      nodes: prev.nodes.map((n) => ({
+        ...n,
+        valid: true,
+        invalidated_reason: null,
+        affected_by_change: false,
+      })),
+      invalid_nodes: 0,
+    }));
+  };
+
+  const handleUpdateRemediationSuggestion = (findingId: string, newSuggestion: string) => {
+    setFindings((prev) =>
+      prev.map((f) =>
+        f.id === findingId
+          ? { ...f, remediationSuggestion: newSuggestion }
+          : f
+      )
+    );
   };
 
   return (
@@ -266,17 +321,6 @@ export default function Home() {
           {/* Top Metrics Header (EXCLUSIVAMENTE na aba Investigations) */}
           {activeTab === "investigations" && (
             <MetricsHeader
-              onNavigate={setActiveTab}
-              totalInvestigations={investigations.length}
-              activeAgents={activeAgentsCount}
-              findingsCount={findings.length}
-              remediationsCount={resolvedFindingsCount}
-            />
-          )}
-
-          {/* TAB 0: OVERVIEW (HOME PAGE - REAL BIG NUMBERS) */}
-          {activeTab === "overview" && (
-            <DashboardHub
               onNavigate={setActiveTab}
               investigationsCount={investigations.length}
               agentsCount={activeAgentsCount}
@@ -325,6 +369,8 @@ export default function Home() {
               }}
               onOpenEvidence={(f) => setSelectedFindingForEvidence(f)}
               onApplyRemediation={(f) => handleApplyRemediation(f)}
+              onApproveDocument={(invId) => handleApproveDocument(invId)}
+              onUpdateRemediationSuggestion={handleUpdateRemediationSuggestion}
               onTriggerDrift={() =>
                 handleDriftTriggered({
                   framework: "GDPR",

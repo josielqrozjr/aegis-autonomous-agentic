@@ -19,6 +19,8 @@ interface TrustGraphTabViewProps {
   onSelectNode: (node: TrustGraphNode) => void;
   onOpenEvidence: (finding: Finding) => void;
   onApplyRemediation: (finding: Finding) => void;
+  onApproveDocument?: (invId: string) => void;
+  onUpdateRemediationSuggestion?: (findingId: string, newSuggestion: string) => void;
   onTriggerDrift: () => void;
   onResetDrift: () => void;
 }
@@ -35,6 +37,8 @@ export function TrustGraphTabView({
   onSelectNode,
   onOpenEvidence,
   onApplyRemediation,
+  onApproveDocument,
+  onUpdateRemediationSuggestion,
   onTriggerDrift,
   onResetDrift,
 }: TrustGraphTabViewProps) {
@@ -48,6 +52,8 @@ export function TrustGraphTabView({
   const [severityFilter, setSeverityFilter] = useState<string>("ALL");
   const [isGraphExpanded, setIsGraphExpanded] = useState<boolean>(true);
   const [isPreviewDocOpen, setIsPreviewDocOpen] = useState<boolean>(false);
+  const [editingFindingId, setEditingFindingId] = useState<string | null>(null);
+  const [editedPatchText, setEditedPatchText] = useState<string>("");
 
   // Documento selecionado atualmente
   const activeDoc = investigations.find((inv) => inv.id === selectedDocId) || currentInvestigation;
@@ -146,7 +152,7 @@ export function TrustGraphTabView({
       };
     }
 
-    if (resolved === total && total > 0) {
+    if (inv.status === "COMPLETED" && (resolved === total || total === 0)) {
       return {
         status: "COMPLETED",
         progressPercent: 100,
@@ -169,19 +175,12 @@ export function TrustGraphTabView({
     }
 
     return {
-      status: inv.status,
-      progressPercent: inv.progressPercent || 0,
+      status: "PENDING_REVIEW",
+      progressPercent: 0,
       total,
       resolved: 0,
       open: total,
-      label:
-        inv.status === "COMPLETED"
-          ? "Completed"
-          : inv.status === "PENDING_REVIEW"
-          ? "Pending Remediation"
-          : inv.status === "POLICY_DRIFT"
-          ? "Policy Drift Active"
-          : `In Progress (${inv.progressPercent}%)`,
+      label: "Pending",
     };
   };
 
@@ -229,6 +228,8 @@ export function TrustGraphTabView({
         );
     }
   };
+
+  const activeDocProgress = getDocProgressAndStatus(activeDoc);
 
   return (
     <div className="space-y-6 w-full">
@@ -474,17 +475,40 @@ export function TrustGraphTabView({
                   <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#0D1013] text-[#B8843A] border border-[#2A3038]">
                     {activeDoc.id}
                   </span>
-                  {renderStatusBadge(activeDoc)}
                 </div>
               </div>
 
-              {/* Ação de Visualização do Documento Remediado */}
-              <div className="flex items-center gap-3 shrink-0">
+              {/* Ação de Visualização e Aprovação do Documento */}
+              <div className="flex flex-wrap items-center gap-3 shrink-0">
                 <button
                   onClick={() => setIsPreviewDocOpen(true)}
                   className="px-3.5 py-2 rounded-lg text-xs font-semibold bg-[#3B8F6B]/15 hover:bg-[#3B8F6B]/25 text-[#3B8F6B] border border-[#3B8F6B]/30 transition-colors cursor-pointer"
                 >
                   Preview Remediated Document
+                </button>
+
+                <button
+                  onClick={() => {
+                    if (onApproveDocument) {
+                      onApproveDocument(activeDoc.id);
+                    } else {
+                      docFindings.forEach((f) => {
+                        if (f.status !== "RESOLVED") {
+                          onApplyRemediation(f);
+                        }
+                      });
+                    }
+                  }}
+                  className={cn(
+                    "px-3.5 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer shadow-md flex items-center gap-1.5",
+                    activeDocProgress.status === "COMPLETED"
+                      ? "bg-[#3B8F6B]/20 text-[#3B8F6B] border border-[#3B8F6B]/40"
+                      : "bg-[#B8843A] hover:bg-[#CCA159] text-[#0D1013]"
+                  )}
+                >
+                  {activeDocProgress.status === "COMPLETED"
+                    ? "Completed"
+                    : "Approve Document"}
                 </button>
               </div>
             </div>
@@ -719,13 +743,54 @@ export function TrustGraphTabView({
                     {/* Lado Direito: Sugestão para ser Atualizado e Remediado */}
                     <div className="p-5 flex flex-col justify-between bg-[#14181C]">
                       <div className="space-y-3">
-                        <div className="flex items-center text-[11px] font-mono font-bold uppercase tracking-wider text-[#3B8F6B]">
+                        <div className="flex items-center justify-between text-[11px] font-mono font-bold uppercase tracking-wider text-[#3B8F6B]">
                           <span>Recommended</span>
+                          {editingFindingId !== finding.id ? (
+                            <button
+                              onClick={() => {
+                                setEditingFindingId(finding.id);
+                                setEditedPatchText(finding.remediationSuggestion);
+                              }}
+                              className="text-[10px] text-[#9096A0] hover:text-[#3B8F6B] transition-colors cursor-pointer flex items-center gap-1 font-normal lowercase"
+                            >
+                              <span>✏️ edit</span>
+                            </button>
+                          ) : null}
                         </div>
 
-                        <div className="p-3.5 rounded-lg bg-[#0D1013] border border-[#3B8F6B]/30 text-xs text-white font-mono leading-relaxed">
-                          {finding.remediationSuggestion}
-                        </div>
+                        {editingFindingId === finding.id ? (
+                          <div className="space-y-2 animate-in fade-in duration-200">
+                            <textarea
+                              value={editedPatchText}
+                              onChange={(e) => setEditedPatchText(e.target.value)}
+                              rows={4}
+                              className="w-full p-3 rounded-lg bg-[#0D1013] border border-[#3B8F6B]/60 text-xs text-white font-mono leading-relaxed focus:outline-none focus:ring-1 focus:ring-[#3B8F6B]"
+                            />
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                onClick={() => setEditingFindingId(null)}
+                                className="px-2.5 py-1 rounded text-[10px] text-[#9096A0] hover:text-white bg-[#0D1013] border border-[#2A3038] cursor-pointer"
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                onClick={() => {
+                                  if (onUpdateRemediationSuggestion) {
+                                    onUpdateRemediationSuggestion(finding.id, editedPatchText);
+                                  }
+                                  setEditingFindingId(null);
+                                }}
+                                className="px-3 py-1 rounded text-[10px] font-bold text-[#0D1013] bg-[#3B8F6B] hover:bg-[#4EAC83] cursor-pointer"
+                              >
+                                Save
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="p-3.5 rounded-lg bg-[#0D1013] border border-[#3B8F6B]/30 text-xs text-white font-mono leading-relaxed">
+                            {finding.remediationSuggestion}
+                          </div>
+                        )}
 
                         {finding.criticVerdict && (
                           <div className="p-2.5 rounded bg-[#0D1013]/60 border border-[#2A3038] text-[11px] text-[#9096A0]">
@@ -811,6 +876,18 @@ export function TrustGraphTabView({
         investigation={activeDoc}
         findings={docFindings}
         isDriftActive={isDriftActive}
+        onApproveDocument={() => {
+          if (onApproveDocument) {
+            onApproveDocument(activeDoc.id);
+          } else {
+            docFindings.forEach((f) => {
+              if (f.status !== "RESOLVED") {
+                onApplyRemediation(f);
+              }
+            });
+          }
+        }}
+        onUpdateRemediationSuggestion={onUpdateRemediationSuggestion}
       />
     </div>
   );

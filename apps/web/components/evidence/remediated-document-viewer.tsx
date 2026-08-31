@@ -10,6 +10,8 @@ interface RemediatedDocumentViewerProps {
   investigation: Investigation;
   findings: Finding[];
   isDriftActive: boolean;
+  onApproveDocument?: () => void;
+  onUpdateRemediationSuggestion?: (findingId: string, newSuggestion: string) => void;
 }
 
 export function RemediatedDocumentViewer({
@@ -18,15 +20,101 @@ export function RemediatedDocumentViewer({
   investigation,
   findings,
   isDriftActive,
+  onApproveDocument,
+  onUpdateRemediationSuggestion,
 }: RemediatedDocumentViewerProps) {
   const [viewMode, setViewMode] = useState<"DIFF" | "FINAL" | "ORIGINAL">("DIFF");
   const [copied, setCopied] = useState(false);
+  const [editingSection, setEditingSection] = useState<string | null>(null);
+  const [editedClauseText, setEditedClauseText] = useState<string>("");
 
   if (!isOpen) return null;
 
   const handleCopyText = () => {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  // Encontra os findings associados a cada seção
+  const finding21 = findings.find(
+    (f) =>
+      f.id === "FIND-01" ||
+      f.articleOrControl?.includes("15") ||
+      f.title?.toLowerCase().includes("retention")
+  );
+  const patch21Text =
+    finding21?.remediationSuggestion ||
+    "2.1. User profile data and transaction history shall be retained strictly for up to five (5) years following the formal termination of the customer relationship or account closure, after which all personal records shall be permanently purged or anonymized via irreversible cryptographic hashing in compliance with LGPD Art. 15 and GDPR Art. 5(1)(e).";
+
+  const finding22 = findings.find(
+    (f) =>
+      f.id === "FIND-04" ||
+      f.framework?.includes("ISO") ||
+      f.framework?.includes("OWASP") ||
+      f.articleOrControl?.includes("A.9")
+  );
+  const patch22Text =
+    finding22?.remediationSuggestion ||
+    "2.2. Server access logs and HTTP request telemetry shall be retained for a mandatory period of six (6) months with automated IP anonymization / pseudonymization applied at ingestion time, enforcing least-privilege query controls.";
+
+  const finding31 = findings.find(
+    (f) =>
+      f.id === "FIND-02" ||
+      f.id === "FIND-03" ||
+      f.articleOrControl?.includes("12") ||
+      f.articleOrControl?.includes("18")
+  );
+  const patch31Text =
+    finding31?.remediationSuggestion ||
+    "3.1. Requests for personal data erasure submitted by data subjects shall be fulfilled without undue delay and at the latest within fifteen (15) calendar days from receipt, providing the data subject with an automated cryptographic confirmation certificate.";
+
+  const finding41 = findings.find(
+    (f) =>
+      f.id === "FIND-04" ||
+      f.articleOrControl?.includes("A.9") ||
+      f.title?.toLowerCase().includes("database") ||
+      f.title?.toLowerCase().includes("access")
+  );
+  const patch41Text =
+    finding41?.remediationSuggestion ||
+    "4.1. Data in transit is secured with TLS 1.3 and AES-256 at rest. All production analytical databases must strictly mandate individual federated IAM authentication with RBAC and hardware-backed Multi-Factor Authentication (MFA). Shared credentials are strictly prohibited.";
+
+  const finding51 = findings.find(
+    (f) => f.status === "RESOLVED" && (f.id === "FIND-02" || f.status !== "REOPENED_DRIFT")
+  );
+  const patch51Text =
+    finding51?.remediationSuggestion ||
+    "5.1. Upon valid receipt of a data erasure notice, all vector index embeddings containing latent representations of the data subject must be purged, and machine unlearning verification checkpoints executed within 30 days to certify statutory model alignment under GDPR v2 Directive.";
+
+  // Verificação dinâmica de cada cláusula com base no status dos achados
+  const isSec21Resolved = Boolean(finding21 && finding21.status === "RESOLVED");
+  const isSec22Resolved = Boolean(finding22 && finding22.status === "RESOLVED");
+  const isSec31Resolved = Boolean(finding31 && finding31.status === "RESOLVED");
+  const isSec41Resolved = Boolean(finding41 && finding41.status === "RESOLVED");
+  const isSec51Resolved = Boolean(isDriftActive && finding51 && finding51.status === "RESOLVED");
+
+  const totalGaps = findings.length;
+  const resolvedCount = findings.filter((f) => f.status === "RESOLVED").length;
+  const allResolved = totalGaps > 0 && resolvedCount === totalGaps;
+  const progressPercent = totalGaps > 0 ? Math.round((resolvedCount / totalGaps) * 100) : 0;
+  const isApproved = investigation.status === "COMPLETED" && (resolvedCount === totalGaps || totalGaps === 0);
+
+  const handleApprove = () => {
+    if (onApproveDocument) {
+      onApproveDocument();
+    }
+  };
+
+  const handleStartEditClause = (secKey: string, currentText: string) => {
+    setEditingSection(secKey);
+    setEditedClauseText(currentText);
+  };
+
+  const handleSaveEditClause = (targetFinding?: Finding) => {
+    if (targetFinding && onUpdateRemediationSuggestion) {
+      onUpdateRemediationSuggestion(targetFinding.id, editedClauseText);
+    }
+    setEditingSection(null);
   };
 
   return (
@@ -37,16 +125,24 @@ export function RemediatedDocumentViewer({
         {/* ========================================================================= */}
         <div className="p-5 bg-[#171B1F] border-b border-[#2A3038] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#0D1013] text-[#B8843A] border border-[#2A3038]">
                 {investigation.id}
               </span>
               <h2 className="text-base font-bold text-white tracking-tight">
                 {investigation.title}
               </h2>
-              {isDriftActive && (
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#A24438]/20 text-[#E06C5D] border border-[#A24438]/40">
-                  GDPR v2 Drift Active
+              {isApproved ? (
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#3B8F6B]/20 text-[#3B8F6B] font-bold border border-[#3B8F6B]/40">
+                  Completed
+                </span>
+              ) : progressPercent > 0 ? (
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#4C8FA6]/20 text-[#7EB5CC] font-bold border border-[#4C8FA6]/40">
+                  In Progress ({progressPercent}%)
+                </span>
+              ) : (
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#B8843A]/20 text-[#D4A559] font-bold border border-[#B8843A]/40">
+                  Pending
                 </span>
               )}
             </div>
@@ -106,10 +202,17 @@ export function RemediatedDocumentViewer({
         {/* BARRA DE METADADOS & SUMÁRIO DE REMEDIAÇÃO                                */}
         {/* ========================================================================= */}
         <div className="p-3.5 bg-[#12161A] border-b border-[#2A3038] flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
-          <div className="flex items-center gap-3">
-            <span className="text-[#9096A0]">Applied Patches:</span>
-            <span className="px-2 py-0.5 rounded bg-[#3B8F6B]/15 text-[#3B8F6B] font-bold border border-[#3B8F6B]/30">
-              {findings.length} Compliance Fixes Applied
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-[#9096A0]">Remediation Status:</span>
+            <span
+              className={cn(
+                "px-2.5 py-0.5 rounded font-bold border",
+                allResolved
+                  ? "bg-[#3B8F6B]/15 text-[#3B8F6B] border-[#3B8F6B]/30"
+                  : "bg-[#B8843A]/15 text-[#D4A559] border-[#B8843A]/30"
+              )}
+            >
+              {resolvedCount} of {totalGaps} Patches Remediated ({progressPercent}%)
             </span>
             <span className="px-2 py-0.5 rounded bg-[#0D1013] text-[#9096A0] border border-[#2A3038]">
               {investigation.frameworks.join(" · ")}
@@ -119,7 +222,7 @@ export function RemediatedDocumentViewer({
           <div className="flex items-center gap-3">
             <span className="text-[#9096A0]">Verification:</span>
             <span className="text-[#3B8F6B] font-semibold">
-              Adversarial Critic Validated (0 Hallucinations)
+              Adversarial Critic Validated (Gemini 2.5 Pro)
             </span>
           </div>
         </div>
@@ -129,6 +232,22 @@ export function RemediatedDocumentViewer({
         {/* ========================================================================= */}
         <div className="flex-1 p-6 overflow-y-auto font-mono text-xs leading-relaxed space-y-6 bg-[#0D1013]">
           <div className="max-w-4xl mx-auto p-6 rounded-xl bg-[#14181C] border border-[#2A3038] shadow-inner space-y-6">
+            {/* Selo Criptográfico de Conformidade Integral (quando 100% remediado) */}
+            {allResolved && (
+              <div className="p-3.5 rounded-xl bg-[#3B8F6B]/10 border border-[#3B8F6B]/30 flex items-center justify-between gap-3 animate-in fade-in duration-300">
+                <div className="space-y-0.5">
+                  <div className="text-xs font-bold text-[#3B8F6B] uppercase tracking-wider">
+                    ✓ Official Cryptographic Compliance Attestation
+                  </div>
+                  <div className="text-[11px] text-[#B8BDC7]">
+                    This document has been remediated and formally certified in 100% statutory compliance.
+                  </div>
+                </div>
+                <span className="px-3 py-1 rounded bg-[#3B8F6B]/20 text-[#3B8F6B] text-[10px] font-bold border border-[#3B8F6B]/40 shrink-0">
+                  SEAL ACTIVE
+                </span>
+              </div>
+            )}
             {/* Título Oficial do Documento */}
             <div className="border-b border-[#2A3038] pb-4 space-y-1 text-center">
               <div className="text-sm font-bold text-white uppercase tracking-wider">
@@ -163,8 +282,13 @@ export function RemediatedDocumentViewer({
 
               {/* CLAUSULA 2.1 - RETENÇÃO INDEFINIDA */}
               <div className="space-y-2">
-                <div className="text-[11px] text-[#9096A0] font-semibold">
-                  Section 2.1 — User Profile Data Retention
+                <div className="flex items-center justify-between text-[11px] font-semibold">
+                  <span className="text-[#9096A0]">Section 2.1 — User Profile Data Retention</span>
+                  {isSec21Resolved ? (
+                    <span className="text-[#3B8F6B] text-[10px] font-bold">✓ Remediated & Compliant</span>
+                  ) : (
+                    <span className="text-[#E06C5D] text-[10px] font-bold">● Pending Remediation</span>
+                  )}
                 </div>
 
                 {viewMode === "DIFF" && (
@@ -181,22 +305,114 @@ export function RemediatedDocumentViewer({
                     </div>
 
                     {/* Patch Remediado Aplicado */}
-                    <div className="p-3 rounded-lg bg-[#3B8F6B]/10 border border-[#3B8F6B]/30 text-white space-y-1">
+                    <div
+                      className={cn(
+                        "p-3 rounded-lg border space-y-2",
+                        isSec21Resolved
+                          ? "bg-[#3B8F6B]/10 border-[#3B8F6B]/30 text-white"
+                          : "bg-[#0D1013] border-[#2A3038] text-[#9096A0]"
+                      )}
+                    >
                       <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-[#3B8F6B]">
-                        <span>Remediated Clause (Applied Compliance Patch)</span>
-                        <span>Remediated by LGPD Specialist</span>
+                        <span>
+                          {isSec21Resolved ? "Applied Compliance Patch" : "Proposed Compliance Patch"}
+                        </span>
+                        {editingSection !== "sec21" && (
+                          <button
+                            onClick={() => handleStartEditClause("sec21", patch21Text)}
+                            className="text-[#9096A0] hover:text-[#3B8F6B] transition-colors cursor-pointer flex items-center gap-1 font-normal lowercase"
+                          >
+                            <span>✏️ edit</span>
+                          </button>
+                        )}
                       </div>
-                      <p className="text-xs text-white">
-                        "2.1. User profile data and transaction history shall be retained strictly for up to five (5) years following the formal termination of the customer relationship or account closure, after which all personal records shall be permanently purged or anonymized via irreversible cryptographic hashing in compliance with LGPD Art. 15 and GDPR Art. 5(1)(e)."
-                      </p>
+
+                      {editingSection === "sec21" ? (
+                        <div className="space-y-2 animate-in fade-in duration-200">
+                          <textarea
+                            value={editedClauseText}
+                            onChange={(e) => setEditedClauseText(e.target.value)}
+                            rows={3}
+                            className="w-full p-2.5 rounded-lg bg-[#0D1013] border border-[#3B8F6B]/60 text-xs text-white font-mono leading-relaxed focus:outline-none focus:ring-1 focus:ring-[#3B8F6B]"
+                          />
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => setEditingSection(null)}
+                              className="px-2.5 py-1 rounded text-[10px] text-[#9096A0] hover:text-white bg-[#0D1013] border border-[#2A3038] cursor-pointer"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              onClick={() => handleSaveEditClause(finding21)}
+                              className="px-3 py-1 rounded text-[10px] font-bold text-[#0D1013] bg-[#3B8F6B] hover:bg-[#4EAC83] cursor-pointer"
+                            >
+                              Save
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-white leading-relaxed">
+                          "{patch21Text}"
+                        </p>
+                      )}
                     </div>
                   </div>
                 )}
 
                 {viewMode === "FINAL" && (
-                  <p className="p-3 rounded-lg bg-[#0D1013] border border-[#3B8F6B]/30 text-white text-xs leading-relaxed">
-                    2.1. User profile data and transaction history shall be retained strictly for up to five (5) years following the formal termination of the customer relationship or account closure, after which all personal records shall be permanently purged or anonymized via irreversible cryptographic hashing in compliance with LGPD Art. 15 and GDPR Art. 5(1)(e).
-                  </p>
+                  <div
+                    className={cn(
+                      "p-3 rounded-lg border text-xs leading-relaxed space-y-2",
+                      isSec21Resolved
+                        ? "bg-[#0D1013] border-[#3B8F6B]/40 text-white"
+                        : "bg-[#A24438]/10 border-[#A24438]/30 text-[#E06C5D]"
+                    )}
+                  >
+                    <div className="flex items-center justify-between text-[10px] font-mono">
+                      <span className={isSec21Resolved ? "text-[#3B8F6B] font-bold" : "text-[#E06C5D]"}>
+                        {isSec21Resolved ? "✓ Compliant Clause" : "● Pending Remediation"}
+                      </span>
+                      {editingSection !== "sec21_final" && (
+                        <button
+                          onClick={() => handleStartEditClause("sec21_final", patch21Text)}
+                          className="text-[#9096A0] hover:text-[#3B8F6B] transition-colors cursor-pointer flex items-center gap-1 font-normal lowercase"
+                        >
+                          <span>✏️ edit</span>
+                        </button>
+                      )}
+                    </div>
+
+                    {editingSection === "sec21_final" ? (
+                      <div className="space-y-2 animate-in fade-in duration-200">
+                        <textarea
+                          value={editedClauseText}
+                          onChange={(e) => setEditedClauseText(e.target.value)}
+                          rows={3}
+                          className="w-full p-2.5 rounded-lg bg-[#0D1013] border border-[#3B8F6B]/60 text-xs text-white font-mono leading-relaxed focus:outline-none focus:ring-1 focus:ring-[#3B8F6B]"
+                        />
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => setEditingSection(null)}
+                            className="px-2.5 py-1 rounded text-[10px] text-[#9096A0] hover:text-white bg-[#0D1013] border border-[#2A3038] cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() => handleSaveEditClause(finding21)}
+                            className="px-3 py-1 rounded text-[10px] font-bold text-[#0D1013] bg-[#3B8F6B] hover:bg-[#4EAC83] cursor-pointer"
+                          >
+                            Save
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-xs leading-relaxed">
+                        {isSec21Resolved
+                          ? patch21Text
+                          : "2.1. User profile data and transaction history shall be stored indefinitely for business intelligence and service personalization purposes. [NON-COMPLIANT — PENDING REMEDIATION]"}
+                      </p>
+                    )}
+                  </div>
                 )}
 
                 {viewMode === "ORIGINAL" && (
@@ -208,8 +424,13 @@ export function RemediatedDocumentViewer({
 
               {/* CLAUSULA 2.2 - LOGS DE ACESSO */}
               <div className="space-y-2 pt-2">
-                <div className="text-[11px] text-[#9096A0] font-semibold">
-                  Section 2.2 — Network Access Logs Retention
+                <div className="flex items-center justify-between text-[11px] font-semibold">
+                  <span className="text-[#9096A0]">Section 2.2 — Network Access Logs Retention</span>
+                  {isSec22Resolved ? (
+                    <span className="text-[#3B8F6B] text-[10px] font-bold">✓ Remediated & Compliant</span>
+                  ) : (
+                    <span className="text-[#D4A559] text-[10px] font-bold">● Pending Remediation</span>
+                  )}
                 </div>
 
                 {viewMode === "DIFF" && (
@@ -224,22 +445,114 @@ export function RemediatedDocumentViewer({
                       </p>
                     </div>
 
-                    <div className="p-3 rounded-lg bg-[#3B8F6B]/10 border border-[#3B8F6B]/30 text-white space-y-1">
+                    <div
+                      className={cn(
+                        "p-3 rounded-lg border space-y-2",
+                        isSec22Resolved
+                          ? "bg-[#3B8F6B]/10 border-[#3B8F6B]/30 text-white"
+                          : "bg-[#0D1013] border-[#2A3038] text-[#9096A0]"
+                      )}
+                    >
                       <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-[#3B8F6B]">
-                        <span>Remediated Clause (Applied Compliance Patch)</span>
-                        <span>Remediated by ISO/OWASP Specialist</span>
+                        <span>
+                          {isSec22Resolved ? "Applied Compliance Patch" : "Proposed Compliance Patch"}
+                        </span>
+                        {editingSection !== "sec22" && (
+                          <button
+                            onClick={() => handleStartEditClause("sec22", patch22Text)}
+                            className="text-[#9096A0] hover:text-[#3B8F6B] transition-colors cursor-pointer flex items-center gap-1 font-normal lowercase"
+                          >
+                            <span>✏️ edit</span>
+                          </button>
+                        )}
                       </div>
-                      <p className="text-xs text-white">
-                        "2.2. Server access logs and HTTP request telemetry shall be retained for a mandatory period of six (6) months with automated IP anonymization / pseudonymization applied at ingestion time, enforcing least-privilege query controls."
-                      </p>
+
+                      {editingSection === "sec22" ? (
+                        <div className="space-y-2 animate-in fade-in duration-200">
+                          <textarea
+                            value={editedClauseText}
+                            onChange={(e) => setEditedClauseText(e.target.value)}
+                            rows={3}
+                            className="w-full p-2.5 rounded-lg bg-[#0D1013] border border-[#3B8F6B]/60 text-xs text-white font-mono leading-relaxed focus:outline-none focus:ring-1 focus:ring-[#3B8F6B]"
+                          />
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => setEditingSection(null)}
+                              className="px-2.5 py-1 rounded text-[10px] text-[#9096A0] hover:text-white bg-[#0D1013] border border-[#2A3038] cursor-pointer"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              onClick={() => handleSaveEditClause(finding22)}
+                              className="px-3 py-1 rounded text-[10px] font-bold text-[#0D1013] bg-[#3B8F6B] hover:bg-[#4EAC83] cursor-pointer"
+                            >
+                              Save
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-white leading-relaxed">
+                          "{patch22Text}"
+                        </p>
+                      )}
                     </div>
                   </div>
                 )}
 
                 {viewMode === "FINAL" && (
-                  <p className="p-3 rounded-lg bg-[#0D1013] border border-[#3B8F6B]/30 text-white text-xs leading-relaxed">
-                    2.2. Server access logs and HTTP request telemetry shall be retained for a mandatory period of six (6) months with automated IP anonymization / pseudonymization applied at ingestion time, enforcing least-privilege query controls.
-                  </p>
+                  <div
+                    className={cn(
+                      "p-3 rounded-lg border text-xs leading-relaxed space-y-2",
+                      isSec22Resolved
+                        ? "bg-[#0D1013] border-[#3B8F6B]/40 text-white"
+                        : "bg-[#B8843A]/10 border-[#B8843A]/30 text-[#D4A559]"
+                    )}
+                  >
+                    <div className="flex items-center justify-between text-[10px] font-mono">
+                      <span className={isSec22Resolved ? "text-[#3B8F6B] font-bold" : "text-[#D4A559]"}>
+                        {isSec22Resolved ? "✓ Compliant Clause" : "● Pending Remediation"}
+                      </span>
+                      {editingSection !== "sec22_final" && (
+                        <button
+                          onClick={() => handleStartEditClause("sec22_final", patch22Text)}
+                          className="text-[#9096A0] hover:text-[#3B8F6B] transition-colors cursor-pointer flex items-center gap-1 font-normal lowercase"
+                        >
+                          <span>✏️ edit</span>
+                        </button>
+                      )}
+                    </div>
+
+                    {editingSection === "sec22_final" ? (
+                      <div className="space-y-2 animate-in fade-in duration-200">
+                        <textarea
+                          value={editedClauseText}
+                          onChange={(e) => setEditedClauseText(e.target.value)}
+                          rows={3}
+                          className="w-full p-2.5 rounded-lg bg-[#0D1013] border border-[#3B8F6B]/60 text-xs text-white font-mono leading-relaxed focus:outline-none focus:ring-1 focus:ring-[#3B8F6B]"
+                        />
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => setEditingSection(null)}
+                            className="px-2.5 py-1 rounded text-[10px] text-[#9096A0] hover:text-white bg-[#0D1013] border border-[#2A3038] cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() => handleSaveEditClause(finding22)}
+                            className="px-3 py-1 rounded text-[10px] font-bold text-[#0D1013] bg-[#3B8F6B] hover:bg-[#4EAC83] cursor-pointer"
+                          >
+                            Save
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-xs leading-relaxed">
+                        {isSec22Resolved
+                          ? patch22Text
+                          : "2.2. Server access logs and HTTP requests will be retained for thirty (30) days without automated purging of records containing IP addresses or personal identifiers. [NON-COMPLIANT — PENDING REMEDIATION]"}
+                      </p>
+                    )}
+                  </div>
                 )}
 
                 {viewMode === "ORIGINAL" && (
@@ -250,15 +563,20 @@ export function RemediatedDocumentViewer({
               </div>
             </div>
 
-            {/* SEÇÃO 3: DIREITOS DOS TITULARES & EXCLUSÃO (FIND-02) */}
+            {/* SEÇÃO 3: DIREITOS DOS TITULARES & EXCLUSÃO (FIND-02 / FIND-03) */}
             <div className="space-y-3 pt-2 border-t border-[#2A3038]/60">
               <h4 className="text-xs font-bold text-white uppercase tracking-wider text-[#B8843A]">
                 3. Data Subject Rights & Erasure Requests
               </h4>
 
               <div className="space-y-2">
-                <div className="text-[11px] text-[#9096A0] font-semibold">
-                  Section 3.1 — SLA for Processing Erasure Requests
+                <div className="flex items-center justify-between text-[11px] font-semibold">
+                  <span className="text-[#9096A0]">Section 3.1 — SLA for Processing Erasure Requests</span>
+                  {isSec31Resolved ? (
+                    <span className="text-[#3B8F6B] text-[10px] font-bold">✓ Remediated & Compliant</span>
+                  ) : (
+                    <span className="text-[#E06C5D] text-[10px] font-bold">● Pending Remediation</span>
+                  )}
                 </div>
 
                 {viewMode === "DIFF" && (
@@ -273,22 +591,114 @@ export function RemediatedDocumentViewer({
                       </p>
                     </div>
 
-                    <div className="p-3 rounded-lg bg-[#3B8F6B]/10 border border-[#3B8F6B]/30 text-white space-y-1">
+                    <div
+                      className={cn(
+                        "p-3 rounded-lg border space-y-2",
+                        isSec31Resolved
+                          ? "bg-[#3B8F6B]/10 border-[#3B8F6B]/30 text-white"
+                          : "bg-[#0D1013] border-[#2A3038] text-[#9096A0]"
+                      )}
+                    >
                       <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-[#3B8F6B]">
-                        <span>Remediated Clause (Applied Compliance Patch)</span>
-                        <span>Remediated by GDPR/LGPD Specialist</span>
+                        <span>
+                          {isSec31Resolved ? "Applied Compliance Patch" : "Proposed Compliance Patch"}
+                        </span>
+                        {editingSection !== "sec31" && (
+                          <button
+                            onClick={() => handleStartEditClause("sec31", patch31Text)}
+                            className="text-[#9096A0] hover:text-[#3B8F6B] transition-colors cursor-pointer flex items-center gap-1 font-normal lowercase"
+                          >
+                            <span>✏️ edit</span>
+                          </button>
+                        )}
                       </div>
-                      <p className="text-xs text-white">
-                        "3.1. Requests for personal data erasure submitted by data subjects shall be fulfilled without undue delay and at the latest within fifteen (15) calendar days from receipt, providing the data subject with an automated cryptographic confirmation certificate."
-                      </p>
+
+                      {editingSection === "sec31" ? (
+                        <div className="space-y-2 animate-in fade-in duration-200">
+                          <textarea
+                            value={editedClauseText}
+                            onChange={(e) => setEditedClauseText(e.target.value)}
+                            rows={3}
+                            className="w-full p-2.5 rounded-lg bg-[#0D1013] border border-[#3B8F6B]/60 text-xs text-white font-mono leading-relaxed focus:outline-none focus:ring-1 focus:ring-[#3B8F6B]"
+                          />
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => setEditingSection(null)}
+                              className="px-2.5 py-1 rounded text-[10px] text-[#9096A0] hover:text-white bg-[#0D1013] border border-[#2A3038] cursor-pointer"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              onClick={() => handleSaveEditClause(finding31)}
+                              className="px-3 py-1 rounded text-[10px] font-bold text-[#0D1013] bg-[#3B8F6B] hover:bg-[#4EAC83] cursor-pointer"
+                            >
+                              Save
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-white leading-relaxed">
+                          "{patch31Text}"
+                        </p>
+                      )}
                     </div>
                   </div>
                 )}
 
                 {viewMode === "FINAL" && (
-                  <p className="p-3 rounded-lg bg-[#0D1013] border border-[#3B8F6B]/30 text-white text-xs leading-relaxed">
-                    3.1. Requests for personal data erasure submitted by data subjects shall be fulfilled without undue delay and at the latest within fifteen (15) calendar days from receipt, providing the data subject with an automated cryptographic confirmation certificate.
-                  </p>
+                  <div
+                    className={cn(
+                      "p-3 rounded-lg border text-xs leading-relaxed space-y-2",
+                      isSec31Resolved
+                        ? "bg-[#0D1013] border-[#3B8F6B]/40 text-white"
+                        : "bg-[#A24438]/10 border-[#A24438]/30 text-[#E06C5D]"
+                    )}
+                  >
+                    <div className="flex items-center justify-between text-[10px] font-mono">
+                      <span className={isSec31Resolved ? "text-[#3B8F6B] font-bold" : "text-[#E06C5D]"}>
+                        {isSec31Resolved ? "✓ Compliant Clause" : "● Pending Remediation"}
+                      </span>
+                      {editingSection !== "sec31_final" && (
+                        <button
+                          onClick={() => handleStartEditClause("sec31_final", patch31Text)}
+                          className="text-[#9096A0] hover:text-[#3B8F6B] transition-colors cursor-pointer flex items-center gap-1 font-normal lowercase"
+                        >
+                          <span>✏️ edit</span>
+                        </button>
+                      )}
+                    </div>
+
+                    {editingSection === "sec31_final" ? (
+                      <div className="space-y-2 animate-in fade-in duration-200">
+                        <textarea
+                          value={editedClauseText}
+                          onChange={(e) => setEditedClauseText(e.target.value)}
+                          rows={3}
+                          className="w-full p-2.5 rounded-lg bg-[#0D1013] border border-[#3B8F6B]/60 text-xs text-white font-mono leading-relaxed focus:outline-none focus:ring-1 focus:ring-[#3B8F6B]"
+                        />
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => setEditingSection(null)}
+                            className="px-2.5 py-1 rounded text-[10px] text-[#9096A0] hover:text-white bg-[#0D1013] border border-[#2A3038] cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() => handleSaveEditClause(finding31)}
+                            className="px-3 py-1 rounded text-[10px] font-bold text-[#0D1013] bg-[#3B8F6B] hover:bg-[#4EAC83] cursor-pointer"
+                          >
+                            Save
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-xs leading-relaxed">
+                        {isSec31Resolved
+                          ? patch31Text
+                          : "3.1. Requests for personal data deletion submitted by data subjects will be reviewed by the legal team within 90 business days. [NON-COMPLIANT — PENDING REMEDIATION]"}
+                      </p>
+                    )}
+                  </div>
                 )}
 
                 {viewMode === "ORIGINAL" && (
@@ -306,8 +716,13 @@ export function RemediatedDocumentViewer({
               </h4>
 
               <div className="space-y-2">
-                <div className="text-[11px] text-[#9096A0] font-semibold">
-                  Section 4.1 — Database Credentials & Access Control
+                <div className="flex items-center justify-between text-[11px] font-semibold">
+                  <span className="text-[#9096A0]">Section 4.1 — Database Credentials & Access Control</span>
+                  {isSec41Resolved ? (
+                    <span className="text-[#3B8F6B] text-[10px] font-bold">✓ Remediated & Compliant</span>
+                  ) : (
+                    <span className="text-[#D4A559] text-[10px] font-bold">● Pending Remediation</span>
+                  )}
                 </div>
 
                 {viewMode === "DIFF" && (
@@ -322,22 +737,114 @@ export function RemediatedDocumentViewer({
                       </p>
                     </div>
 
-                    <div className="p-3 rounded-lg bg-[#3B8F6B]/10 border border-[#3B8F6B]/30 text-white space-y-1">
+                    <div
+                      className={cn(
+                        "p-3 rounded-lg border space-y-2",
+                        isSec41Resolved
+                          ? "bg-[#3B8F6B]/10 border-[#3B8F6B]/30 text-white"
+                          : "bg-[#0D1013] border-[#2A3038] text-[#9096A0]"
+                      )}
+                    >
                       <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-[#3B8F6B]">
-                        <span>Remediated Clause (Applied Compliance Patch)</span>
-                        <span>Remediated by ISO 27001 Specialist</span>
+                        <span>
+                          {isSec41Resolved ? "Applied Compliance Patch" : "Proposed Compliance Patch"}
+                        </span>
+                        {editingSection !== "sec41" && (
+                          <button
+                            onClick={() => handleStartEditClause("sec41", patch41Text)}
+                            className="text-[#9096A0] hover:text-[#3B8F6B] transition-colors cursor-pointer flex items-center gap-1 font-normal lowercase"
+                          >
+                            <span>✏️ edit</span>
+                          </button>
+                        )}
                       </div>
-                      <p className="text-xs text-white">
-                        "4.1. Data in transit is secured with TLS 1.3 and AES-256 at rest. All production analytical databases must strictly mandate individual federated IAM authentication with RBAC and hardware-backed Multi-Factor Authentication (MFA). Shared credentials are strictly prohibited."
-                      </p>
+
+                      {editingSection === "sec41" ? (
+                        <div className="space-y-2 animate-in fade-in duration-200">
+                          <textarea
+                            value={editedClauseText}
+                            onChange={(e) => setEditedClauseText(e.target.value)}
+                            rows={3}
+                            className="w-full p-2.5 rounded-lg bg-[#0D1013] border border-[#3B8F6B]/60 text-xs text-white font-mono leading-relaxed focus:outline-none focus:ring-1 focus:ring-[#3B8F6B]"
+                          />
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => setEditingSection(null)}
+                              className="px-2.5 py-1 rounded text-[10px] text-[#9096A0] hover:text-white bg-[#0D1013] border border-[#2A3038] cursor-pointer"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              onClick={() => handleSaveEditClause(finding41)}
+                              className="px-3 py-1 rounded text-[10px] font-bold text-[#0D1013] bg-[#3B8F6B] hover:bg-[#4EAC83] cursor-pointer"
+                            >
+                              Save
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-white leading-relaxed">
+                          "{patch41Text}"
+                        </p>
+                      )}
                     </div>
                   </div>
                 )}
 
                 {viewMode === "FINAL" && (
-                  <p className="p-3 rounded-lg bg-[#0D1013] border border-[#3B8F6B]/30 text-white text-xs leading-relaxed">
-                    4.1. Data in transit is secured with TLS 1.3 and AES-256 at rest. All production analytical databases must strictly mandate individual federated IAM authentication with RBAC and hardware-backed Multi-Factor Authentication (MFA). Shared credentials are strictly prohibited.
-                  </p>
+                  <div
+                    className={cn(
+                      "p-3 rounded-lg border text-xs leading-relaxed space-y-2",
+                      isSec41Resolved
+                        ? "bg-[#0D1013] border-[#3B8F6B]/40 text-white"
+                        : "bg-[#B8843A]/10 border-[#B8843A]/30 text-[#D4A559]"
+                    )}
+                  >
+                    <div className="flex items-center justify-between text-[10px] font-mono">
+                      <span className={isSec41Resolved ? "text-[#3B8F6B] font-bold" : "text-[#D4A559]"}>
+                        {isSec41Resolved ? "✓ Compliant Clause" : "● Pending Remediation"}
+                      </span>
+                      {editingSection !== "sec41_final" && (
+                        <button
+                          onClick={() => handleStartEditClause("sec41_final", patch41Text)}
+                          className="text-[#9096A0] hover:text-[#3B8F6B] transition-colors cursor-pointer flex items-center gap-1 font-normal lowercase"
+                        >
+                          <span>✏️ edit</span>
+                        </button>
+                      )}
+                    </div>
+
+                    {editingSection === "sec41_final" ? (
+                      <div className="space-y-2 animate-in fade-in duration-200">
+                        <textarea
+                          value={editedClauseText}
+                          onChange={(e) => setEditedClauseText(e.target.value)}
+                          rows={3}
+                          className="w-full p-2.5 rounded-lg bg-[#0D1013] border border-[#3B8F6B]/60 text-xs text-white font-mono leading-relaxed focus:outline-none focus:ring-1 focus:ring-[#3B8F6B]"
+                        />
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => setEditingSection(null)}
+                            className="px-2.5 py-1 rounded text-[10px] text-[#9096A0] hover:text-white bg-[#0D1013] border border-[#2A3038] cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() => handleSaveEditClause(finding41)}
+                            className="px-3 py-1 rounded text-[10px] font-bold text-[#0D1013] bg-[#3B8F6B] hover:bg-[#4EAC83] cursor-pointer"
+                          >
+                            Save
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-xs leading-relaxed">
+                        {isSec41Resolved
+                          ? patch41Text
+                          : "4.1. Data in transit is secured with TLS 1.3. Analytical databases utilize shared passwords restricted to the engineering team. [NON-COMPLIANT — PENDING REMEDIATION]"}
+                      </p>
+                    )}
+                  </div>
                 )}
 
                 {viewMode === "ORIGINAL" && (
@@ -361,8 +868,13 @@ export function RemediatedDocumentViewer({
                 </div>
 
                 <div className="space-y-2">
-                  <div className="text-[11px] text-[#9096A0] font-semibold">
-                    Section 5.1 — AI Model Weights Training Data Erasure
+                  <div className="flex items-center justify-between text-[11px] font-semibold">
+                    <span className="text-[#9096A0]">Section 5.1 — AI Model Weights Training Data Erasure</span>
+                    {isSec51Resolved ? (
+                      <span className="text-[#3B8F6B] text-[10px] font-bold">✓ Remediated & Compliant</span>
+                    ) : (
+                      <span className="text-[#E06C5D] text-[10px] font-bold">● Policy Drift Active</span>
+                    )}
                   </div>
 
                   {viewMode === "DIFF" && (
@@ -377,22 +889,112 @@ export function RemediatedDocumentViewer({
                         </p>
                       </div>
 
-                      <div className="p-3 rounded-lg bg-[#3B8F6B]/15 border border-[#3B8F6B]/40 text-white space-y-1">
+                      <div
+                        className={cn(
+                          "p-3 rounded-lg border space-y-2",
+                          isSec51Resolved
+                            ? "bg-[#3B8F6B]/15 border-[#3B8F6B]/40 text-white"
+                            : "bg-[#0D1013] border-[#2A3038] text-[#9096A0]"
+                        )}
+                      >
                         <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-[#3B8F6B]">
                           <span>Mandated Regulatory Drift Remediation Patch</span>
-                          <span>Gemini 2.5 Pro Attestation</span>
+                          {editingSection !== "sec51" && (
+                            <button
+                              onClick={() => handleStartEditClause("sec51", patch51Text)}
+                              className="text-[#9096A0] hover:text-[#3B8F6B] transition-colors cursor-pointer flex items-center gap-1 font-normal lowercase"
+                            >
+                              <span>✏️ edit</span>
+                            </button>
+                          )}
                         </div>
-                        <p className="text-xs text-white">
-                          "5.1. Upon valid receipt of a data erasure notice, all vector index embeddings containing latent representations of the data subject must be purged, and machine unlearning verification checkpoints executed within 30 days to certify statutory model alignment under GDPR v2 Directive."
-                        </p>
+
+                        {editingSection === "sec51" ? (
+                          <div className="space-y-2 animate-in fade-in duration-200">
+                            <textarea
+                              value={editedClauseText}
+                              onChange={(e) => setEditedClauseText(e.target.value)}
+                              rows={3}
+                              className="w-full p-2.5 rounded-lg bg-[#0D1013] border border-[#3B8F6B]/60 text-xs text-white font-mono leading-relaxed focus:outline-none focus:ring-1 focus:ring-[#3B8F6B]"
+                            />
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                onClick={() => setEditingSection(null)}
+                                className="px-2.5 py-1 rounded text-[10px] text-[#9096A0] hover:text-white bg-[#0D1013] border border-[#2A3038] cursor-pointer"
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                onClick={() => handleSaveEditClause(finding51)}
+                                className="px-3 py-1 rounded text-[10px] font-bold text-[#0D1013] bg-[#3B8F6B] hover:bg-[#4EAC83] cursor-pointer"
+                              >
+                                Save
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="text-xs text-white leading-relaxed">
+                            "{patch51Text}"
+                          </p>
+                        )}
                       </div>
                     </div>
                   )}
 
                   {viewMode === "FINAL" && (
-                    <p className="p-3 rounded-lg bg-[#0D1013] border border-[#3B8F6B]/30 text-white text-xs leading-relaxed">
-                      5.1. Upon valid receipt of a data erasure notice, all vector index embeddings containing latent representations of the data subject must be purged, and machine unlearning verification checkpoints executed within 30 days to certify statutory model alignment under GDPR v2 Directive.
-                    </p>
+                    <div
+                      className={cn(
+                        "p-3 rounded-lg border text-xs leading-relaxed space-y-2",
+                        isSec51Resolved
+                          ? "bg-[#0D1013] border-[#3B8F6B]/40 text-white"
+                          : "bg-[#A24438]/10 border-[#A24438]/30 text-[#E06C5D]"
+                      )}
+                    >
+                      <div className="flex items-center justify-between text-[10px] font-mono">
+                        <span className={isSec51Resolved ? "text-[#3B8F6B] font-bold" : "text-[#E06C5D]"}>
+                          {isSec51Resolved ? "✓ Drift Remediated Clause" : "● Policy Drift Active"}
+                        </span>
+                        {editingSection !== "sec51_final" && (
+                          <button
+                            onClick={() => handleStartEditClause("sec51_final", patch51Text)}
+                            className="text-[#9096A0] hover:text-[#3B8F6B] transition-colors cursor-pointer flex items-center gap-1 font-normal lowercase"
+                          >
+                            <span>✏️ edit</span>
+                          </button>
+                        )}
+                      </div>
+
+                      {editingSection === "sec51_final" ? (
+                        <div className="space-y-2 animate-in fade-in duration-200">
+                          <textarea
+                            value={editedClauseText}
+                            onChange={(e) => setEditedClauseText(e.target.value)}
+                            rows={3}
+                            className="w-full p-2.5 rounded-lg bg-[#0D1013] border border-[#3B8F6B]/60 text-xs text-white font-mono leading-relaxed focus:outline-none focus:ring-1 focus:ring-[#3B8F6B]"
+                          />
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => setEditingSection(null)}
+                              className="px-2.5 py-1 rounded text-[10px] text-[#9096A0] hover:text-white bg-[#0D1013] border border-[#2A3038] cursor-pointer"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              onClick={() => handleSaveEditClause(finding51)}
+                              className="px-3 py-1 rounded text-[10px] font-bold text-[#0D1013] bg-[#3B8F6B] hover:bg-[#4EAC83] cursor-pointer"
+                            >
+                              Save
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-xs leading-relaxed">
+                          {isSec51Resolved
+                            ? patch51Text
+                            : "5.1. Personal data transformed into neural network vector embeddings or latent representations is deemed irrevocably anonymous and exempt from subsequent data subject revocation requests. [POLICY DRIFT BREACH — PENDING REMEDIATION]"}
+                        </p>
+                      )}
+                    </div>
                   )}
 
                   {viewMode === "ORIGINAL" && (
@@ -407,9 +1009,9 @@ export function RemediatedDocumentViewer({
         </div>
 
         {/* ========================================================================= */}
-        {/* RODAPÉ DO VISUALIZADOR COM EXPORTAÇÃO E FECHAMENTO                         */}
+        {/* RODAPÉ DO VISUALIZADOR COM EXPORTAÇÃO, FECHAMENTO E APROVAÇÃO              */}
         {/* ========================================================================= */}
-        <div className="p-4 bg-[#171B1F] border-t border-[#2A3038] flex items-center justify-end gap-3">
+        <div className="p-4 bg-[#171B1F] border-t border-[#2A3038] flex flex-wrap items-center justify-between gap-3">
           <button
             onClick={handleCopyText}
             className="px-4 py-2 rounded-lg text-xs font-mono font-semibold bg-[#0D1013] hover:bg-[#21262B] text-white border border-[#2A3038] transition-colors cursor-pointer"
@@ -417,12 +1019,28 @@ export function RemediatedDocumentViewer({
             {copied ? "✓ Copied to Clipboard" : "Copy Document Content"}
           </button>
 
-          <button
-            onClick={onClose}
-            className="px-5 py-2 rounded-lg text-xs font-semibold bg-[#B8843A] hover:bg-[#CCA159] text-[#0D1013] transition-colors cursor-pointer"
-          >
-            Close
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 rounded-lg text-xs font-semibold bg-[#0D1013] hover:bg-[#21262B] text-[#9096A0] hover:text-white border border-[#2A3038] transition-colors cursor-pointer"
+            >
+              Close
+            </button>
+
+            <button
+              onClick={handleApprove}
+              className={cn(
+                "px-5 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer shadow-lg flex items-center gap-1.5",
+                isApproved
+                  ? "bg-[#3B8F6B]/20 text-[#3B8F6B] border border-[#3B8F6B]/40"
+                  : "bg-[#B8843A] hover:bg-[#CCA159] text-[#0D1013]"
+              )}
+            >
+              {isApproved
+                ? "Completed"
+                : "Approve Document"}
+            </button>
+          </div>
         </div>
       </div>
     </div>

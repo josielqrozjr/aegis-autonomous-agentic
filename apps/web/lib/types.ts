@@ -5,7 +5,10 @@ export type InvestigationStatus =
   | "ADVERSARIAL_REVIEW"
   | "COMPLETED"
   | "FAILED"
-  | "DEGRADED";
+  | "DEGRADED"
+  | "PENDING_REVIEW"
+  | "REOPENED_DRIFT"
+  | "POLICY_DRIFT";
 
 export type AgentStatus = "IDLE" | "RUNNING" | "COMPLETED" | "FAILED" | "DEGRADED";
 
@@ -40,6 +43,7 @@ export interface Finding {
   status: "OPEN" | "REVIEWED" | "RESOLVED" | "REOPENED_DRIFT";
   challengedByCritic?: boolean;
   criticVerdict?: string;
+  remediationStatus?: "PROPOSED" | "APPROVED" | "APPLIED";
 }
 
 export interface Investigation {

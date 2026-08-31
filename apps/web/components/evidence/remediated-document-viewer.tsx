@@ -64,7 +64,7 @@ export function generateFinalDocumentContent(
     "4.1. Data in transit is secured with TLS 1.3 and AES-256 at rest. All production analytical databases must strictly mandate individual federated IAM authentication with RBAC and hardware-backed Multi-Factor Authentication (MFA). Shared credentials are strictly prohibited.";
 
   const finding51 = findings.find(
-    (f) => f.status === "RESOLVED" && (f.id === "FIND-02" || f.status !== "REOPENED_DRIFT")
+    (f) => f.status === "RESOLVED" && (f.id === "FIND-02" || true)
   );
   const patch51Text =
     finding51?.remediationSuggestion ||
@@ -156,7 +156,7 @@ export function printDocumentAsPdf(
     "4.1. Data in transit is secured with TLS 1.3 and AES-256 at rest. All production analytical databases must strictly mandate individual federated IAM authentication with RBAC and hardware-backed Multi-Factor Authentication (MFA). Shared credentials are strictly prohibited.";
 
   const finding51 = findings.find(
-    (f) => f.status === "RESOLVED" && (f.id === "FIND-02" || f.status !== "REOPENED_DRIFT")
+    (f) => f.status === "RESOLVED" && (f.id === "FIND-02" || true)
   );
   const patch51Text =
     finding51?.remediationSuggestion ||
@@ -405,7 +405,7 @@ export function RemediatedDocumentViewer({
     "4.1. Data in transit is secured with TLS 1.3 and AES-256 at rest. All production analytical databases must strictly mandate individual federated IAM authentication with RBAC and hardware-backed Multi-Factor Authentication (MFA). Shared credentials are strictly prohibited.";
 
   const finding51 = findings.find(
-    (f) => f.status === "RESOLVED" && (f.id === "FIND-02" || f.status !== "REOPENED_DRIFT")
+    (f) => f.status === "RESOLVED" && (f.id === "FIND-02" || true)
   );
   const patch51Text =
     finding51?.remediationSuggestion ||

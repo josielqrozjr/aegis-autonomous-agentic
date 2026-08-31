@@ -11,7 +11,7 @@ AEGIS is an autonomous multi-agent governance platform designed for continuous r
 
 ---
 
-## 🏆 Multi-Model AI Architecture (+0.4 Hackathon Bonus)
+## 🏆 Multi-Model AI Architecture 
 
 AEGIS implements a fortified multi-model strategy utilizing specialized Google models with a built-in deterministic fallback engine (`REPLAY_MODE`):
 
@@ -138,6 +138,6 @@ aegis/
 
 ## 👥 Team
 - **Dev 1 (Cainã):** AI / Agent Architecture Lead
-- **Dev  (Josiel):** Backend / Cloud Infrastructure Lead
+- **Dev 2 (Josiel):** Backend / Cloud Infrastructure Lead
 - **Dev 3 (Elis):** Fullstack UI / Frontend Lead
 - **Dev 4 (Alana):** Documentation / Devpost Lead

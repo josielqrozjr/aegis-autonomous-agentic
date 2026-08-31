@@ -268,3 +268,14 @@ export function transformAgents(backendAgents: any[]): import("../types").AgentI
     findingsCount: 0,
   }));
 }
+
+export async function deleteInvestigation(investigationId: string): Promise<void> {
+  const res = await fetch(`${API_BASE_URL}/investigations/${investigationId}`, { method: "DELETE" });
+  if (!res.ok && res.status !== 204) throw new Error(`Delete failed: HTTP ${res.status}`);
+}
+
+export async function deleteAllInvestigations(): Promise<{ deleted: number }> {
+  const res = await fetch(`${API_BASE_URL}/investigations`, { method: "DELETE" });
+  if (!res.ok) throw new Error(`Delete all failed: HTTP ${res.status}`);
+  return await res.json();
+}

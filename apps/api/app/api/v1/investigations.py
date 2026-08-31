@@ -268,3 +268,35 @@ async def invalidate_node(
         "total": len(invalidated),
         "graph": graph.to_dict(),
     }
+
+
+@router.delete("/{investigation_id}", status_code=204)
+async def delete_investigation(
+    investigation_id: str,
+    inv_repo=Depends(get_investigation_repo),
+    audit_repo=Depends(get_audit_repo),
+):
+    inv = await inv_repo.get(investigation_id)
+    if inv is None:
+        raise HTTPException(status_code=404, detail="Investigation not found")
+    await inv_repo.delete(investigation_id)
+    await audit_repo.append(
+        AuditEntry(
+            entry_id=str(uuid.uuid4()),
+            investigation_id=investigation_id,
+            agent_id=None,
+            action="INVESTIGATION_DELETED",
+            details=f"Investigation {investigation_id} deleted",
+            timestamp=datetime.now(timezone.utc).isoformat(),
+        )
+    )
+
+
+@router.delete("", status_code=200)
+async def delete_all_investigations(
+    inv_repo=Depends(get_investigation_repo),
+):
+    all_invs = await inv_repo.list_all()
+    for inv in all_invs:
+        await inv_repo.delete(inv.id)
+    return {"deleted": len(all_invs)}

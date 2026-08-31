@@ -9,9 +9,11 @@ interface InvestigationsTableProps {
   findings?: Finding[];
   onSelect: (investigation: Investigation) => void;
   onNew: () => void;
+  onDelete?: (investigationId: string) => void;
+  onDeleteAll?: () => void;
 }
 
-export function InvestigationsTable({ investigations, findings = [], onSelect, onNew }: InvestigationsTableProps) {
+export function InvestigationsTable({ investigations, findings = [], onSelect, onNew, onDelete, onDeleteAll }: InvestigationsTableProps) {
   const [filter, setFilter] = useState("ALL");
   const [search, setSearch] = useState("");
 
@@ -118,6 +120,14 @@ export function InvestigationsTable({ investigations, findings = [], onSelect, o
           >
             + New Investigation
           </button>
+          {onDeleteAll && investigations.length > 0 && (
+            <button
+              onClick={onDeleteAll}
+              className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-[#A24438]/20 hover:bg-[#A24438]/40 text-[#E06C5D] border border-[#A24438]/30 transition-colors cursor-pointer"
+            >
+              Delete All
+            </button>
+          )}
         </div>
       </div>
 
@@ -199,8 +209,19 @@ export function InvestigationsTable({ investigations, findings = [], onSelect, o
                 <td className="py-3.5 px-4 text-[#9096A0] text-[11px] font-mono">
                   {formatDate(inv.updatedAt)}
                 </td>
-                <td className="py-3.5 px-6 text-center font-mono text-[11px] text-[#4C8FA6] group-hover:text-white">
-                  View
+                <td className="py-3.5 px-6 text-center font-mono text-[11px]">
+                  <div className="flex items-center justify-center gap-2">
+                    <span className="text-[#4C8FA6] group-hover:text-white cursor-pointer">View</span>
+                    {onDelete && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); onDelete(inv.id); }}
+                        className="text-[#A24438] hover:text-[#E06C5D] cursor-pointer transition-colors"
+                        title="Delete investigation"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}

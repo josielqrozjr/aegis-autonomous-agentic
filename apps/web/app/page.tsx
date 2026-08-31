@@ -34,6 +34,8 @@ import {
   fetchTrustGraph,
   fetchAgents,
   triggerRegulatoryChange,
+  deleteInvestigation,
+  deleteAllInvestigations,
   transformFinding, 
   transformInvestigation,
   transformAgents,
@@ -592,6 +594,25 @@ export default function Home() {
                 setActiveTab("dashboard");
               }}
               onNew={() => setActiveTab("new-investigation")}
+              onDelete={async (id) => {
+                try {
+                  await deleteInvestigation(id);
+                  setInvestigations((prev) => prev.filter((i) => i.id !== id));
+                  if (currentInvestigation.id === id) {
+                    setFindings([]);
+                    setGraphData(EMPTY_GRAPH);
+                  }
+                } catch (err) { console.error("Delete failed:", err); }
+              }}
+              onDeleteAll={async () => {
+                try {
+                  await deleteAllInvestigations();
+                  setInvestigations([]);
+                  setFindings([]);
+                  setGraphData(EMPTY_GRAPH);
+                  setCurrentInvestigation(EMPTY_INVESTIGATION);
+                } catch (err) { console.error("Delete all failed:", err); }
+              }}
             />
           )}
 

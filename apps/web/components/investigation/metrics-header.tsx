@@ -5,39 +5,52 @@ import { cn } from "@/lib/utils";
 
 interface MetricsHeaderProps {
   onNavigate?: (tabId: string) => void;
+  investigationsCount?: number;
+  agentsCount?: number;
+  findingsCount?: number;
+  driftNodesCount?: number;
+  compliancePercent?: number;
   totalInvestigations?: number;
   activeAgents?: number;
-  findingsCount?: number;
   remediationsCount?: number;
 }
 
 export function MetricsHeader({
   onNavigate,
-  totalInvestigations = 2,
+  investigationsCount,
+  agentsCount,
+  findingsCount,
+  driftNodesCount,
+  compliancePercent,
+  totalInvestigations = 4,
   activeAgents = 5,
-  findingsCount = 4,
   remediationsCount = 0,
 }: MetricsHeaderProps) {
+  const invCount = investigationsCount ?? totalInvestigations;
+  const agCount = agentsCount ?? activeAgents;
+  const findCount = findingsCount ?? 13;
+  const driftCount = driftNodesCount ?? 0;
+
   const metrics = [
     {
       targetTab: "investigations",
       label: "Total Investigations",
-      value: `${totalInvestigations}`,
+      value: `${invCount < 10 ? `0${invCount}` : invCount}`,
     },
     {
       targetTab: "new-investigation",
       label: "Active AI",
-      value: `${activeAgents}`,
+      value: `${agCount < 10 ? `0${agCount}` : agCount}`,
     },
     {
       targetTab: "dashboard",
-      label: "Findings Identified",
-      value: `${findingsCount}`,
+      label: "Audit Findings",
+      value: `${findCount < 10 ? `0${findCount}` : findCount}`,
     },
     {
       targetTab: "remediation",
-      label: "Remediations Applied",
-      value: `${remediationsCount}`,
+      label: "Policy Drift Nodes",
+      value: `${driftCount < 10 ? `0${driftCount}` : driftCount}`,
     },
   ];
 

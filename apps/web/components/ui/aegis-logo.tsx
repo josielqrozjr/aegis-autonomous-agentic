@@ -2,7 +2,14 @@
 
 import React from "react";
 
-export function AegisShieldLogo({ className = "w-8 h-8" }: { className?: string }) {
+export function AegisShieldLogo({
+  className = "w-8 h-8",
+  variant = "auto",
+}: {
+  className?: string;
+  variant?: "dark" | "light" | "auto";
+}) {
+  const isLight = variant === "light";
   return (
     <svg
       viewBox="0 0 120 150"
@@ -16,7 +23,7 @@ export function AegisShieldLogo({ className = "w-8 h-8" }: { className?: string 
         stroke="#B8843A"
         strokeWidth="4.5"
         strokeLinejoin="round"
-        fill="#171B1F"
+        className={isLight ? "fill-white" : "fill-[#171B1F] print:fill-white"}
       />
       {/* Escudo Interno Suave */}
       <path
@@ -24,7 +31,7 @@ export function AegisShieldLogo({ className = "w-8 h-8" }: { className?: string 
         stroke="#B8843A"
         strokeWidth="1.5"
         strokeOpacity="0.3"
-        fill="#0D1013"
+        className={isLight ? "fill-white" : "fill-[#0D1013] print:fill-white"}
       />
 
       {/* Linhas de Conexão do Grafo (Arestas) */}
@@ -39,30 +46,86 @@ export function AegisShieldLogo({ className = "w-8 h-8" }: { className?: string 
 
       {/* Nós do Grafo (Vértices com Anel) */}
       {/* Centro */}
-      <circle cx="60" cy="75" r="7" fill="#B8843A" stroke="#0D1013" strokeWidth="2" />
+      <circle
+        cx="60"
+        cy="75"
+        r="7"
+        fill="#B8843A"
+        stroke={isLight ? "#ffffff" : "#0D1013"}
+        strokeWidth="2"
+        className={isLight ? "" : "print:stroke-white"}
+      />
       
       {/* Superior Esquerdo */}
-      <circle cx="38" cy="44" r="5.5" fill="#0D1013" stroke="#B8843A" strokeWidth="2.5" />
+      <circle
+        cx="38"
+        cy="44"
+        r="5.5"
+        fill={isLight ? "#ffffff" : "#0D1013"}
+        stroke="#B8843A"
+        strokeWidth="2.5"
+        className={isLight ? "" : "print:fill-white"}
+      />
       <circle cx="38" cy="44" r="2.5" fill="#B8843A" />
 
       {/* Superior Direito */}
-      <circle cx="82" cy="44" r="5.5" fill="#0D1013" stroke="#B8843A" strokeWidth="2.5" />
+      <circle
+        cx="82"
+        cy="44"
+        r="5.5"
+        fill={isLight ? "#ffffff" : "#0D1013"}
+        stroke="#B8843A"
+        strokeWidth="2.5"
+        className={isLight ? "" : "print:fill-white"}
+      />
       <circle cx="82" cy="44" r="2.5" fill="#B8843A" />
 
       {/* Meio Esquerdo */}
-      <circle cx="28" cy="82" r="5.5" fill="#0D1013" stroke="#B8843A" strokeWidth="2.5" />
+      <circle
+        cx="28"
+        cy="82"
+        r="5.5"
+        fill={isLight ? "#ffffff" : "#0D1013"}
+        stroke="#B8843A"
+        strokeWidth="2.5"
+        className={isLight ? "" : "print:fill-white"}
+      />
       <circle cx="28" cy="82" r="2.5" fill="#B8843A" />
 
       {/* Meio Direito */}
-      <circle cx="92" cy="82" r="5.5" fill="#0D1013" stroke="#B8843A" strokeWidth="2.5" />
+      <circle
+        cx="92"
+        cy="82"
+        r="5.5"
+        fill={isLight ? "#ffffff" : "#0D1013"}
+        stroke="#B8843A"
+        strokeWidth="2.5"
+        className={isLight ? "" : "print:fill-white"}
+      />
       <circle cx="92" cy="82" r="2.5" fill="#B8843A" />
 
       {/* Inferior Esquerdo */}
-      <circle cx="44" cy="114" r="5.5" fill="#0D1013" stroke="#B8843A" strokeWidth="2.5" />
+      <circle
+        cx="44"
+        cy="114"
+        r="5.5"
+        fill={isLight ? "#ffffff" : "#0D1013"}
+        stroke="#B8843A"
+        strokeWidth="2.5"
+        className={isLight ? "" : "print:fill-white"}
+      />
       <circle cx="44" cy="114" r="2.5" fill="#B8843A" />
 
       {/* Inferior Direito */}
-      <circle cx="76" cy="114" r="5.5" fill="#0D1013" stroke="#B8843A" strokeWidth="2.5" />
+      <circle
+        cx="76"
+        cy="114"
+        r="5.5"
+        fill={isLight ? "#ffffff" : "#0D1013"}
+        stroke="#B8843A"
+        strokeWidth="2.5"
+        className={isLight ? "" : "print:fill-white"}
+      />
       <circle cx="76" cy="114" r="2.5" fill="#B8843A" />
     </svg>
   );

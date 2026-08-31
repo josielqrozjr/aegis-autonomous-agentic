@@ -34,18 +34,35 @@
   background: #3A434F;
 }
 
-/* Otimização de Impressão e Exportação para PDF */
+/* Otimização de Impressão e Exportação para PDF sem cortes */
 @media print {
   @page {
-    margin: 1.5cm;
-    size: auto;
+    margin: 1.2cm;
+    size: A4 portrait;
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box !important;
   }
 
   body, html {
     background-color: #ffffff !important;
+    background: #ffffff !important;
     color: #000000 !important;
     height: auto !important;
+    min-height: 100% !important;
     overflow: visible !important;
+    position: static !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Remove restrições de altura e overflow dos wrappers pais */
+  div, main, section, article {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    position: static !important;
   }
 
   aside, header, nav, button, .print\:hidden {
@@ -59,5 +76,13 @@
     background: transparent !important;
     width: 100% !important;
     height: auto !important;
+    max-width: 100% !important;
+  }
+
+  /* Evita quebras de página feias no meio de cards */
+  [class*="rounded-xl"],
+  [class*="rounded-lg"] {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
   }
 }

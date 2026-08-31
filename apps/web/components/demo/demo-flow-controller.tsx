@@ -19,19 +19,19 @@ export function DemoFlowController({ currentStep = 1 }: DemoFlowControllerProps)
   ];
 
   return (
-    <div className="bg-[#171B1F] border border-[#2A3038] rounded-xl p-6 mb-6 space-y-5">
-      {/* Header (Sem botões) */}
-      <div className="pb-3.5 border-b border-[#2A3038]">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-white">
+    <div className="space-y-4 mb-6">
+      {/* Header Padronizado */}
+      <div className="pb-3 border-b border-[#2A3038]">
+        <h2 className="text-sm font-bold uppercase tracking-wider text-white">
           4-Step Demonstration
-        </h3>
-        <p className="text-[11px] text-[#9096A0] mt-1 leading-relaxed">
+        </h2>
+        <p className="text-xs text-[#9096A0] mt-0.5">
           Automated walkthrough to evaluate multi-agent intelligence and Trust Graph provenance.
         </p>
       </div>
 
       {/* Fluxo Passo a Passo com Setas e Badges de Steps */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-5 md:gap-4 py-3 px-3 select-none">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-5 md:gap-4 py-2 select-none">
         {steps.map((s, idx) => (
           <React.Fragment key={s.step}>
             {/* Step Item */}

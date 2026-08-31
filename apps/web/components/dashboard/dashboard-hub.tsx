@@ -14,10 +14,10 @@ interface DashboardHubProps {
 
 export function DashboardHub({
   onNavigate,
-  investigationsCount = 2,
+  investigationsCount = 4,
   agentsCount = 5,
-  findingsCount = 4,
-  driftNodesCount = 3,
+  findingsCount = 13,
+  driftNodesCount = 0,
   compliancePercent = 100,
 }: DashboardHubProps) {
   const formatNumber = (num: number) => (num < 10 ? `0${num}` : `${num}`);
@@ -34,9 +34,9 @@ export function DashboardHub({
     {
       id: "new-investigation",
       number: formatNumber(agentsCount),
-      label: "Active AI Fleet",
+      label: "Active AI",
       subLabel: "Real-Time Pipeline Execution",
-      helper: "Gemma 2B, Gemini 1.5 Flash & Gemini 2.5 Pro",
+      helper: "Gemma 2B, Gemini 1.5 & Gemini 2.5",
       targetName: "New Investigation",
     },
     {
@@ -44,7 +44,7 @@ export function DashboardHub({
       number: formatNumber(findingsCount),
       label: "Audit Findings",
       subLabel: "Verified Evidence Chains",
-      helper: "DAG nodes validated by Gemini 2.5 Pro Critic",
+      helper: "DAG nodes validated by Gemini 2.5 Critic",
       targetName: "Trust Graph & Agents",
     },
     {
@@ -53,7 +53,7 @@ export function DashboardHub({
       label: "Policy Drift Nodes",
       subLabel: "Cascade Invalidation Simulation",
       helper: "Dynamic regulatory simulation & patch generation",
-      targetName: "Remediation & Drift",
+      targetName: "Continuous Monitoring",
     },
     {
       id: "report",

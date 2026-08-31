@@ -15,12 +15,12 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
     { id: "investigations", label: "Investigations" },
     { id: "new-investigation", label: "New Investigation" },
     { id: "dashboard", label: "Trust Graph & Agents" },
-    { id: "remediation", label: "Remediation & Drift" },
+    { id: "remediation", label: "Continuous Monitoring" },
     { id: "report", label: "Final Report" },
   ];
 
   return (
-    <aside className="w-60 bg-[#0D1013] border-r border-[#2A3038] flex flex-col justify-between h-screen select-none shrink-0">
+    <aside className="w-60 bg-[#0D1013] border-r border-[#2A3038] flex flex-col justify-between h-screen select-none shrink-0 print:hidden">
       <div>
         {/* Brand header - Alinhado em h-14 com o TopHeader */}
         <div
@@ -63,7 +63,7 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
       {/* Footer Model Info */}
       <div className="p-4 border-t border-[#2A3038] space-y-2 text-[10px] text-[#9096A0] font-mono">
         <div className="text-[9px] text-[#5C636E] uppercase font-bold tracking-wider">
-          Active AI Fleet
+          Active AI
         </div>
         <div className="flex justify-between">
           <span>PII Scanner</span>
@@ -71,11 +71,11 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
         </div>
         <div className="flex justify-between">
           <span>Specialists</span>
-          <span className="text-[#4C8FA6]">Gemini 1.5 Flash</span>
+          <span className="text-[#4C8FA6]">Gemini 1.5</span>
         </div>
         <div className="flex justify-between">
           <span>Evidence Critic</span>
-          <span className="text-[#B8843A]">Gemini 2.5 Pro</span>
+          <span className="text-[#B8843A]">Gemini 2.5</span>
         </div>
       </div>
     </aside>

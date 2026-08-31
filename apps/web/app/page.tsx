@@ -529,6 +529,21 @@ export default function Home() {
 
           {/* TAB 3: TRUST GRAPH & AGENTS (REDESIGNED TAB VIEW) */}
           {activeTab === "dashboard" && (
+            <>
+              {isAnalyzing && (
+                <div className="mb-6 p-6 bg-[#171B1F] border border-[#B8843A]/40 rounded-xl flex items-center gap-4 animate-pulse">
+                  <div className="w-8 h-8 border-3 border-[#B8843A] border-t-transparent rounded-full animate-spin" />
+                  <div>
+                    <h3 className="text-sm font-bold text-white">Analyzing document with AI agents...</h3>
+                    <p className="text-xs text-[#9096A0] mt-0.5">
+                      {pipelineStatus === "UNDERSTANDING" && "Understanding document structure and jurisdiction..."}
+                      {pipelineStatus === "PLANNING" && "Planning investigation with specialist agents..."}
+                      {pipelineStatus === "INVESTIGATING" && "Running compliance analysis with Gemini 3.6 Flash..."}
+                      {pipelineStatus === "ADVERSARIAL_REVIEW" && "Adversarial review by Evidence Critic (Gemini 2.5 Pro)..."}
+                    </p>
+                  </div>
+                </div>
+              )}
             <TrustGraphTabView
               investigations={investigations}
               currentInvestigation={currentInvestigation}
@@ -562,6 +577,7 @@ export default function Home() {
               }
               onResetDrift={handleResetDrift}
             />
+            </>
           )}
 
           {/* TAB 4: REMEDIATION & CHANGE (POLICY DRIFT) */}

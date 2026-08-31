@@ -681,7 +681,7 @@ export function RemediatedDocumentViewer({
                       <p className="text-xs leading-relaxed">
                         {isSec21Resolved
                           ? patch21Text
-                          : "2.1. User profile data and transaction history shall be stored indefinitely for business intelligence and service personalization purposes. [NON-COMPLIANT — PENDING REMEDIATION]"}
+                          : `${finding21?.evidenceQuote || "Original non-compliant clause pending analysis."} [NON-COMPLIANT — PENDING REMEDIATION]`}
                       </p>
                     )}
                   </div>
@@ -689,7 +689,7 @@ export function RemediatedDocumentViewer({
 
                 {viewMode === "ORIGINAL" && (
                   <p className="p-3 rounded-lg bg-[#A24438]/15 border border-[#A24438]/40 text-[#E06C5D] text-xs leading-relaxed">
-                    2.1. User profile data and transaction history shall be stored indefinitely for business intelligence and service personalization purposes.
+                    {finding21?.evidenceQuote || "Original clause pending analysis."}
                   </p>
                 )}
               </div>
@@ -713,7 +713,7 @@ export function RemediatedDocumentViewer({
                         <span>OWASP / ISO 27001 · High</span>
                       </div>
                       <p className="line-through text-xs opacity-80">
-                        "2.2. Server access logs and HTTP requests will be retained for thirty (30) days without automated purging of records containing IP addresses or personal identifiers."
+                        {finding22?.evidenceQuote || "Original non-compliant clause identified by analysis."}
                       </p>
                     </div>
 
@@ -821,7 +821,7 @@ export function RemediatedDocumentViewer({
                       <p className="text-xs leading-relaxed">
                         {isSec22Resolved
                           ? patch22Text
-                          : "2.2. Server access logs and HTTP requests will be retained for thirty (30) days without automated purging of records containing IP addresses or personal identifiers. [NON-COMPLIANT — PENDING REMEDIATION]"}
+                          : `${finding22?.evidenceQuote || "Original non-compliant clause pending analysis."} [NON-COMPLIANT — PENDING REMEDIATION]`}
                       </p>
                     )}
                   </div>
@@ -829,7 +829,7 @@ export function RemediatedDocumentViewer({
 
                 {viewMode === "ORIGINAL" && (
                   <p className="p-3 rounded-lg bg-[#B8843A]/15 border border-[#B8843A]/40 text-[#D4A559] text-xs leading-relaxed">
-                    2.2. Server access logs and HTTP requests will be retained for thirty (30) days without automated purging of records containing IP addresses or personal identifiers.
+                    {finding22?.evidenceQuote || "Original clause pending analysis."}
                   </p>
                 )}
               </div>
@@ -967,7 +967,7 @@ export function RemediatedDocumentViewer({
                       <p className="text-xs leading-relaxed">
                         {isSec31Resolved
                           ? patch31Text
-                          : "3.1. Requests for personal data deletion submitted by data subjects will be reviewed by the legal team within 90 business days. [NON-COMPLIANT — PENDING REMEDIATION]"}
+                          : `${finding31?.evidenceQuote || "Original non-compliant clause pending analysis."} [NON-COMPLIANT — PENDING REMEDIATION]`}
                       </p>
                     )}
                   </div>
@@ -975,7 +975,7 @@ export function RemediatedDocumentViewer({
 
                 {viewMode === "ORIGINAL" && (
                   <p className="p-3 rounded-lg bg-[#A24438]/15 border border-[#A24438]/40 text-[#E06C5D] text-xs leading-relaxed">
-                    3.1. Requests for personal data deletion submitted by data subjects will be reviewed by the legal team within 90 business days.
+                    {finding31?.evidenceQuote || "Original clause pending analysis."}
                   </p>
                 )}
               </div>
@@ -1005,7 +1005,7 @@ export function RemediatedDocumentViewer({
                         <span>ISO/IEC 27001 A.9 · High</span>
                       </div>
                       <p className="line-through text-xs opacity-80">
-                        "4.1. Data in transit is secured with TLS 1.3. Analytical databases utilize shared passwords restricted to the engineering team."
+                        {finding41?.evidenceQuote || "Original non-compliant clause identified by analysis."}
                       </p>
                     </div>
 
@@ -1113,7 +1113,7 @@ export function RemediatedDocumentViewer({
                       <p className="text-xs leading-relaxed">
                         {isSec41Resolved
                           ? patch41Text
-                          : "4.1. Data in transit is secured with TLS 1.3. Analytical databases utilize shared passwords restricted to the engineering team. [NON-COMPLIANT — PENDING REMEDIATION]"}
+                          : `${finding41?.evidenceQuote || "Original non-compliant clause pending analysis."} [NON-COMPLIANT — PENDING REMEDIATION]`}
                       </p>
                     )}
                   </div>
@@ -1121,7 +1121,7 @@ export function RemediatedDocumentViewer({
 
                 {viewMode === "ORIGINAL" && (
                   <p className="p-3 rounded-lg bg-[#B8843A]/15 border border-[#B8843A]/40 text-[#D4A559] text-xs leading-relaxed">
-                    4.1. Data in transit is secured with TLS 1.3. Analytical databases utilize shared passwords restricted to the engineering team.
+                    {finding41?.evidenceQuote || "Original clause pending analysis."}
                   </p>
                 )}
               </div>

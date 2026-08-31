@@ -123,56 +123,108 @@ export function TrustGraphTabView({
     return f.severity === severityFilter;
   });
 
-  const criticalCount = docFindings.filter((f) => f.severity === "CRITICAL").length;
-  const highCount = docFindings.filter((f) => f.severity === "HIGH").length;
-  const mediumCount = docFindings.filter((f) => f.severity === "MEDIUM").length;
+  // Helper que calcula o progresso percentual e status dinâmico com base nos findings
+  const getDocProgressAndStatus = (inv: Investigation) => {
+    const invGaps = findings.filter(
+      (f) =>
+        f.investigationId === inv.id ||
+        (!findings.some((x) => x.investigationId === inv.id) && f.investigationId === "INV-2024-0047")
+    );
+    const total = invGaps.length;
+    const resolved = invGaps.filter((f) => f.status === "RESOLVED").length;
+    const open = total - resolved;
+    const progressPercent = total > 0 ? Math.round((resolved / total) * 100) : 100;
+
+    if (inv.id === "INV-2024-0047" && isDriftActive) {
+      return {
+        status: "POLICY_DRIFT",
+        progressPercent,
+        total,
+        resolved,
+        open,
+        label: "Policy Drift Active",
+      };
+    }
+
+    if (resolved === total && total > 0) {
+      return {
+        status: "COMPLETED",
+        progressPercent: 100,
+        total,
+        resolved,
+        open: 0,
+        label: "Completed",
+      };
+    }
+
+    if (resolved > 0) {
+      return {
+        status: "INVESTIGATING",
+        progressPercent,
+        total,
+        resolved,
+        open,
+        label: `In Progress (${progressPercent}%)`,
+      };
+    }
+
+    return {
+      status: inv.status,
+      progressPercent: inv.progressPercent || 0,
+      total,
+      resolved: 0,
+      open: total,
+      label:
+        inv.status === "COMPLETED"
+          ? "Completed"
+          : inv.status === "PENDING_REVIEW"
+          ? "Pending Remediation"
+          : inv.status === "POLICY_DRIFT"
+          ? "Policy Drift Active"
+          : `In Progress (${inv.progressPercent}%)`,
+    };
+  };
 
   const handleOpenDocDetails = (inv: Investigation) => {
     setSelectedDocId(inv.id);
     onSelectInvestigation(inv);
   };
 
-  // Helper para renderizar a badge de status de forma padronizada e limpa (sem ícones)
+  // Helper para renderizar a badge de status de forma padronizada, dinâmica e limpa (sem ícones)
   const renderStatusBadge = (inv: Investigation) => {
-    if (inv.id === "INV-2024-0047" && isDriftActive) {
-      return (
-        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#A24438]/20 text-[#E06C5D] border border-[#A24438]/40">
-          Policy Drift Active
-        </span>
-      );
-    }
+    const info = getDocProgressAndStatus(inv);
 
-    switch (inv.status) {
+    switch (info.status) {
       case "COMPLETED":
         return (
-          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#3B8F6B]/15 text-[#3B8F6B] border border-[#3B8F6B]/30">
-            Completed
+          <span className="px-2.5 py-0.5 rounded text-[10px] font-mono font-bold bg-[#3B8F6B]/15 text-[#3B8F6B] border border-[#3B8F6B]/30">
+            {info.label}
           </span>
         );
       case "INVESTIGATING":
       case "UNDERSTANDING":
       case "PLANNING":
         return (
-          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#4C8FA6]/20 text-[#7EB5CC] border border-[#4C8FA6]/40">
-            In Progress ({inv.progressPercent}%)
+          <span className="px-2.5 py-0.5 rounded text-[10px] font-mono font-bold bg-[#4C8FA6]/20 text-[#7EB5CC] border border-[#4C8FA6]/40">
+            {info.label}
           </span>
         );
       case "PENDING_REVIEW":
         return (
-          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#B8843A]/20 text-[#D4A559] border border-[#B8843A]/40">
-            Pending Remediation
+          <span className="px-2.5 py-0.5 rounded text-[10px] font-mono font-bold bg-[#B8843A]/20 text-[#D4A559] border border-[#B8843A]/40">
+            {info.label}
           </span>
         );
       case "POLICY_DRIFT":
         return (
-          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#A24438]/20 text-[#E06C5D] border border-[#A24438]/40">
-            Policy Drift Active
+          <span className="px-2.5 py-0.5 rounded text-[10px] font-mono font-bold bg-[#A24438]/20 text-[#E06C5D] border border-[#A24438]/40">
+            {info.label}
           </span>
         );
       default:
         return (
-          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#0D1013] text-[#9096A0] border border-[#2A3038]">
-            {inv.status}
+          <span className="px-2.5 py-0.5 rounded text-[10px] font-mono font-bold bg-[#0D1013] text-[#9096A0] border border-[#2A3038]">
+            {info.label}
           </span>
         );
     }
@@ -299,15 +351,16 @@ export function TrustGraphTabView({
           {/* Lista de Documentos Auditados em Linhas Horizontais */}
           <div className="space-y-3">
             {filteredInvestigations.map((inv) => {
+              const docState = getDocProgressAndStatus(inv);
               const invGaps = findings.filter(
                 (f) =>
                   f.investigationId === inv.id ||
                   (!findings.some((x) => x.investigationId === inv.id) &&
                     f.investigationId === "INV-2024-0047")
               );
-              const crits = invGaps.filter((f) => f.severity === "CRITICAL").length;
-              const highs = invGaps.filter((f) => f.severity === "HIGH").length;
-              const meds = invGaps.filter((f) => f.severity === "MEDIUM").length;
+              const openCrits = invGaps.filter((f) => f.severity === "CRITICAL" && f.status !== "RESOLVED").length;
+              const openHighs = invGaps.filter((f) => f.severity === "HIGH" && f.status !== "RESOLVED").length;
+              const openMeds = invGaps.filter((f) => f.severity === "MEDIUM" && f.status !== "RESOLVED").length;
 
               return (
                 <div
@@ -348,20 +401,28 @@ export function TrustGraphTabView({
 
                       {/* Linha do Meio: Badges de Severidade (centralizados) */}
                       <div className="flex items-center gap-1.5 justify-center">
-                        {crits > 0 && (
-                          <span className="text-[10px] px-2 py-0.5 rounded bg-[#A24438]/20 text-[#E06C5D] font-bold border border-[#A24438]/40">
-                            {crits} Critical
+                        {docState.open === 0 && docState.total > 0 ? (
+                          <span className="text-[10px] px-2.5 py-0.5 rounded bg-[#3B8F6B]/20 text-[#3B8F6B] font-bold border border-[#3B8F6B]/40">
+                            Remediated
                           </span>
-                        )}
-                        {highs > 0 && (
-                          <span className="text-[10px] px-2 py-0.5 rounded bg-[#B8843A]/20 text-[#D4A559] border border-[#B8843A]/40">
-                            {highs} High
-                          </span>
-                        )}
-                        {meds > 0 && (
-                          <span className="text-[10px] px-2 py-0.5 rounded bg-[#4C8FA6]/20 text-[#7EB5CC] border border-[#4C8FA6]/40">
-                            {meds} Medium
-                          </span>
+                        ) : (
+                          <>
+                            {openCrits > 0 && (
+                              <span className="text-[10px] px-2 py-0.5 rounded bg-[#A24438]/20 text-[#E06C5D] font-bold border border-[#A24438]/40">
+                                {openCrits} Critical
+                              </span>
+                            )}
+                            {openHighs > 0 && (
+                              <span className="text-[10px] px-2 py-0.5 rounded bg-[#B8843A]/20 text-[#D4A559] border border-[#B8843A]/40">
+                                {openHighs} High
+                              </span>
+                            )}
+                            {openMeds > 0 && (
+                              <span className="text-[10px] px-2 py-0.5 rounded bg-[#4C8FA6]/20 text-[#7EB5CC] border border-[#4C8FA6]/40">
+                                {openMeds} Medium
+                              </span>
+                            )}
+                          </>
                         )}
                       </div>
 
@@ -475,55 +536,64 @@ export function TrustGraphTabView({
           </div>
 
           {/* Resumo Executivo de Gaps por Nível */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
-            <div className="bg-[#171B1F] border border-[#2A3038] rounded-xl p-3.5 text-center flex flex-col items-center justify-center">
-              <span className="text-[10px] font-mono font-medium text-[#9096A0] uppercase tracking-wider">
-                Total Gaps Identified
-              </span>
-              <span className="text-2xl font-bold font-mono text-white mt-0.5">
-                {docFindings.length}
-              </span>
-              <span className="text-[10px] font-mono text-[#5C636E] mt-0.5">
-                compliance gaps
-              </span>
-            </div>
+          {(() => {
+            const activeDocInfo = getDocProgressAndStatus(activeDoc);
+            const openCriticalCount = docFindings.filter((f) => f.severity === "CRITICAL" && f.status !== "RESOLVED").length;
+            const openHighCount = docFindings.filter((f) => f.severity === "HIGH" && f.status !== "RESOLVED").length;
+            const resolvedGapsCount = docFindings.filter((f) => f.status === "RESOLVED").length;
 
-            <div className="bg-[#171B1F] border border-[#2A3038] rounded-xl p-3.5 text-center flex flex-col items-center justify-center">
-              <span className="text-[10px] font-mono font-medium text-[#9096A0] uppercase tracking-wider">
-                Critical Violations
-              </span>
-              <span className="text-2xl font-bold font-mono text-[#E06C5D] mt-0.5">
-                {criticalCount}
-              </span>
-              <span className="text-[10px] font-mono text-[#5C636E] mt-0.5">
-                immediate statutory breach
-              </span>
-            </div>
+            return (
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+                <div className="bg-[#171B1F] border border-[#2A3038] rounded-xl p-3.5 text-center flex flex-col items-center justify-center">
+                  <span className="text-[10px] font-mono font-medium text-[#9096A0] uppercase tracking-wider">
+                    Remediation Progress
+                  </span>
+                  <span className="text-2xl font-bold font-mono text-[#3B8F6B] mt-0.5">
+                    {activeDocInfo.progressPercent}%
+                  </span>
+                  <span className="text-[10px] font-mono text-[#5C636E] mt-0.5">
+                    {resolvedGapsCount} of {docFindings.length} gaps remediated
+                  </span>
+                </div>
 
-            <div className="bg-[#171B1F] border border-[#2A3038] rounded-xl p-3.5 text-center flex flex-col items-center justify-center">
-              <span className="text-[10px] font-mono font-medium text-[#9096A0] uppercase tracking-wider">
-                High Priority Gaps
-              </span>
-              <span className="text-2xl font-bold font-mono text-[#D4A559] mt-0.5">
-                {highCount}
-              </span>
-              <span className="text-[10px] font-mono text-[#5C636E] mt-0.5">
-                security & access gaps
-              </span>
-            </div>
+                <div className="bg-[#171B1F] border border-[#2A3038] rounded-xl p-3.5 text-center flex flex-col items-center justify-center">
+                  <span className="text-[10px] font-mono font-medium text-[#9096A0] uppercase tracking-wider">
+                    Critical Violations
+                  </span>
+                  <span className="text-2xl font-bold font-mono text-[#E06C5D] mt-0.5">
+                    {openCriticalCount}
+                  </span>
+                  <span className="text-[10px] font-mono text-[#5C636E] mt-0.5">
+                    {openCriticalCount === 0 ? "all resolved" : "immediate statutory breach"}
+                  </span>
+                </div>
 
-            <div className="bg-[#171B1F] border border-[#2A3038] rounded-xl p-3.5 text-center flex flex-col items-center justify-center">
-              <span className="text-[10px] font-mono font-medium text-[#9096A0] uppercase tracking-wider">
-                Adversarial Validation
-              </span>
-              <span className="text-2xl font-bold font-mono text-[#3B8F6B] mt-0.5">
-                100%
-              </span>
-              <span className="text-[10px] font-mono text-[#5C636E] mt-0.5">
-                0 false positives (Gemini 2.5 Pro)
-              </span>
-            </div>
-          </div>
+                <div className="bg-[#171B1F] border border-[#2A3038] rounded-xl p-3.5 text-center flex flex-col items-center justify-center">
+                  <span className="text-[10px] font-mono font-medium text-[#9096A0] uppercase tracking-wider">
+                    High Priority Gaps
+                  </span>
+                  <span className="text-2xl font-bold font-mono text-[#D4A559] mt-0.5">
+                    {openHighCount}
+                  </span>
+                  <span className="text-[10px] font-mono text-[#5C636E] mt-0.5">
+                    {openHighCount === 0 ? "all resolved" : "security & access gaps"}
+                  </span>
+                </div>
+
+                <div className="bg-[#171B1F] border border-[#2A3038] rounded-xl p-3.5 text-center flex flex-col items-center justify-center">
+                  <span className="text-[10px] font-mono font-medium text-[#9096A0] uppercase tracking-wider">
+                    Audit Status
+                  </span>
+                  <span className="text-sm font-bold font-mono text-white mt-1">
+                    {activeDocInfo.label}
+                  </span>
+                  <span className="text-[10px] font-mono text-[#5C636E] mt-0.5">
+                    verified by Gemini 2.5 Pro
+                  </span>
+                </div>
+              </div>
+            );
+          })()}
 
           {/* ========================================================================= */}
           {/* PAINEL COMPARATIVO LADO A LADO: IDENTIFICAÇÃO VS REMEDIAÇÃO               */}
@@ -552,7 +622,7 @@ export function TrustGraphTabView({
                   className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#3B8F6B]/15 hover:bg-[#3B8F6B]/25 text-[#3B8F6B] border border-[#3B8F6B]/30 transition-all cursor-pointer"
                 >
                   {filteredFindings.every((f) => f.status === "RESOLVED")
-                    ? "✓ All Remediations Sealed"
+                    ? "All Remediated"
                     : "Apply All Remediations"}
                 </button>
 
@@ -617,21 +687,22 @@ export function TrustGraphTabView({
                   {/* Grid Lado a Lado: 50% O Que Foi Identificado vs 50% Sugestão de Correção */}
                   <div className="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-[#2A3038]">
                     {/* Lado Esquerdo: O que foi Identificado no Documento */}
-                    <div className="p-5 space-y-3 bg-[#171B1F]">
-                      <div className="flex items-center justify-between text-[11px] font-mono font-bold uppercase tracking-wider text-[#E06C5D]">
-                        <span>Identified Clause & Evidence</span>
-                        <span className="text-[#5C636E]">Original Document</span>
+                    <div className="p-5 flex flex-col justify-between bg-[#171B1F]">
+                      <div className="space-y-3">
+                        <div className="flex items-center text-[11px] font-mono font-bold uppercase tracking-wider text-[#E06C5D]">
+                          <span>Identified Analysis</span>
+                        </div>
+
+                        <div className="p-3.5 rounded-lg bg-[#0D1013] border border-[#2A3038] text-xs text-[#B8BDC7] font-mono italic leading-relaxed">
+                          "{finding.evidenceQuote}"
+                        </div>
+
+                        <p className="text-xs text-[#9096A0] leading-relaxed">
+                          {finding.description}
+                        </p>
                       </div>
 
-                      <div className="p-3.5 rounded-lg bg-[#0D1013] border border-[#2A3038] text-xs text-[#B8BDC7] font-mono italic leading-relaxed">
-                        "{finding.evidenceQuote}"
-                      </div>
-
-                      <p className="text-xs text-[#9096A0] leading-relaxed">
-                        {finding.description}
-                      </p>
-
-                      <div className="pt-2 flex items-center justify-between text-xs font-mono border-t border-[#2A3038]/60">
+                      <div className="mt-5 pt-3.5 flex items-center justify-between text-xs font-mono border-t border-[#2A3038]/60 min-h-[44px]">
                         <button
                           onClick={() => onOpenEvidence(finding)}
                           className="text-[#4C8FA6] hover:text-[#7EB5CC] transition-colors cursor-pointer flex items-center gap-1.5"
@@ -646,24 +717,25 @@ export function TrustGraphTabView({
                     </div>
 
                     {/* Lado Direito: Sugestão para ser Atualizado e Remediado */}
-                    <div className="p-5 space-y-3 bg-[#14181C]">
-                      <div className="flex items-center justify-between text-[11px] font-mono font-bold uppercase tracking-wider text-[#3B8F6B]">
-                        <span>Proposed Remediation & Patch</span>
-                        <span className="text-[#B8843A]">Recommended Fix</span>
-                      </div>
-
-                      <div className="p-3.5 rounded-lg bg-[#0D1013] border border-[#3B8F6B]/30 text-xs text-white font-mono leading-relaxed">
-                        {finding.remediationSuggestion}
-                      </div>
-
-                      {finding.criticVerdict && (
-                        <div className="p-2.5 rounded bg-[#0D1013]/60 border border-[#2A3038] text-[11px] text-[#9096A0]">
-                          <strong className="text-[#3B8F6B] font-mono">Critic Verdict (Gemini 2.5 Pro):</strong>{" "}
-                          {finding.criticVerdict}
+                    <div className="p-5 flex flex-col justify-between bg-[#14181C]">
+                      <div className="space-y-3">
+                        <div className="flex items-center text-[11px] font-mono font-bold uppercase tracking-wider text-[#3B8F6B]">
+                          <span>Recommended</span>
                         </div>
-                      )}
 
-                      <div className="pt-2 flex items-center justify-between text-xs font-mono border-t border-[#2A3038]/60">
+                        <div className="p-3.5 rounded-lg bg-[#0D1013] border border-[#3B8F6B]/30 text-xs text-white font-mono leading-relaxed">
+                          {finding.remediationSuggestion}
+                        </div>
+
+                        {finding.criticVerdict && (
+                          <div className="p-2.5 rounded bg-[#0D1013]/60 border border-[#2A3038] text-[11px] text-[#9096A0]">
+                            <strong className="text-[#3B8F6B] font-mono">Critic Verdict (Gemini 2.5 Pro):</strong>{" "}
+                            {finding.criticVerdict}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="mt-5 pt-3.5 flex items-center justify-between text-xs font-mono border-t border-[#2A3038]/60 min-h-[44px]">
                         <span className="text-[11px] text-[#5C636E]">
                           Confidence: {(finding.confidence * 100).toFixed(0)}%
                         </span>
@@ -678,7 +750,7 @@ export function TrustGraphTabView({
                           )}
                         >
                           {finding.status === "RESOLVED"
-                            ? "Remediated & Sealed"
+                            ? "Remediated"
                             : "Apply Remediation Patch"}
                         </button>
                       </div>

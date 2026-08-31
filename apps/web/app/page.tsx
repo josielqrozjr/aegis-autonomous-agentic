@@ -171,13 +171,65 @@ export default function Home() {
 
   const handleApplyRemediation = (findingOrId: Finding | string) => {
     const findingId = typeof findingOrId === "string" ? findingOrId : findingOrId.id;
-    setFindings((prev) =>
-      prev.map((f) =>
-        f.id === findingId
-          ? { ...f, status: f.status === "RESOLVED" ? "OPEN" : "RESOLVED" }
-          : f
+
+    // Atualiza o estado dos findings (toggle entre RESOLVED e OPEN)
+    const updatedFindings = findings.map((f) =>
+      f.id === findingId
+        ? { ...f, status: f.status === "RESOLVED" ? ("OPEN" as const) : ("RESOLVED" as const) }
+        : f
+    );
+    setFindings(updatedFindings);
+
+    // Identifica o documento alvo para atualizar seu progresso e status
+    const targetFinding = findings.find((f) => f.id === findingId);
+    const targetInvId = targetFinding?.investigationId || "INV-2024-0047";
+
+    const invFindings = updatedFindings.filter(
+      (f) =>
+        f.investigationId === targetInvId ||
+        (!updatedFindings.some((x) => x.investigationId === targetInvId) &&
+          f.investigationId === "INV-2024-0047")
+    );
+    const totalGaps = invFindings.length;
+    const resolvedGaps = invFindings.filter((f) => f.status === "RESOLVED").length;
+    const progressPercent = totalGaps > 0 ? Math.round((resolvedGaps / totalGaps) * 100) : 100;
+
+    const newStatus =
+      resolvedGaps === totalGaps
+        ? "COMPLETED"
+        : resolvedGaps > 0
+        ? "INVESTIGATING"
+        : "PENDING_REVIEW";
+
+    // Atualiza o status e percentual na lista global de investigações
+    setInvestigations((prev) =>
+      prev.map((inv) =>
+        inv.id === targetInvId
+          ? {
+              ...inv,
+              status: newStatus,
+              progressPercent,
+              findingsCount: {
+                ...inv.findingsCount,
+                critical: invFindings.filter((f) => f.severity === "CRITICAL" && f.status !== "RESOLVED").length,
+                high: invFindings.filter((f) => f.severity === "HIGH" && f.status !== "RESOLVED").length,
+                medium: invFindings.filter((f) => f.severity === "MEDIUM" && f.status !== "RESOLVED").length,
+              },
+            }
+          : inv
       )
     );
+
+    // Atualiza o documento atualmente ativo
+    if (currentInvestigation.id === targetInvId) {
+      setCurrentInvestigation((prev) => ({
+        ...prev,
+        status: newStatus,
+        progressPercent,
+      }));
+    }
+
+    // Atualiza nós do grafo de confiança (DAG)
     setGraphData((prev) => ({
       ...prev,
       nodes: prev.nodes.map((n) => {

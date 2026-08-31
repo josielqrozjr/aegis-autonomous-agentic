@@ -417,57 +417,56 @@ export function TrustGraphTabView({
                 </div>
               </div>
 
-              {/* Ações de Simulação, Visualização e Status */}
-              <div className="flex flex-wrap items-center gap-3 shrink-0">
+              {/* Ação de Visualização do Documento Remediado */}
+              <div className="flex items-center gap-3 shrink-0">
                 <button
                   onClick={() => setIsPreviewDocOpen(true)}
                   className="px-3.5 py-2 rounded-lg text-xs font-semibold bg-[#3B8F6B]/15 hover:bg-[#3B8F6B]/25 text-[#3B8F6B] border border-[#3B8F6B]/30 transition-colors cursor-pointer"
                 >
                   Preview Remediated Document
                 </button>
-
-                {isDriftActive ? (
-                  <button
-                    onClick={onResetDrift}
-                    className="px-3.5 py-2 rounded-lg text-xs font-semibold bg-[#A24438]/20 hover:bg-[#A24438]/30 text-[#E06C5D] border border-[#A24438]/40 transition-colors cursor-pointer"
-                  >
-                    Reset Regulatory Drift
-                  </button>
-                ) : (
-                  <button
-                    onClick={onTriggerDrift}
-                    className="px-3.5 py-2 rounded-lg text-xs font-semibold bg-[#B8843A]/15 hover:bg-[#B8843A]/25 text-[#D4A559] border border-[#B8843A]/30 transition-colors cursor-pointer"
-                  >
-                    Simulate Regulatory Drift (GDPR v2)
-                  </button>
-                )}
               </div>
             </div>
 
-            {/* Metadados do Arquivo */}
-            <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-[#9096A0] font-mono">
-              <div className="flex items-center gap-2">
-                <span className="text-[#5C636E]">File:</span>
-                <span className="text-white font-semibold">{activeDoc.documentName}</span>
-                <span className="text-[#5C636E]">({(activeDoc.fileSizeBytes / 1024).toFixed(1)} KB)</span>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <span className="text-[#5C636E]">SHA-256:</span>
-                <span className="text-[#B8BDC7] truncate max-w-xs md:max-w-md">
-                  {activeDoc.documentHash}
+            {/* Metadados: Somente Frameworks Identificados e IAs que Analisaram */}
+            <div className="flex flex-wrap items-center justify-between gap-4 text-xs font-mono pt-1">
+              {/* Frameworks Identificados */}
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[#9096A0] font-semibold uppercase text-[10px] tracking-wider">
+                  Frameworks:
                 </span>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <span className="text-[#5C636E]">Frameworks:</span>
-                <div className="flex items-center gap-1">
+                <div className="flex flex-wrap items-center gap-1.5">
                   {activeDoc.frameworks.map((fw) => (
                     <span
                       key={fw}
-                      className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#0D1013] text-[#B8843A] border border-[#2A3038]"
+                      className="px-2.5 py-0.5 rounded text-[11px] font-semibold bg-[#0D1013] text-[#B8843A] border border-[#2A3038]"
                     >
                       {fw}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* IAs que Fizeram a Análise */}
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[#9096A0] font-semibold uppercase text-[10px] tracking-wider">
+                  AI Models:
+                </span>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {Array.from(
+                    new Set(
+                      docFindings.map((f) => {
+                        const name = (f.agentName || "").toLowerCase();
+                        if (name.includes("gemma")) return "Gemma";
+                        return "Gemini";
+                      })
+                    )
+                  ).map((aiName) => (
+                    <span
+                      key={aiName}
+                      className="px-2.5 py-0.5 rounded text-[11px] font-semibold bg-[#0D1013] text-[#7EB5CC] border border-[#4C8FA6]/30"
+                    >
+                      {aiName}
                     </span>
                   ))}
                 </div>

@@ -56,7 +56,7 @@ class RemediationAgent(BaseAgent):
                 action = "Elaborar POP de sanitização segura de mídias e logs de auditoria de expurgo."
                 assignee = "Governance & Compliance Lead"
             else:
-                rec = f"Corrigir apontamento regulatório identificado em {finding.title}."
+                rec = f"Address regulatory finding identified in {finding.title}."
                 action = "Revisar controles técnicos e documentação aplicável."
                 assignee = "Compliance Officer"
 

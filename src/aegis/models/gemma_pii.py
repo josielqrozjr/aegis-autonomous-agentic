@@ -104,7 +104,7 @@ class GemmaPIIScanner(BaseLanguageModel):
 
         try:
             prompt = (
-                "Você é o scanner de privacidade Gemma do AEGIS. Analise o texto a seguir, "
+                "You are the AEGIS Gemma Privacy Scanner. Analyze the following text, "
                 "identifique dados pessoais (PII, CPFs, Emails, IPs, Nomes de titulares) e retorne "
                 "a versão higienizada com redaction segura.\n\n"
                 f"TEXTO:\n{text}"

@@ -75,12 +75,12 @@ class SecurityAgent(BaseAgent):
         if "10 anos" in normalized_text or "retidos por 10 anos" in normalized_text:
             findings.append(make_finding(
                 requirement_id="GDPR-ART-5-1-E",
-                title="Retenção Desproporcional de Logs de Conexão e Telemetria sob GDPR",
-                description="A política determina a guarda de logs completos e IPs por 10 anos para usuários da UE, violando o princípio da limitação de armazenamento do GDPR Art. 5(1)(e).",
+                title="Disproportionate Retention of Connection Logs and Telemetry under GDPR",
+                description="The policy mandates retention of complete logs and IPs for 10 years for EU users, violating the GDPR Art. 5(1)(e) storage limitation principle.",
                 quote="Logs de auditoria, IPs e telemetria de tráfego de usuários globais (inclusive UE) são retidos por 10 anos em storage frio.",
                 section_id="sec-4.1",
                 page_number=4,
-                provenance="Seção 4.1 - Telemetria e Logs de Aplicação",
+                provenance="Section 4.1 - Telemetry and Application Logs",
                 confidence=0.92,
                 severity=FindingSeverity.CRITICAL,
             ))
@@ -103,10 +103,10 @@ class SecurityAgent(BaseAgent):
                 requirement_id="GDPR-ART-17",
                 title="Ausência de Procedimento de Apagamento sem Atraso",
                 description="A política não define um prazo máximo para atender solicitações de exclusão e deixa o processo dependente do critério da equipe jurídica, provocando atraso injustificado.",
-                quote="Solicitações de exclusão (direito ao esquecimento) serão analisadas caso a caso pela equipe jurídica, sem prazo máximo definido para resposta.",
+                quote="Erasure requests (right to be forgotten) will be analyzed on a case-by-case basis by the legal team, with no maximum defined response deadline.",
                 section_id="sec-6.2",
                 page_number=2,
-                provenance="Seção 6.2 - Direitos dos Titulares",
+                provenance="Section 6.2 - Data Subject Rights",
                 confidence=0.9,
                 severity=FindingSeverity.HIGH,
             ))
@@ -114,12 +114,12 @@ class SecurityAgent(BaseAgent):
         if not findings:
             findings.append(make_finding(
                 requirement_id="GDPR-ART-5-1-E",
-                title="Retenção Desproporcional de Logs de Conexão e Telemetria sob GDPR",
-                description="A política determina a guarda de logs completos e IPs por 10 anos para usuários da UE, violando o princípio da limitação de armazenamento do GDPR Art. 5(1)(e).",
+                title="Disproportionate Retention of Connection Logs and Telemetry under GDPR",
+                description="The policy mandates retention of complete logs and IPs for 10 years for EU users, violating the GDPR Art. 5(1)(e) storage limitation principle.",
                 quote="Logs de auditoria, IPs e telemetria de tráfego de usuários globais (inclusive UE) são retidos por 10 anos em storage frio.",
                 section_id="sec-4.1",
                 page_number=4,
-                provenance="Seção 4.1 - Telemetria e Logs de Aplicação",
+                provenance="Section 4.1 - Telemetry and Application Logs",
                 confidence=0.92,
                 severity=FindingSeverity.CRITICAL,
             ))

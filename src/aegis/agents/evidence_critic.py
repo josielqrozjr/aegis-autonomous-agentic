@@ -20,7 +20,7 @@ EVIDENCE_CRITIC_CONTRACT = AgentContract(
     agent_id="agent-evidence-critic",
     name="Evidence Critic Agent (Adversarial Auditor)",
     role=AgentRole.EVIDENCE_CRITIC,
-    description="Atua como Red Team / Auditor Adversarial com Gemini 2.5 Pro. Contesta achados, verifica a suficiência das evidências e detecta contradições.",
+    description="Acts as Red Team / Adversarial Auditor with Gemini 2.5 Pro. Challenges findings, verifies evidence sufficiency and detects contradictions.",
     capabilities=[
         Capability(id="cap-adversarial-review", name="Adversarial Verification", description="Auditoria e contestação adversarial de findings"),
     ],

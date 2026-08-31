@@ -75,12 +75,12 @@ class PrivacyAgent(BaseAgent):
         if "dados cadastrais" in normalized_text or "clientes inativos" in normalized_text:
             findings.append(make_finding(
                 requirement_id="LGPD-ART-16",
-                title="Retenção Excessiva de Dados Cadastrais Após Término da Finalidade",
-                description="A política estipula prazo de retenção automática de 10 anos sem justificativa de base legal ou consentimento para clientes inativos.",
-                quote="Todos os dados cadastrais de clientes inativos permanecerão arquivados por prazo fixo de 10 (dez) anos para eventual auditoria interna.",
+                title="Excessive Retention of Personal Data Beyond Purpose Termination",
+                description="The policy stipulates automatic 10-year retention without legal basis or consent justification for inactive clients.",
+                quote="All personal data of inactive clients shall remain archived for a fixed period of 10 (ten) years for potential internal auditing.",
                 section_id="sec-3.2",
                 page_number=2,
-                provenance="Seção 3.2 - Prazos Gerais de Custódia",
+                provenance="Section 3.2 - General Custody Periods",
                 confidence=0.94,
                 severity=FindingSeverity.HIGH,
             ))
@@ -101,12 +101,12 @@ class PrivacyAgent(BaseAgent):
         if "exclusão" in normalized_text and ("prazo máximo" in normalized_text or "direito ao esquecimento" in normalized_text):
             findings.append(make_finding(
                 requirement_id="GDPR-ART-17",
-                title="Ausência de Prazo Máximo para Resposta ao Direito de Exclusão",
-                description="A política não define prazo máximo para responder a solicitações de exclusão do titular, deixando o tratamento dependente do critério interno da equipe jurídica.",
-                quote="Solicitações de exclusão (direito ao esquecimento) serão analisadas caso a caso pela equipe jurídica, sem prazo máximo definido para resposta.",
+                title="No Maximum Deadline for Data Erasure Request Response",
+                description="The policy does not define a maximum deadline for responding to data subject erasure requests, leaving processing dependent on the internal legal team's discretion.",
+                quote="Erasure requests (right to be forgotten) will be analyzed on a case-by-case basis by the legal team, with no maximum defined response deadline.",
                 section_id="sec-6.2",
                 page_number=2,
-                provenance="Seção 6.2 - Direitos dos Titulares",
+                provenance="Section 6.2 - Data Subject Rights",
                 confidence=0.9,
                 severity=FindingSeverity.HIGH,
             ))
@@ -114,12 +114,12 @@ class PrivacyAgent(BaseAgent):
         if not findings:
             findings.append(make_finding(
                 requirement_id="LGPD-ART-16",
-                title="Retenção Excessiva de Dados Cadastrais Após Término da Finalidade",
-                description="A política estipula prazo de retenção automática de 10 anos sem justificativa de base legal ou consentimento para clientes inativos.",
-                quote="Todos os dados cadastrais de clientes inativos permanecerão arquivados por prazo fixo de 10 (dez) anos para eventual auditoria interna.",
+                title="Excessive Retention of Personal Data Beyond Purpose Termination",
+                description="The policy stipulates automatic 10-year retention without legal basis or consent justification for inactive clients.",
+                quote="All personal data of inactive clients shall remain archived for a fixed period of 10 (ten) years for potential internal auditing.",
                 section_id="sec-3.2",
                 page_number=2,
-                provenance="Seção 3.2 - Prazos Gerais de Custódia",
+                provenance="Section 3.2 - General Custody Periods",
                 confidence=0.94,
                 severity=FindingSeverity.HIGH,
             ))

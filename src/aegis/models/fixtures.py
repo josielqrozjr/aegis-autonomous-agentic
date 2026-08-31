@@ -6,22 +6,22 @@ from typing import Dict, Any
 
 DEMO_DOCUMENT_UNDERSTANDING: Dict[str, Any] = {
     "jurisdiction": "BR",
-    "document_type": "Política Global de Retenção e Descarte de Dados",
+    "document_type": "Global Data Retention and Disposal Policy",
     "extracted_entities": [
-        "Dados Cadastrais",
-        "Logs de Acesso e IPs",
-        "Registros Financeiros e Fiscais",
-        "Dados de Geolocalização",
-        "Backups em Nuvem",
+        "Personal Registration Data",
+        "Access Logs and IPs",
+        "Financial and Tax Records",
+        "Geolocation Data",
+        "Cloud Backups",
     ],
     "obligations": [
-        "LGPD Art. 15 e 16 - Término do tratamento e eliminação de dados pessoais",
-        "GDPR Art. 5(1)(e) - Princípio da limitação do armazenamento",
-        "GDPR Art. 17 - Direito ao apagamento ('direito a ser esquecido')",
-        "ISO 27001 A.8.10 - Exclusão e descarte seguro de informações",
-        "Marco Civil da Internet Art. 15 - Guarda de registros de aplicação",
+        "LGPD Art. 15 & 16 - Processing termination and personal data erasure",
+        "GDPR Art. 5(1)(e) - Storage limitation principle",
+        "GDPR Art. 17 - Right to erasure ('right to be forgotten')",
+        "ISO 27001 A.8.10 - Secure information deletion and disposal",
+        "Brazilian Internet Framework Art. 15 - Application record retention",
     ],
-    "summary": "Documento corporativo definindo diretrizes de retenção para filiais no Brasil e Europa, estipulando prazos de guarda entre 5 e 10 anos para logs e dados cadastrais."
+    "summary": "Corporate document defining retention guidelines for branches in Brazil and Europe, stipulating storage periods between 5 and 10 years for logs and personal data."
 }
 
 DEMO_PII_SCAN: Dict[str, Any] = {
@@ -31,7 +31,7 @@ DEMO_PII_SCAN: Dict[str, Any] = {
         {"type": "Email", "count": 4, "sample_masked": "dpo@***.com"},
         {"type": "IP Address", "count": 3, "sample_masked": "192.168.***.***"}
     ],
-    "sanitized_preview": "Política de Retenção aplicável ao encarregado (DPO: dpo@***.com)...",
+    "sanitized_preview": "Retention Policy applicable to the DPO (DPO: dpo@***.com)...",
     "safety_status": "PASSED_WITH_REDACTION"
 }
 
@@ -41,8 +41,8 @@ DEMO_PRIVACY_FINDINGS: Dict[str, Any] = {
             "id": "finding-privacy-lgpd-01",
             "requirement_id": "LGPD-ART-16",
             "agent_id": "agent-privacy-specialist",
-            "title": "Retenção Indefinida de Dados Cadastrais Após Término da Finalidade",
-            "description": "A Seção 3.2 estipula retenção automática por 10 anos de todos os dados cadastrais, sem justificar a base legal para guarda após encerramento do contrato.",
+            "title": "Retenção Indefinida de Personal Registration Data Após Término da Finalidade",
+            "description": "Section 3.2 stipulates automatic 10-year retention of all personal data, without justifying the legal basis for storage after contract termination.",
             "severity": "high",
             "status": "open",
             "confidence": 0.94,

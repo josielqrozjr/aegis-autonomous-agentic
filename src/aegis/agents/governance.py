@@ -75,12 +75,12 @@ class GovernanceAgent(BaseAgent):
         if "descarte" in normalized_text or "conveniência operacional" in normalized_text or "mídias e snapshots" in normalized_text:
             findings.append(make_finding(
                 requirement_id="ISO27001-A.8.10",
-                title="Inexistência de Procedimento Formal para Descarte e Sanitização de Dados",
-                description="O documento estipula descarte por 'conveniência operacional', violando o requisito de sanitização e registros auditáveis da ISO 27001 A.8.10.",
-                quote="As mídias e snapshots legados serão apagados periodicamente conforme conveniência operacional da equipe de TI.",
+                title="Lack of Formal Procedure for Data Disposal and Sanitization",
+                description="The document stipulates disposal by 'operational convenience', violating ISO 27001 A.8.10 sanitization and auditable records requirements.",
+                quote="Legacy media and snapshots shall be periodically deleted at the IT team's operational convenience.",
                 section_id="sec-5.3",
                 page_number=5,
-                provenance="Seção 5.3 - Descarte e Sobrescrita de Snapshots",
+                provenance="Section 5.3 - Snapshot Disposal and Overwrite",
                 confidence=0.89,
                 severity=FindingSeverity.MEDIUM,
             ))
@@ -101,12 +101,12 @@ class GovernanceAgent(BaseAgent):
         if not findings:
             findings.append(make_finding(
                 requirement_id="ISO27001-A.8.10",
-                title="Inexistência de Procedimento Formal para Descarte e Sanitização de Dados",
-                description="O documento estipula descarte por 'conveniência operacional', violando o requisito de sanitização e registros auditáveis da ISO 27001 A.8.10.",
-                quote="As mídias e snapshots legados serão apagados periodicamente conforme conveniência operacional da equipe de TI.",
+                title="Lack of Formal Procedure for Data Disposal and Sanitization",
+                description="The document stipulates disposal by 'operational convenience', violating ISO 27001 A.8.10 sanitization and auditable records requirements.",
+                quote="Legacy media and snapshots shall be periodically deleted at the IT team's operational convenience.",
                 section_id="sec-5.3",
                 page_number=5,
-                provenance="Seção 5.3 - Descarte e Sobrescrita de Snapshots",
+                provenance="Section 5.3 - Snapshot Disposal and Overwrite",
                 confidence=0.89,
                 severity=FindingSeverity.MEDIUM,
             ))

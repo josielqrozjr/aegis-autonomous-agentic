@@ -42,7 +42,7 @@ class DocumentUnderstandingAgent(BaseAgent):
 
         # 2. Extração & Entendimento com Gemini Flash
         prompt = (
-            "Você é o Document Understanding Agent do AEGIS. Analise o documento regulatório a seguir:\n\n"
+            "You are the AEGIS Document Understanding Agent. Analyze the following regulatory document:\n\n"
             f"TEXTO DO DOCUMENTO:\n{pii_result.sanitized_text or raw_text}\n\n"
             "Extraia a jurisdição primária (BR, EU, US ou GLOBAL), o tipo de documento, "
             "as entidades reguladas e a lista de obrigações normativas identificadas."

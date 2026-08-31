@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Sidebar } from "@/components/navigation/sidebar";
 import { TopHeader } from "@/components/navigation/top-header";
 import { MetricsHeader } from "@/components/investigation/metrics-header";
@@ -29,6 +29,7 @@ import {
   uploadDocument, 
   createInvestigation, 
   runInvestigation, 
+  fetchInvestigations,
   fetchInvestigation, 
   fetchTrustGraph,
   fetchAgents,
@@ -72,6 +73,80 @@ export default function Home() {
   const [graphData, setGraphData] = useState<TrustGraphData>(USE_MOCK ? MOCK_TRUST_GRAPH_INITIAL : EMPTY_GRAPH);
   const [pipelineStatus, setPipelineStatus] = useState<InvestigationStatus>(USE_MOCK ? "COMPLETED" : "UNDERSTANDING");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(!USE_MOCK);
+
+  // Load existing investigations from API on mount
+  useEffect(() => {
+    if (USE_MOCK) return;
+
+    async function loadExistingData() {
+      try {
+        // Fetch investigations list
+        const apiInvs = await fetchInvestigations();
+        if (apiInvs && apiInvs.length > 0) {
+          // Transform each to frontend format
+          const frontendInvs: Investigation[] = apiInvs.map((inv: any) => ({
+            id: inv.id,
+            title: inv.title || "Investigation",
+            documentName: inv.document_id || inv.document?.filename || "Unknown",
+            documentHash: inv.document?.metadata?.content_hash || "computed",
+            fileSizeBytes: 0,
+            createdAt: inv.created_at || new Date().toISOString(),
+            updatedAt: inv.updated_at || new Date().toISOString(),
+            status: "COMPLETED" as const,
+            progressPercent: 100,
+            frameworks: ["LGPD", "GDPR", "ISO 27001"],
+            findingsCount: {
+              total: inv.findings_count || 0,
+              critical: 0, high: 0, medium: 0, low: 0,
+            },
+          }));
+
+          setInvestigations(frontendInvs);
+
+          // Load the most recent investigation fully
+          const latestId = frontendInvs[0].id;
+          const fullInv = await fetchInvestigation(latestId);
+          if (fullInv) {
+            const realFindings: Finding[] = (fullInv.findings || []).map((f: any) =>
+              transformFinding(f, latestId)
+            );
+            if (fullInv.remediations) {
+              for (const rem of fullInv.remediations) {
+                const finding = realFindings.find((rf: Finding) => rf.id === rem.finding_id);
+                if (finding) {
+                  finding.remediationSuggestion = rem.recommendation;
+                  finding.remediationStatus = "PROPOSED";
+                }
+              }
+            }
+            const realInv = transformInvestigation(fullInv, frontendInvs[0].documentName, 0);
+            setCurrentInvestigation(realInv);
+            setInvestigations((prev) => [realInv, ...prev.filter((i) => i.id !== latestId)]);
+            setFindings(realFindings);
+            setPipelineStatus("COMPLETED");
+
+            // Load trust graph
+            const graph = await fetchTrustGraph(latestId);
+            if (graph) setGraphData({ ...graph, investigation_id: latestId });
+          }
+        }
+
+        // Load agents
+        try {
+          const agentsResult = await fetchAgents();
+          if (agentsResult?.agents) setAgents(transformAgents(agentsResult.agents));
+        } catch { /* keep defaults */ }
+
+      } catch (err) {
+        console.warn("[AEGIS] Failed to load existing data:", err);
+      } finally {
+        setIsLoadingData(false);
+      }
+    }
+
+    loadExistingData();
+  }, []);
   
   // Demo Flow state
   const [demoStep, setDemoStep] = useState(1);

@@ -330,6 +330,18 @@ export default function Home() {
             />
           )}
 
+          {/* TAB 0: DASHBOARD HUB (HOME PAGE - BIG NUMBERS) */}
+          {activeTab === "overview" && (
+            <DashboardHub
+              onNavigate={setActiveTab}
+              investigationsCount={investigations.length}
+              agentsCount={activeAgentsCount}
+              findingsCount={findings.length}
+              driftNodesCount={isDriftActive ? graphData.invalid_nodes : 3}
+              compliancePercent={currentInvestigation.progressPercent}
+            />
+          )}
+
           {/* TAB 1: INVESTIGATIONS */}
           {activeTab === "investigations" && (
             <InvestigationsTable

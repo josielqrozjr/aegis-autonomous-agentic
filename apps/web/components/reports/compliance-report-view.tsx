@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { Download } from "lucide-react";
 import { Finding, Investigation } from "@/lib/types";
 import { TrustGraphData } from "@/lib/api/client";
 import { formatDate } from "@/lib/utils";
@@ -37,32 +38,25 @@ export function ComplianceReportView({
 
   return (
     <div className="space-y-6 w-full">
-      {/* Top Action Bar */}
-      <div className="flex items-center justify-between bg-[#171B1F] border border-[#2A3038] p-4 rounded-xl print:hidden">
-        <div>
-          <h3 className="font-bold text-white text-sm">Executive Audit & Compliance Dossier</h3>
-          <p className="text-xs text-[#9096A0] mt-0.5">Ready for PDF export or printing with cryptographic provenance verification.</p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handlePrint}
-            className="px-4 py-2 rounded-lg text-xs font-semibold bg-[#B8843A] hover:bg-[#CCA159] text-[#0D1013] transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
-          >
-            <span>Save PDF</span>
-          </button>
-        </div>
+      {/* Report Header */}
+      <div className="pb-3 border-b border-[#2A3038] print:hidden">
+        <h2 className="text-sm font-bold text-white uppercase tracking-wider">
+          Executive Audit & Compliance Dossier
+        </h2>
+        <p className="text-xs text-[#9096A0] mt-0.5">
+          Ready for PDF export or printing with cryptographic provenance verification.
+        </p>
       </div>
 
       {/* Printable Report Sheet */}
-      <div className="bg-[#171B1F] border border-[#2A3038] rounded-xl p-8 space-y-6 print:border-none print:bg-white print:text-black print:p-0 print:space-y-5">
+      <div className="bg-[#171B1F] border border-[#2A3038] rounded-xl p-8 space-y-6 print:border-none print:bg-white print:text-black print:p-0 print:m-0 print:space-y-5 print:rounded-none">
         {/* Certificate Header */}
         <div className="border-b border-[#2A3038] pb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:border-b-2 print:border-black print:pb-4">
           <div className="flex items-center gap-3">
             <AegisShieldLogo className="w-9 h-10 text-[#B8843A] print:text-black" />
             <div>
               <h2 className="text-xl font-bold font-serif text-[#B8843A] tracking-wider print:text-black">
-                AEGIS TRUST & COMPLIANCE DOSSIER
+                AEGIS
               </h2>
               <p className="text-xs text-[#9096A0] font-mono print:text-neutral-600">
                 Autonomous Multi-Agent Audit Certificate
@@ -70,12 +64,9 @@ export function ComplianceReportView({
             </div>
           </div>
 
-          <div className="text-right font-mono text-xs text-[#9096A0] print:text-neutral-800">
+          <div className="text-right font-mono text-xs text-[#9096A0] print:text-neutral-800 space-y-0.5">
             <div><strong className="text-white print:text-black">ID:</strong> {investigation.id}</div>
             <div><strong className="text-white print:text-black">Date:</strong> {formatDate(investigation.updatedAt)}</div>
-            <div className="text-[#3B8F6B] font-bold mt-1 print:text-emerald-700">
-              ✓ VERIFIED AUDIT
-            </div>
           </div>
         </div>
 
@@ -103,9 +94,27 @@ export function ComplianceReportView({
                   <span className="hidden print:inline font-mono text-black font-semibold">
                     {investigation.documentName}
                   </span>
+                  <button
+                    onClick={handlePrint}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#B8843A] hover:bg-[#CCA159] text-[#0D1013] transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm print:hidden"
+                    title="Download Report as PDF"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Download</span>
+                  </button>
                 </div>
               ) : (
-                <span className="font-mono text-white print:text-black font-semibold">{investigation.documentName}</span>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-white print:text-black font-semibold">{investigation.documentName}</span>
+                  <button
+                    onClick={handlePrint}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#B8843A] hover:bg-[#CCA159] text-[#0D1013] transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm print:hidden"
+                    title="Download Report as PDF"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Download</span>
+                  </button>
+                </div>
               )}
             </div>
           </div>
@@ -184,9 +193,6 @@ export function ComplianceReportView({
           <div>
             <div className="text-white font-bold print:text-black">AEGIS Multi-Agent Governance Engine</div>
             <div className="print:text-neutral-700">Issued for LGPD, GDPR and ISO/IEC 27001 compliance auditing</div>
-          </div>
-          <div className="flex items-center gap-2 text-[#3B8F6B] font-bold text-xs print:text-emerald-700">
-            <span>🛡️ CRYPTOGRAPHIC AUDIT SEAL ACTIVE</span>
           </div>
         </div>
       </div>

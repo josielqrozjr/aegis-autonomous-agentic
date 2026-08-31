@@ -1,28 +1,88 @@
 "use client";
 
 import React, { useState } from "react";
-import { Investigation } from "@/lib/types";
+import { Finding, Investigation } from "@/lib/types";
 import { cn, formatDate } from "@/lib/utils";
 
 interface InvestigationsTableProps {
   investigations: Investigation[];
+  findings?: Finding[];
   onSelect: (investigation: Investigation) => void;
   onNew: () => void;
 }
 
-export function InvestigationsTable({ investigations, onSelect, onNew }: InvestigationsTableProps) {
+export function InvestigationsTable({ investigations, findings = [], onSelect, onNew }: InvestigationsTableProps) {
   const [filter, setFilter] = useState("ALL");
   const [search, setSearch] = useState("");
 
   const filters = [
     { id: "ALL", label: "All" },
-    { id: "INVESTIGATING", label: "Running" },
+    { id: "PENDING_REVIEW", label: "Pending" },
+    { id: "INVESTIGATING", label: "In Progress" },
     { id: "COMPLETED", label: "Completed" },
-    { id: "ADVERSARIAL_REVIEW", label: "In Review" },
   ];
 
+  const getDocProgressAndStatus = (inv: Investigation) => {
+    const invGaps = findings.filter(
+      (f) =>
+        f.investigationId === inv.id ||
+        (!findings.some((x) => x.investigationId === inv.id) && f.investigationId === "INV-2024-0047")
+    );
+    const total = invGaps.length;
+    const resolved = invGaps.filter(
+      (f) => f.status === "RESOLVED" || f.remediationStatus === "APPROVED" || f.remediationStatus === "APPLIED"
+    ).length;
+    const progressPercent = total > 0 ? Math.round((resolved / total) * 100) : (inv.progressPercent ?? 100);
+
+    if (inv.status === "COMPLETED" || (resolved === total && total > 0) || progressPercent === 100) {
+      return {
+        status: "COMPLETED",
+        label: "Completed",
+      };
+    }
+
+    if (inv.status === "INVESTIGATING") {
+      return {
+        status: "INVESTIGATING",
+        label: `In Progress (${progressPercent}%)`,
+      };
+    }
+
+    return {
+      status: "PENDING_REVIEW",
+      label: "Pending",
+    };
+  };
+
+  const renderStatusBadge = (inv: Investigation) => {
+    const info = getDocProgressAndStatus(inv);
+
+    switch (info.status) {
+      case "COMPLETED":
+        return (
+          <span className="px-2.5 py-0.5 rounded text-[10px] font-mono font-bold bg-[#3B8F6B]/15 text-[#3B8F6B] border border-[#3B8F6B]/30 inline-block">
+            {info.label}
+          </span>
+        );
+      case "INVESTIGATING":
+        return (
+          <span className="px-2.5 py-0.5 rounded text-[10px] font-mono font-bold bg-[#4C8FA6]/20 text-[#7EB5CC] border border-[#4C8FA6]/40 inline-block">
+            {info.label}
+          </span>
+        );
+      case "PENDING_REVIEW":
+      default:
+        return (
+          <span className="px-2.5 py-0.5 rounded text-[10px] font-mono font-bold bg-[#B8843A]/20 text-[#D4A559] border border-[#B8843A]/40 inline-block">
+            {info.label}
+          </span>
+        );
+    }
+  };
+
   const filtered = investigations.filter((inv) => {
-    if (filter !== "ALL" && inv.status !== filter) return false;
+    const info = getDocProgressAndStatus(inv);
+    if (filter !== "ALL" && info.status !== filter) return false;
     if (search && !inv.title.toLowerCase().includes(search.toLowerCase()) && !inv.id.toLowerCase().includes(search.toLowerCase())) {
       return false;
     }
@@ -89,73 +149,61 @@ export function InvestigationsTable({ investigations, onSelect, onNew }: Investi
               <th className="py-3 px-4 font-semibold">Frameworks</th>
               <th className="py-3 px-4 font-semibold">Risk Level</th>
               <th className="py-3 px-4 font-semibold">Last Updated</th>
-              <th className="py-3 px-5 text-right font-semibold">Action</th>
+              <th className="py-3 px-6 text-center font-semibold">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[#2A3038]">
-            {filtered.map((inv) => {
-              const isRunning = inv.status === "INVESTIGATING";
-              return (
-                <tr
-                  key={inv.id}
-                  onClick={() => onSelect(inv)}
-                  className="hover:bg-[#1C2228] cursor-pointer transition-colors group"
-                >
-                  <td className="py-3.5 px-5">
-                    <div>
-                      <div className="font-semibold text-white group-hover:text-[#B8843A] transition-colors">
-                        {inv.title}
-                      </div>
-                      <div className="text-[11px] text-[#9096A0] font-mono mt-0.5">
-                        {inv.id} · {inv.documentName}
-                      </div>
+            {filtered.map((inv) => (
+              <tr
+                key={inv.id}
+                onClick={() => onSelect(inv)}
+                className="hover:bg-[#1C2228] cursor-pointer transition-colors group"
+              >
+                <td className="py-3.5 px-5">
+                  <div>
+                    <div className="font-semibold text-white group-hover:text-[#B8843A] transition-colors">
+                      {inv.title}
                     </div>
-                  </td>
-                  <td className="py-3.5 px-4">
-                    {isRunning ? (
-                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-[#4C8FA6]/15 text-[#4C8FA6] border border-[#4C8FA6]/30">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#4C8FA6] animate-pulse" />
-                        Running ({inv.progressPercent}%)
+                    <div className="text-[11px] text-[#9096A0] font-mono mt-0.5">
+                      {inv.id} · {inv.documentName}
+                    </div>
+                  </div>
+                </td>
+                <td className="py-3.5 px-4">
+                  {renderStatusBadge(inv)}
+                </td>
+                <td className="py-3.5 px-4">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {inv.frameworks.map((fw) => (
+                      <span
+                        key={fw}
+                        className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-[#0D1013] text-[#9096A0] border border-[#2A3038]"
+                      >
+                        {fw}
                       </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-[#3B8F6B]/15 text-[#3B8F6B] border border-[#3B8F6B]/30">
-                        ✓ Completed
-                      </span>
+                    ))}
+                  </div>
+                </td>
+                <td className="py-3.5 px-4">
+                  <span
+                    className={cn(
+                      "font-mono px-2 py-0.5 rounded text-[10px] font-semibold",
+                      inv.findingsCount.critical > 0
+                        ? "bg-[#A24438]/15 text-[#A24438] border border-[#A24438]/30"
+                        : "bg-[#B8843A]/15 text-[#D4A559] border border-[#B8843A]/30"
                     )}
-                  </td>
-                  <td className="py-3.5 px-4">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      {inv.frameworks.map((fw) => (
-                        <span
-                          key={fw}
-                          className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-[#0D1013] text-[#9096A0] border border-[#2A3038]"
-                        >
-                          {fw}
-                        </span>
-                      ))}
-                    </div>
-                  </td>
-                  <td className="py-3.5 px-4">
-                    <span
-                      className={cn(
-                        "font-mono px-2 py-0.5 rounded text-[10px] font-semibold",
-                        inv.findingsCount.critical > 0
-                          ? "bg-[#A24438]/15 text-[#A24438] border border-[#A24438]/30"
-                          : "bg-[#B8843A]/15 text-[#D4A559] border border-[#B8843A]/30"
-                      )}
-                    >
-                      {inv.findingsCount.critical > 0 ? "High Risk" : "Medium"}
-                    </span>
-                  </td>
-                  <td className="py-3.5 px-4 text-[#9096A0] text-[11px] font-mono">
-                    {formatDate(inv.updatedAt)}
-                  </td>
-                  <td className="py-3.5 px-5 text-right font-mono text-[11px] text-[#4C8FA6] group-hover:text-white">
-                    View →
-                  </td>
-                </tr>
-              );
-            })}
+                  >
+                    {inv.findingsCount.critical > 0 ? "High Risk" : "Medium"}
+                  </span>
+                </td>
+                <td className="py-3.5 px-4 text-[#9096A0] text-[11px] font-mono">
+                  {formatDate(inv.updatedAt)}
+                </td>
+                <td className="py-3.5 px-6 text-center font-mono text-[11px] text-[#4C8FA6] group-hover:text-white">
+                  View
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>

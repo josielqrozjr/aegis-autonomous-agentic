@@ -1,87 +1,62 @@
 "use client";
 
 import React from "react";
+import { ArrowRight, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface DemoFlowControllerProps {
-  onStepChange: (step: number) => void;
-  currentStep: number;
-  onReset: () => void;
+  onStepChange?: (step: number) => void;
+  currentStep?: number;
+  onReset?: () => void;
 }
 
-export function DemoFlowController({ onStepChange, currentStep, onReset }: DemoFlowControllerProps) {
+export function DemoFlowController({ currentStep = 1 }: DemoFlowControllerProps) {
   const steps = [
-    { step: 1, title: "1. Upload & PII", desc: "Gemma 2B Scan" },
-    { step: 2, title: "2. Analysis & Critique", desc: "Gemini Flash & Pro" },
-    { step: 3, title: "3. Policy Drift", desc: "GDPR v2 Cascade" },
-    { step: 4, title: "4. Dossier & PDF", desc: "Report Generation" },
+    { step: 1, number: "01", title: "Upload" },
+    { step: 2, number: "02", title: "AI Analysis" },
+    { step: 3, number: "03", title: "Recommendation" },
+    { step: 4, number: "04", title: "Approved & PDF" },
   ];
 
   return (
-    <div className="bg-[#171B1F] border border-[#2A3038] rounded-xl p-4 mb-5">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#2A3038]">
-        <div>
-          <div className="flex items-center gap-2">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-white">
-              4-Step Demonstration
-            </h3>
-          </div>
-          <p className="text-[11px] text-[#9096A0] mt-0.5">
-            Automated walkthrough to evaluate multi-agent intelligence and Trust Graph provenance.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={onReset}
-            className="px-3 py-1.5 rounded text-xs font-medium bg-[#0D1013] hover:bg-[#21262B] text-[#9096A0] hover:text-white border border-[#2A3038] transition-colors cursor-pointer"
-          >
-            Reset
-          </button>
-
-          {currentStep < 4 ? (
-            <button
-              onClick={() => onStepChange(currentStep + 1)}
-              className="px-3.5 py-1.5 rounded text-xs font-semibold bg-[#B8843A] hover:bg-[#CCA159] text-[#0D1013] transition-colors cursor-pointer"
-            >
-              Next Step
-            </button>
-          ) : (
-            <span className="px-3 py-1.5 rounded text-xs font-medium text-[#3B8F6B] bg-[#3B8F6B]/15 border border-[#3B8F6B]/30 font-mono">
-              ✓ Demo Complete
-            </span>
-          )}
-        </div>
+    <div className="space-y-4 mb-6">
+      {/* Header Padronizado */}
+      <div className="pb-3 border-b border-[#2A3038]">
+        <h2 className="text-sm font-bold uppercase tracking-wider text-white">
+          4-Step Demonstration
+        </h2>
+        <p className="text-xs text-[#9096A0] mt-0.5">
+          Automated walkthrough to evaluate multi-agent intelligence and Trust Graph provenance.
+        </p>
       </div>
 
-      {/* Steps bar */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 pt-3">
-        {steps.map((s) => {
-          const isActive = currentStep === s.step;
-          const isDone = currentStep > s.step;
-          return (
-            <button
-              key={s.step}
-              onClick={() => onStepChange(s.step)}
-              className={cn(
-                "p-2 rounded-lg border text-left transition-all text-xs cursor-pointer",
-                isActive
-                  ? "bg-[#0D1013] border-[#B8843A] text-white"
-                  : isDone
-                  ? "bg-[#0D1013]/60 border-[#2A3038] text-[#B8BDC7]"
-                  : "bg-[#0D1013]/30 border-transparent text-[#5C636E]"
-              )}
-            >
-              <div className="flex items-center justify-between font-mono text-[11px] mb-0.5">
-                <span className={isActive ? "text-[#B8843A] font-bold" : isDone ? "text-[#3B8F6B]" : "text-[#5C636E]"}>
-                  {s.title}
-                </span>
-                {isDone && <span className="text-[10px] text-[#3B8F6B]">✓</span>}
-              </div>
-              <p className="text-[10px] text-[#9096A0] truncate">{s.desc}</p>
-            </button>
-          );
-        })}
+      {/* Fluxo Passo a Passo com Setas e Badges de Steps */}
+      <div className="flex flex-col md:flex-row items-center justify-between gap-5 md:gap-4 py-2 select-none">
+        {steps.map((s, idx) => (
+          <React.Fragment key={s.step}>
+            {/* Step Item */}
+            <div className="flex-1 flex flex-col items-center justify-center text-center space-y-2 min-w-0">
+              <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-[#B8843A]/15 text-[#D4A559] border border-[#B8843A]/40 inline-block">
+                Step {s.number}
+              </span>
+              <span className="text-xs md:text-sm font-bold font-mono text-white tracking-wide">
+                {s.title}
+              </span>
+            </div>
+
+            {/* Seta conectora entre os passos */}
+            {idx < steps.length - 1 && (
+              <>
+                <div className="hidden md:flex items-center justify-center px-2 text-[#B8843A] flex-shrink-0">
+                  <ArrowRight className="w-5 h-5 text-[#B8843A]" />
+                </div>
+                <div className="md:hidden flex items-center justify-center text-[#B8843A] py-1.5">
+                  <ChevronDown className="w-4 h-4 text-[#B8843A]" />
+                </div>
+              </>
+            )}
+          </React.Fragment>
+        ))}
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Finding, Investigation, AgentInfo } from "@/lib/types";
 import { TrustGraphData, TrustGraphNode } from "@/lib/api/client";
@@ -154,11 +155,25 @@ export function TrustGraphTabView({
         (!findings.some((x) => x.investigationId === inv.id) && f.investigationId === "INV-2024-0047")
     );
     const total = invGaps.length;
-    const resolved = invGaps.filter((f) => f.status === "RESOLVED").length;
+    const resolved = invGaps.filter(
+      (f) => f.status === "RESOLVED" || f.remediationStatus === "APPROVED" || f.remediationStatus === "APPLIED"
+    ).length;
     const open = total - resolved;
     const progressPercent = total > 0 ? Math.round((resolved / total) * 100) : 100;
 
-    if (inv.id === "INV-2024-0047" && isDriftActive) {
+    // Se todos os apontamentos foram resolvidos ou o documento já foi aprovado
+    if ((resolved === total && total > 0) || inv.status === "COMPLETED" || progressPercent === 100) {
+      return {
+        status: "COMPLETED",
+        progressPercent: 100,
+        total,
+        resolved: total,
+        open: 0,
+        label: "Completed",
+      };
+    }
+
+    if (inv.id === "INV-2024-0047" && isDriftActive && resolved < total) {
       return {
         status: "POLICY_DRIFT",
         progressPercent,
@@ -169,18 +184,7 @@ export function TrustGraphTabView({
       };
     }
 
-    if (inv.status === "COMPLETED" && (resolved === total || total === 0)) {
-      return {
-        status: "COMPLETED",
-        progressPercent: 100,
-        total,
-        resolved,
-        open: 0,
-        label: "Completed",
-      };
-    }
-
-    if (resolved > 0) {
+    if (resolved > 0 || (inv.progressPercent && inv.progressPercent > 0)) {
       return {
         status: "INVESTIGATING",
         progressPercent,
@@ -497,45 +501,51 @@ export function TrustGraphTabView({
               </div>
 
               {/* Ação de Visualização, Download e Aprovação do Documento */}
-              <div className="flex flex-wrap items-center gap-3 shrink-0">
-                <button
-                  onClick={() => setIsPreviewDocOpen(true)}
-                  className="px-3.5 py-2 rounded-lg text-xs font-semibold bg-[#3B8F6B]/15 hover:bg-[#3B8F6B]/25 text-[#3B8F6B] border border-[#3B8F6B]/30 transition-colors cursor-pointer flex items-center gap-1.5"
-                >
-                  <span>Preview Remediated Document</span>
-                </button>
+              <div className="flex flex-col sm:items-end gap-2 shrink-0">
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <button
+                    onClick={() => setIsPreviewDocOpen(true)}
+                    className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-[#3B8F6B]/15 hover:bg-[#3B8F6B]/25 text-[#3B8F6B] border border-[#3B8F6B]/30 transition-colors cursor-pointer flex items-center gap-1.5"
+                  >
+                    <span>Preview Remediated Document</span>
+                  </button>
 
-                <button
-                  onClick={() => printDocumentAsPdf(activeDoc, docFindings, isDriftActive)}
-                  className="px-3.5 py-2 rounded-lg text-xs font-semibold bg-[#0D1013] hover:bg-[#21262B] text-white border border-[#2A3038] hover:border-[#B8843A] transition-colors cursor-pointer flex items-center gap-1.5"
-                  title="Save / Download Final Document as PDF"
-                >
-                  <span>Save PDF</span>
-                </button>
-
-                <button
-                  onClick={() => {
-                    if (onApproveDocument) {
-                      onApproveDocument(activeDoc.id);
-                    } else {
+                  <button
+                    onClick={() => {
+                      if (onApproveDocument) {
+                        onApproveDocument(activeDoc.id);
+                      }
                       docFindings.forEach((f) => {
-                        if (f.status !== "RESOLVED") {
-                          onApplyRemediation(f);
-                        }
+                        onApplyRemediation({
+                          ...f,
+                          status: "RESOLVED",
+                          remediationStatus: "APPROVED",
+                        });
                       });
-                    }
-                  }}
-                  className={cn(
-                    "px-3.5 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer shadow-md flex items-center gap-1.5",
-                    activeDocProgress.status === "COMPLETED"
-                      ? "bg-[#3B8F6B]/20 text-[#3B8F6B] border border-[#3B8F6B]/40"
-                      : "bg-[#B8843A] hover:bg-[#CCA159] text-[#0D1013]"
-                  )}
-                >
-                  {activeDocProgress.status === "COMPLETED"
-                    ? "Completed"
-                    : "Approve Document"}
-                </button>
+                    }}
+                    className={cn(
+                      "px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer shadow-md flex items-center gap-1.5",
+                      activeDocProgress.status === "COMPLETED" || activeDoc.status === "COMPLETED"
+                        ? "bg-[#3B8F6B]/20 text-[#3B8F6B] border border-[#3B8F6B]/40"
+                        : "bg-[#B8843A] hover:bg-[#CCA159] text-[#0D1013]"
+                    )}
+                  >
+                    {activeDocProgress.status === "COMPLETED" || activeDoc.status === "COMPLETED"
+                      ? "Completed"
+                      : "Approve Document"}
+                  </button>
+                </div>
+
+                <div>
+                  <button
+                    onClick={() => printDocumentAsPdf(activeDoc, docFindings, isDriftActive)}
+                    className="px-3 py-1 rounded-lg text-xs font-semibold bg-[#0D1013] hover:bg-[#21262B] text-[#B8843A] hover:text-[#CCA159] border border-[#2A3038] hover:border-[#B8843A] transition-colors cursor-pointer flex items-center gap-1.5"
+                    title="Download Document as PDF"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Download</span>
+                  </button>
+                </div>
               </div>
             </div>
 

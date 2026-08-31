@@ -22,7 +22,7 @@ export function TopHeader({ activeTab = "overview", currentInvestigationId }: To
       case "dashboard":
         return "Trust Graph & Agents";
       case "remediation":
-        return "Remediation & Drift";
+        return "Continuous Monitoring";
       case "report":
         return "Final Report";
       default:
@@ -31,16 +31,11 @@ export function TopHeader({ activeTab = "overview", currentInvestigationId }: To
   };
 
   return (
-    <header className="h-14 bg-[#0D1013] border-b border-[#2A3038] px-6 flex items-center justify-between shrink-0">
+    <header className="h-14 bg-[#0D1013] border-b border-[#2A3038] px-6 flex items-center justify-between shrink-0 print:hidden">
       <div className="flex items-center gap-2 text-xs">
         <span className="text-[#9096A0] font-medium tracking-wide">
           {getHeaderTitle()}
         </span>
-      </div>
-
-      <div className="flex items-center gap-2 text-xs text-[#9096A0]">
-        <span className="w-1.5 h-1.5 rounded-full bg-[#3B8F6B]" />
-        <span>{t("header_orchestrator")}</span>
       </div>
     </header>
   );

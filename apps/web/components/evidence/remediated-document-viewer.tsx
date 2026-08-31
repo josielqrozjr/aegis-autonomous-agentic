@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { Download } from "lucide-react";
 import { Investigation, Finding } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -1348,7 +1349,8 @@ export function RemediatedDocumentViewer({
               onClick={handleDownloadPdf}
               className="px-4 py-2 rounded-lg text-xs font-mono font-semibold bg-[#0D1013] hover:bg-[#21262B] text-[#B8843A] hover:text-[#CCA159] border border-[#2A3038] hover:border-[#B8843A] transition-colors cursor-pointer flex items-center gap-1.5"
             >
-              <span>Save PDF</span>
+              <Download className="w-3.5 h-3.5" />
+              <span>Download</span>
             </button>
           </div>
 

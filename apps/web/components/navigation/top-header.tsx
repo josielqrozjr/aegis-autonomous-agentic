@@ -37,11 +37,6 @@ export function TopHeader({ activeTab = "overview", currentInvestigationId }: To
           {getHeaderTitle()}
         </span>
       </div>
-
-      <div className="flex items-center gap-2 text-xs text-[#9096A0]">
-        <span className="w-1.5 h-1.5 rounded-full bg-[#3B8F6B]" />
-        <span>{t("header_orchestrator")}</span>
-      </div>
     </header>
   );
 }

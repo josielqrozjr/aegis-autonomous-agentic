@@ -67,11 +67,11 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
         </div>
         <div className="flex justify-between">
           <span>PII Scanner</span>
-          <span className="text-white">Gemma 2B</span>
+          <span className="text-white">Gemma 2 (Vertex AI)</span>
         </div>
         <div className="flex justify-between">
           <span>Specialists</span>
-          <span className="text-[#4C8FA6]">Gemini 1.5</span>
+          <span className="text-[#4C8FA6]">Gemini 3.6</span>
         </div>
         <div className="flex justify-between">
           <span>Evidence Critic</span>

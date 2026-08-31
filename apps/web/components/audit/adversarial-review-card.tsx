@@ -29,7 +29,7 @@ export function AdversarialReviewCard() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1 text-xs">
         <div className="p-3.5 rounded-lg bg-[#0D1013] border border-[#2A3038] space-y-1.5">
           <div className="flex justify-between font-mono text-[10px] text-[#5C636E]">
-            <span>1. Specialist Proposal (Gemini 1.5 Flash)</span>
+            <span>1. Specialist Proposal (Gemini 3.6 Flash)</span>
             <span className="uppercase">Pre-Critique</span>
           </div>
           <p className="text-[#B8BDC7]">

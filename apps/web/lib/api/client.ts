@@ -244,8 +244,8 @@ export function transformInvestigation(backend: any, fileName: string, fileSize:
 }
 
 export function transformAgents(backendAgents: any[]): import("../types").AgentInfo[] {
-  const MODEL_MAP: Record<string, "Gemini 2.5 Flash" | "Gemma (Vertex AI)" | "Gemini 2.5 Pro"> = {
-    "gemini-2.5-flash": "Gemini 2.5 Flash",
+  const MODEL_MAP: Record<string, "Gemini 3.6 Flash" | "Gemma (Vertex AI)" | "Gemini 2.5 Pro"> = {
+    "gemini-3.6-flash": "Gemini 3.6 Flash",
     "gemini-2.5-pro": "Gemini 2.5 Pro",
     "gemma-2-9b-it": "Gemma (Vertex AI)",
   };
@@ -254,7 +254,7 @@ export function transformAgents(backendAgents: any[]): import("../types").AgentI
     id: a.agent_id,
     name: a.name,
     role: a.description || a.role,
-    model: MODEL_MAP[a.model_used] || "Gemini 2.5 Flash",
+    model: MODEL_MAP[a.model_used] || "Gemini 3.6 Flash",
     status: "COMPLETED" as const,
     confidence: 0.95,
     findingsCount: 0,

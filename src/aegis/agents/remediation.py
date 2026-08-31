@@ -26,7 +26,7 @@ REMEDIATION_AGENT_CONTRACT = AgentContract(
     ],
     jurisdictions=["GLOBAL", "BR", "EU"],
     version="1.1.0",
-    model_used="gemini-2.5-flash",
+    model_used="gemini-3.6-flash",
 )
 
 class RemediationAgent(BaseAgent):

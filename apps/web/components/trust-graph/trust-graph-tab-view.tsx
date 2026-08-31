@@ -346,7 +346,7 @@ export function TrustGraphTabView({
                   className="w-full bg-[#0D1013] border border-[#2A3038] hover:border-[#B8843A] rounded-lg px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-[#B8843A] cursor-pointer"
                 >
                   <option value="ALL">All AI Models & Specialists</option>
-                  <option value="pii-scanner">PII Scanner (Gemma 2B)</option>
+                  <option value="pii-scanner">PII Scanner (Gemma 2 (Vertex AI))</option>
                   <option value="lgpd-specialist">LGPD Specialist (Gemini Flash)</option>
                   <option value="gdpr-specialist">GDPR Specialist (Gemini Flash)</option>
                   <option value="iso-specialist">ISO 27001 Specialist (Gemini Flash)</option>
@@ -575,13 +575,7 @@ export function TrustGraphTabView({
                 </span>
                 <div className="flex flex-wrap items-center gap-1.5">
                   {Array.from(
-                    new Set(
-                      docFindings.map((f) => {
-                        const name = (f.agentName || "").toLowerCase();
-                        if (name.includes("gemma")) return "Gemma";
-                        return "Gemini";
-                      })
-                    )
+                    new Set(["Gemini 3.6 Flash", "Gemma 2", "Gemini 2.5 Pro"])
                   ).map((aiName) => (
                     <span
                       key={aiName}

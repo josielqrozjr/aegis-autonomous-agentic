@@ -74,7 +74,7 @@ class ModelRegistry:
             "active_models_count": 3,
             "models": [
                 {
-                    "name": "Gemini 2.5 Flash",
+                    "name": "Gemini 3.6 Flash",
                     "role": "Primary Reasoning & Specialist Agents (Planner, Privacy, Governance, Security, Remediation, Drift)",
                     "justification": "Processamento de alta velocidade e baixo custo para análise documental e extração de evidências",
                     "health": flash_health,

@@ -24,7 +24,7 @@ PLANNER_CONTRACT = AgentContract(
     ],
     jurisdictions=["GLOBAL"],
     version="1.1.0",
-    model_used="gemini-2.5-flash",
+    model_used="gemini-3.6-flash",
 )
 
 class PlannerAgent(BaseAgent):

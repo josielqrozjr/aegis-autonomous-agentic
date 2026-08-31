@@ -47,7 +47,7 @@ const REGULATORY_SCENARIOS: RegulatoryScenario[] = [
     currentClauseText: "Customer records, transactional history, and personal identifier logs shall be retained for an operational duration of five (5) years following account deactivation.",
     remediatedClauseText: "Customer records, transactional history, and personal identifier logs shall be retained for a maximum duration of two (2) years following account deactivation, in strict accordance with GDPR Art. 5(1)(e) (2026 Statutory Revision).",
     legalAnalysis: "The existing 5-year retention period violates the updated Art. 5(1)(e) ceiling. Failure to amend exposes the organization to statutory enforcement fines under GDPR Art. 83.",
-    specialistAgent: "GDPR Specialist (Gemini 1.5 Flash)",
+    specialistAgent: "GDPR Specialist (Gemini 3.6 Flash)",
     invalidatedNodeIds: ["req-gdpr-5", "ev-prazo-90dias", "find-02-node"],
   },
   {
@@ -61,7 +61,7 @@ const REGULATORY_SCENARIOS: RegulatoryScenario[] = [
     currentClauseText: "Dados cadastrais e registros biométricos de colaboradores e prestadores serão armazenados por tempo indeterminado para fins de histórico e segurança patrimonial.",
     remediatedClauseText: "Dados cadastrais e registros biométricos de colaboradores e prestadores serão descartados definitivamente no prazo improrrogável de até 90 (noventa) dias após a rescisão contratual, conforme Art. 16 da LGPD e Resolução ANPD 18/2026.",
     legalAnalysis: "Armazenamento por tempo indeterminado de biometria é considerado prática de alto risco e violação direta do princípio da necessidade (Art. 6º, III) e término de tratamento (Art. 16).",
-    specialistAgent: "LGPD Specialist (Gemini 1.5 Flash)",
+    specialistAgent: "LGPD Specialist (Gemini 3.6 Flash)",
     invalidatedNodeIds: ["req-lgpd-16", "ev-seguranca", "find-01-node"],
   },
   {
@@ -75,7 +75,7 @@ const REGULATORY_SCENARIOS: RegulatoryScenario[] = [
     currentClauseText: "Mídias de armazenamento e backups descontinuados serão descartados fisicamente conforme disponibilidade da equipe técnica interna.",
     remediatedClauseText: "Mídias de armazenamento e volumes de nuvem descontinuados serão submetidos a apagamento criptográfico com chave descartada e certificação de sanitização conforme Controle A.8.10 da ISO/IEC 27001:2025.",
     legalAnalysis: "O procedimento de descarte físico não padronizado não atende aos novos controles rigorosos de higienização de dados em ambientes multilocatários.",
-    specialistAgent: "ISO Specialist (Gemini 1.5 Flash)",
+    specialistAgent: "ISO Specialist (Gemini 3.6 Flash)",
     invalidatedNodeIds: ["req-iso-a810", "ev-descarte", "find-03-node"],
   },
 ];
@@ -352,7 +352,7 @@ export function RemediationDriftView({
               </span>
               <span className="text-[10px] font-mono text-[#9096A0]">310ms</span>
             </div>
-            <h3 className="text-xs font-bold text-white font-mono">Policy Remediation (Gemini 1.5 Flash)</h3>
+            <h3 className="text-xs font-bold text-white font-mono">Policy Remediation (Gemini 3.6 Flash)</h3>
             <p className="text-[11px] text-[#9096A0] leading-relaxed">
               Synthesized compliant contractual amendment wording ready for immediate one-click execution.
             </p>
@@ -407,7 +407,7 @@ export function RemediationDriftView({
           {/* Texto Novo (Corrigido pela IA) */}
           <div className="p-4 rounded-xl bg-[#12161A] border border-[#3B8F6B]/40 space-y-2">
             <div className="flex items-center justify-between text-[11px] font-mono font-bold text-[#3B8F6B]">
-              <span>AI-Generated Statutory Patch (Gemini 1.5 Flash)</span>
+              <span>AI-Generated Statutory Patch (Gemini 3.6 Flash)</span>
               <span className="text-[10px] uppercase">100% Compliant</span>
             </div>
             <p className="text-xs text-white italic bg-[#0D1013] p-3.5 rounded-lg border border-[#3B8F6B]/30 leading-relaxed font-mono">

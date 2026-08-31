@@ -32,6 +32,7 @@ import {
   fetchInvestigation, 
   fetchTrustGraph,
   fetchAgents,
+  triggerRegulatoryChange,
   transformFinding, 
   transformInvestigation,
   transformAgents,
@@ -235,7 +236,7 @@ export default function Home() {
     setActiveTab("overview");
   };
 
-  const handleDriftTriggered = (scenario: {
+  const handleDriftTriggered = async (scenario: {
     framework: string;
     version: string;
     description: string;
@@ -243,33 +244,57 @@ export default function Home() {
   }) => {
     setIsDriftActive(true);
 
+    try {
+      // Call real API for regulatory change
+      const result = await triggerRegulatoryChange({
+        framework: scenario.framework,
+        version: scenario.version,
+        change_description: scenario.description,
+        affected_requirements: scenario.framework === "GDPR" 
+          ? ["GDPR-ART-5-1-E"] 
+          : scenario.framework === "LGPD" 
+          ? ["LGPD-ART-16"] 
+          : ["ISO27001-A.8.10"],
+      });
+      console.log("[AEGIS] Regulatory change result:", result);
+
+      // Fetch updated investigation and trust graph
+      if (currentInvestigation.id) {
+        const updatedInv = await fetchInvestigation(currentInvestigation.id);
+        if (updatedInv) {
+          // Update findings with reopened status
+          const updatedFindings = (updatedInv.findings || []).map((f: any) =>
+            transformFinding(f, currentInvestigation.id)
+          );
+          setFindings(updatedFindings);
+        }
+
+        const updatedGraph = await fetchTrustGraph(currentInvestigation.id);
+        if (updatedGraph) {
+          setGraphData({ ...updatedGraph, investigation_id: currentInvestigation.id });
+        }
+      }
+    } catch (err) {
+      console.warn("[AEGIS] Drift API call failed, applying locally:", err);
+    }
+
+    // Also apply local state changes for immediate visual feedback
     setGraphData((prev) => ({
       ...prev,
-      invalid_nodes: scenario.invalidatedNodeIds.length,
-      valid_nodes: prev.total_nodes - scenario.invalidatedNodeIds.length,
-      nodes: prev.nodes.map((node) => {
-        if (scenario.invalidatedNodeIds.includes(node.id)) {
-          return {
-            ...node,
-            valid: false,
-            invalidated_reason: scenario.description,
-            affected_by_change: true,
-          };
-        }
-        return node;
-      }),
+      invalid_nodes: (prev.invalid_nodes || 0) + scenario.invalidatedNodeIds.length,
+      valid_nodes: Math.max(0, (prev.valid_nodes || prev.total_nodes) - scenario.invalidatedNodeIds.length),
+      nodes: prev.nodes.map((node) =>
+        scenario.invalidatedNodeIds.includes(node.id)
+          ? { ...node, valid: false, invalidated_reason: scenario.description, affected_by_change: true }
+          : node
+      ),
     }));
 
+    // Mark the framework's finding as REOPENED_DRIFT
     setFindings((prev) =>
       prev.map((f) =>
-        f.id === "FIND-02"
-          ? {
-              ...f,
-              status: "REOPENED_DRIFT",
-              description:
-                "POLICY DRIFT ALERT: GDPR v2 reduced maximum retention to 2 years. Contractual 5-year retention is now an immediate statutory violation.",
-              severity: "CRITICAL",
-            }
+        f.framework === scenario.framework
+          ? { ...f, status: "REOPENED_DRIFT" as const, severity: "CRITICAL" as const }
           : f
       )
     );

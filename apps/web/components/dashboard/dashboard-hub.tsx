@@ -36,7 +36,7 @@ export function DashboardHub({
       number: formatNumber(agentsCount),
       label: "Active AI",
       subLabel: "Real-Time Pipeline Execution",
-      helper: "Gemma 2B, Gemini 1.5 & Gemini 2.5",
+      helper: "Gemma 2 (Vertex AI), Gemini 1.5 & Gemini 2.5",
       targetName: "New Investigation",
     },
     {

@@ -1,5 +1,5 @@
 """
-Adaptador para o modelo Gemini 2.5 Flash — motor de raciocínio principal do AEGIS.
+Adaptador para o modelo Gemini 3.6 Flash — motor de raciocínio principal do AEGIS.
 """
 
 import os
@@ -15,13 +15,13 @@ T = TypeVar("T", bound=BaseModel)
 
 class GeminiFlashModel(BaseLanguageModel):
     """
-    Adaptador para o Gemini 2.5 Flash via Google GenAI SDK / Vertex AI.
+    Adaptador para o Gemini 3.6 Flash via Google GenAI SDK / Vertex AI.
     Possui fallback automático para modo determinístico quando em REPLAY_MODE ou na ausência de API Key.
     """
 
     def __init__(
         self,
-        model_name: str = "gemini-2.5-flash",
+        model_name: str = "gemini-3.6-flash",
         api_key: Optional[str] = None,
         replay_mode: Optional[bool] = None,
     ):

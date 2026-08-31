@@ -18,7 +18,7 @@ export interface AgentInfo {
   id: string;
   name: string;
   role: string;
-  model: "Gemini 2.5 Flash" | "Gemma (Vertex AI)" | "Gemini 2.5 Pro";
+  model: "Gemini 3.6 Flash" | "Gemma (Vertex AI)" | "Gemini 2.5 Pro";
   status: AgentStatus;
   currentTask?: string;
   confidence: number;

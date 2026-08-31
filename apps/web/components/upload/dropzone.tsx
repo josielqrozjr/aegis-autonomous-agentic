@@ -17,25 +17,25 @@ export function Dropzone({ onStartInvestigation }: DropzoneProps) {
     {
       id: "LGPD",
       label: "LGPD (Brazil)",
-      agent: "LGPD Specialist (Gemini 1.5 Flash)",
+      agent: "LGPD Specialist (Gemini 3.6 Flash)",
       desc: "Law 13,709/2018 · Privacy, lawful bases and data subject rights",
     },
     {
       id: "GDPR",
       label: "GDPR (European Union)",
-      agent: "GDPR Specialist (Gemini 1.5 Flash)",
+      agent: "GDPR Specialist (Gemini 3.6 Flash)",
       desc: "Art. 5(1)(e) Storage limitation & Art. 17 right to erasure",
     },
     {
       id: "ISO 27001",
       label: "ISO/IEC 27001",
-      agent: "ISO Specialist (Gemini 1.5 Flash)",
+      agent: "ISO Specialist (Gemini 3.6 Flash)",
       desc: "Controls A.8.10 information deletion & A.5.15 access control",
     },
     {
       id: "OWASP",
       label: "OWASP Top 10 / LLM",
-      agent: "PII & Security Mesh (Gemma 2B)",
+      agent: "PII & Security Mesh (Gemma 2 (Vertex AI))",
       desc: "Sensitive prompt redaction & API secret exposure checks",
     },
   ];

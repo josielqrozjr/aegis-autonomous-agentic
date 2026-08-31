@@ -51,7 +51,7 @@ export function generateFinalDocumentContent(
 **SHA-256 Authenticity Hash:** ${investigation.documentHash}
 **Governing Frameworks:** ${investigation.frameworks.join(" / ")}
 **Certification Status:** 100% Certified & Compliant
-**Autonomous Verification Engine:** AEGIS Multi-Agent Governance Engine (Gemma 2B + Gemini 1.5 Flash + Gemini 2.5 Pro)
+**Autonomous Verification Engine:** AEGIS Multi-Agent Governance Engine (Gemma 2 (Vertex AI) + Gemini 3.6 Flash + Gemini 2.5 Pro)
 
 ---
 
@@ -237,7 +237,7 @@ export function printDocumentAsPdf(
     </div>
     <div class="meta-row">
       <span class="meta-label">Verification Models:</span>
-      <span class="meta-val">Google Gemma 2B · Gemini 1.5 Flash · Gemini 2.5 Pro (Adversarial Critic)</span>
+      <span class="meta-val">Google Gemma 2 (Vertex AI) · Gemini 3.6 Flash · Gemini 2.5 Pro (Adversarial Critic)</span>
     </div>
   </div>
 

@@ -155,11 +155,25 @@ export function TrustGraphTabView({
         (!findings.some((x) => x.investigationId === inv.id) && f.investigationId === "INV-2024-0047")
     );
     const total = invGaps.length;
-    const resolved = invGaps.filter((f) => f.status === "RESOLVED").length;
+    const resolved = invGaps.filter(
+      (f) => f.status === "RESOLVED" || f.remediationStatus === "APPROVED" || f.remediationStatus === "APPLIED"
+    ).length;
     const open = total - resolved;
     const progressPercent = total > 0 ? Math.round((resolved / total) * 100) : 100;
 
-    if (inv.id === "INV-2024-0047" && isDriftActive) {
+    // Se todos os apontamentos foram resolvidos ou o documento já foi aprovado
+    if ((resolved === total && total > 0) || inv.status === "COMPLETED" || progressPercent === 100) {
+      return {
+        status: "COMPLETED",
+        progressPercent: 100,
+        total,
+        resolved: total,
+        open: 0,
+        label: "Completed",
+      };
+    }
+
+    if (inv.id === "INV-2024-0047" && isDriftActive && resolved < total) {
       return {
         status: "POLICY_DRIFT",
         progressPercent,
@@ -170,18 +184,7 @@ export function TrustGraphTabView({
       };
     }
 
-    if (inv.status === "COMPLETED" && (resolved === total || total === 0)) {
-      return {
-        status: "COMPLETED",
-        progressPercent: 100,
-        total,
-        resolved,
-        open: 0,
-        label: "Completed",
-      };
-    }
-
-    if (resolved > 0) {
+    if (resolved > 0 || (inv.progressPercent && inv.progressPercent > 0)) {
       return {
         status: "INVESTIGATING",
         progressPercent,
@@ -511,22 +514,23 @@ export function TrustGraphTabView({
                     onClick={() => {
                       if (onApproveDocument) {
                         onApproveDocument(activeDoc.id);
-                      } else {
-                        docFindings.forEach((f) => {
-                          if (f.status !== "RESOLVED") {
-                            onApplyRemediation(f);
-                          }
-                        });
                       }
+                      docFindings.forEach((f) => {
+                        onApplyRemediation({
+                          ...f,
+                          status: "RESOLVED",
+                          remediationStatus: "APPROVED",
+                        });
+                      });
                     }}
                     className={cn(
                       "px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer shadow-md flex items-center gap-1.5",
-                      activeDocProgress.status === "COMPLETED"
+                      activeDocProgress.status === "COMPLETED" || activeDoc.status === "COMPLETED"
                         ? "bg-[#3B8F6B]/20 text-[#3B8F6B] border border-[#3B8F6B]/40"
                         : "bg-[#B8843A] hover:bg-[#CCA159] text-[#0D1013]"
                     )}
                   >
-                    {activeDocProgress.status === "COMPLETED"
+                    {activeDocProgress.status === "COMPLETED" || activeDoc.status === "COMPLETED"
                       ? "Completed"
                       : "Approve Document"}
                   </button>

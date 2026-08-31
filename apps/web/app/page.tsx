@@ -14,6 +14,7 @@ import { PolicyDriftPanel } from "@/components/drift/policy-drift-panel";
 import { FindingsPanel } from "@/components/findings/findings-panel";
 import { SourceDocumentViewer } from "@/components/evidence/source-document-viewer";
 import { RemediationModal } from "@/components/remediation/remediation-modal";
+import { RemediationDriftView } from "@/components/drift/remediation-drift-view";
 import { DemoFlowController } from "@/components/demo/demo-flow-controller";
 import { ComplianceReportView } from "@/components/reports/compliance-report-view";
 import { 
@@ -45,8 +46,23 @@ export default function Home() {
   const [isDriftActive, setIsDriftActive] = useState(false);
 
   // Dynamic Real Metrics
-  const resolvedFindingsCount = findings.filter((f) => f.status === "RESOLVED").length;
+  const activeDocFindings = findings.filter(
+    (f) =>
+      f.investigationId === currentInvestigation.id ||
+      (!findings.some((x) => x.investigationId === currentInvestigation.id) &&
+        f.investigationId === "INV-2024-0047")
+  );
+  const activeDocResolved = activeDocFindings.filter(
+    (f) => f.status === "RESOLVED" || f.remediationStatus === "APPROVED" || f.remediationStatus === "APPLIED"
+  ).length;
+  const dynamicCompliancePercent = activeDocFindings.length > 0
+    ? Math.round((activeDocResolved / activeDocFindings.length) * 100)
+    : 100;
+  const resolvedFindingsCount = findings.filter(
+    (f) => f.status === "RESOLVED" || f.remediationStatus === "APPROVED" || f.remediationStatus === "APPLIED"
+  ).length;
   const activeAgentsCount = agents.filter((a) => a.status === "COMPLETED" || a.status === "RUNNING").length;
+  const realDriftCount = isDriftActive ? graphData.invalid_nodes : 0;
 
   const handleStartInvestigation = (data: { fileName: string; content: string; frameworks: string[] }) => {
     const newId = `INV-2024-00${investigations.length + 48}`;
@@ -172,10 +188,14 @@ export default function Home() {
   const handleApplyRemediation = (findingOrId: Finding | string) => {
     const findingId = typeof findingOrId === "string" ? findingOrId : findingOrId.id;
 
-    // Atualiza o estado dos findings (toggle entre RESOLVED e OPEN)
+    // Atualiza o estado dos findings (toggle entre RESOLVED/APPROVED e OPEN/PROPOSED)
     const updatedFindings = findings.map((f) =>
       f.id === findingId
-        ? { ...f, status: f.status === "RESOLVED" ? ("OPEN" as const) : ("RESOLVED" as const) }
+        ? {
+            ...f,
+            status: f.status === "RESOLVED" ? ("OPEN" as const) : ("RESOLVED" as const),
+            remediationStatus: f.status === "RESOLVED" ? ("PROPOSED" as const) : ("APPROVED" as const),
+          }
         : f
     );
     setFindings(updatedFindings);
@@ -191,11 +211,22 @@ export default function Home() {
           f.investigationId === "INV-2024-0047")
     );
     const totalGaps = invFindings.length;
-    const resolvedGaps = invFindings.filter((f) => f.status === "RESOLVED").length;
-    const progressPercent = totalGaps > 0 ? Math.round((resolvedGaps / totalGaps) * 100) : 0;
+    const resolvedGaps = invFindings.filter(
+      (f) => f.status === "RESOLVED" || f.remediationStatus === "APPROVED" || f.remediationStatus === "APPLIED"
+    ).length;
+    const progressPercent = totalGaps > 0 ? Math.round((resolvedGaps / totalGaps) * 100) : 100;
 
-    // O status acompanha a atualização das remediações (Pending se 0, In Progress se 1..total). Só é COMPLETED após aprovação explícita.
-    const newStatus = resolvedGaps > 0 ? "INVESTIGATING" : "PENDING_REVIEW";
+    // Se todos os apontamentos foram resolvidos, o status torna-se COMPLETED
+    const isComplete = resolvedGaps === totalGaps && totalGaps > 0;
+    const newStatus: InvestigationStatus = isComplete
+      ? "COMPLETED"
+      : resolvedGaps > 0
+      ? "INVESTIGATING"
+      : "PENDING_REVIEW";
+
+    if (isComplete) {
+      setIsDriftActive(false);
+    }
 
     // Atualiza o status e percentual na lista global de investigações
     setInvestigations((prev) =>
@@ -203,8 +234,8 @@ export default function Home() {
         inv.id === targetInvId
           ? {
               ...inv,
-              status: inv.status === "COMPLETED" && resolvedGaps === totalGaps ? "COMPLETED" : newStatus,
-              progressPercent,
+              status: newStatus,
+              progressPercent: isComplete ? 100 : progressPercent,
               findingsCount: {
                 ...inv.findingsCount,
                 critical: invFindings.filter((f) => f.severity === "CRITICAL" && f.status !== "RESOLVED").length,
@@ -220,8 +251,8 @@ export default function Home() {
     if (currentInvestigation.id === targetInvId) {
       setCurrentInvestigation((prev) => ({
         ...prev,
-        status: prev.status === "COMPLETED" && resolvedGaps === totalGaps ? "COMPLETED" : newStatus,
-        progressPercent,
+        status: newStatus,
+        progressPercent: isComplete ? 100 : progressPercent,
       }));
     }
 
@@ -235,17 +266,19 @@ export default function Home() {
         }
         return n;
       }),
+      invalid_nodes: isComplete ? 0 : prev.invalid_nodes,
     }));
   };
 
   const handleApproveDocument = (invId: string) => {
-    // Marca todos os achados do documento como RESOLVED
+    // Marca todos os achados do documento como RESOLVED e APPROVED
     const updatedFindings = findings.map((f) =>
       f.investigationId === invId || (!findings.some((x) => x.investigationId === invId) && f.investigationId === "INV-2024-0047")
-        ? { ...f, status: "RESOLVED" as const }
+        ? { ...f, status: "RESOLVED" as const, remediationStatus: "APPROVED" as const }
         : f
     );
     setFindings(updatedFindings);
+    setIsDriftActive(false);
 
     // Atualiza o status do documento para COMPLETED com 100% de conformidade
     setInvestigations((prev) =>
@@ -335,8 +368,8 @@ export default function Home() {
               investigationsCount={investigations.length}
               agentsCount={activeAgentsCount}
               findingsCount={findings.length}
-              driftNodesCount={isDriftActive ? graphData.invalid_nodes : 3}
-              compliancePercent={currentInvestigation.progressPercent}
+              driftNodesCount={realDriftCount}
+              compliancePercent={dynamicCompliancePercent}
             />
           )}
 
@@ -347,8 +380,8 @@ export default function Home() {
               investigationsCount={investigations.length}
               agentsCount={activeAgentsCount}
               findingsCount={findings.length}
-              driftNodesCount={isDriftActive ? graphData.invalid_nodes : 3}
-              compliancePercent={currentInvestigation.progressPercent}
+              driftNodesCount={realDriftCount}
+              compliancePercent={dynamicCompliancePercent}
             />
           )}
 
@@ -412,26 +445,29 @@ export default function Home() {
 
           {/* TAB 4: REMEDIATION & CHANGE (POLICY DRIFT) */}
           {activeTab === "remediation" && (
-            <div className="space-y-6">
-              <PolicyDriftPanel
-                onDriftTriggered={handleDriftTriggered}
-                onReset={handleResetDrift}
-                isDriftActive={isDriftActive}
-              />
-
-              <TrustGraphViewer
-                graphData={graphData}
-                onNodeSelect={(node) => setSelectedNodeId(node.id)}
-                selectedNodeId={selectedNodeId}
-                isDrifting={isDriftActive}
-              />
-
-              <FindingsPanel
-                findings={findings.filter((f) => isDriftActive ? f.status === "REOPENED_DRIFT" || f.severity === "CRITICAL" : true)}
-                onOpenEvidence={(f) => setSelectedFindingForEvidence(f)}
-                onApplyRemediation={(f) => setSelectedFindingForRemediation(f)}
-              />
-            </div>
+            <RemediationDriftView
+              investigations={investigations}
+              currentInvestigation={currentInvestigation}
+              findings={findings}
+              agents={agents}
+              graphData={graphData}
+              isDriftActive={isDriftActive}
+              onDriftTriggered={handleDriftTriggered}
+              onResetDrift={handleResetDrift}
+              onApplyRemediation={handleApplyRemediation}
+              onApproveDocument={handleApproveDocument}
+              onOpenEvidence={(f) => setSelectedFindingForEvidence(f)}
+              onNavigateToTrustGraph={(docId) => {
+                if (docId) {
+                  setSelectedDocIdForGraph(docId);
+                  const targetInv = investigations.find((inv) => inv.id === docId);
+                  if (targetInv) setCurrentInvestigation(targetInv);
+                } else {
+                  setSelectedDocIdForGraph(null);
+                }
+                setActiveTab("dashboard");
+              }}
+            />
           )}
 
           {/* TAB 5: FINAL REPORT */}

@@ -67,7 +67,15 @@ export async function fetchTrustGraph(investigationId: string): Promise<TrustGra
     const res = await fetch(`${API_BASE_URL}/investigations/${investigationId}/trust-graph`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    return data.graph;
+    const graph = data.graph;
+    return {
+      investigation_id: data.investigation_id || investigationId,
+      nodes: graph.nodes || [],
+      edges: graph.edges || [],
+      total_nodes: graph.summary?.total_nodes ?? graph.nodes?.length ?? 0,
+      valid_nodes: graph.summary?.valid ?? graph.nodes?.filter((n: any) => n.valid).length ?? 0,
+      invalid_nodes: graph.summary?.invalidated ?? graph.nodes?.filter((n: any) => !n.valid).length ?? 0,
+    };
   } catch (err) {
     console.warn("FastAPI offline para trust-graph, utilizando fallback interativo:", err);
     return null;

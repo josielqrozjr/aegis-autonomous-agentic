@@ -105,6 +105,7 @@ export function RemediationDriftView({
   currentInvestigation,
   findings,
   agents,
+  graphData,
   isDriftActive,
   onDriftTriggered,
   onResetDrift,
@@ -127,10 +128,24 @@ export function RemediationDriftView({
     investigations[0] ||
     currentInvestigation;
 
-  // Finding principal do cenário
+  // Finding principal do cenário — match from real API data
   const targetFinding =
     findings.find((f) => f.framework === currentScenario.framework) ||
     findings[0];
+
+  // Compute real node IDs to invalidate from the graph
+  const realInvalidatedNodeIds = graphData.nodes
+    .filter((n) => {
+      if (currentScenario.framework === "GDPR") return n.source?.includes("security") || n.source?.includes("GDPR");
+      if (currentScenario.framework === "LGPD") return n.source?.includes("privacy") || n.source?.includes("LGPD");
+      if (currentScenario.framework === "ISO 27001") return n.source?.includes("governance") || n.source?.includes("ISO");
+      return false;
+    })
+    .map((n) => n.id);
+
+  // Use real evidence quote for Step 3 display
+  const displayClauseText = targetFinding?.evidenceQuote || currentScenario.currentClauseText;
+  const displayRemediatedText = targetFinding?.remediationSuggestion || currentScenario.remediatedClauseText;
 
   const handleSimulateScenario = () => {
     setIsSimulating(true);
@@ -141,7 +156,7 @@ export function RemediationDriftView({
         framework: currentScenario.framework,
         version: currentScenario.version,
         description: currentScenario.changeSummary,
-        invalidatedNodeIds: currentScenario.invalidatedNodeIds,
+        invalidatedNodeIds: realInvalidatedNodeIds.length > 0 ? realInvalidatedNodeIds : currentScenario.invalidatedNodeIds,
       });
       setIsSimulating(false);
     }, 900);
@@ -154,7 +169,7 @@ export function RemediationDriftView({
       if (targetFinding) {
         onApplyRemediation({
           ...targetFinding,
-          remediationSuggestion: currentScenario.remediatedClauseText,
+          remediationSuggestion: displayRemediatedText,
         });
       }
 
@@ -400,7 +415,7 @@ export function RemediationDriftView({
               <span className="text-[10px] uppercase">Violated</span>
             </div>
             <p className="text-xs text-[#9096A0] italic bg-[#0D1013] p-3.5 rounded-lg border border-[#2A3038] leading-relaxed font-mono">
-              "{currentScenario.currentClauseText}"
+              "{displayClauseText}"
             </p>
           </div>
 
@@ -411,7 +426,7 @@ export function RemediationDriftView({
               <span className="text-[10px] uppercase">100% Compliant</span>
             </div>
             <p className="text-xs text-white italic bg-[#0D1013] p-3.5 rounded-lg border border-[#3B8F6B]/30 leading-relaxed font-mono">
-              "{currentScenario.remediatedClauseText}"
+              "{displayRemediatedText}"
             </p>
           </div>
         </div>

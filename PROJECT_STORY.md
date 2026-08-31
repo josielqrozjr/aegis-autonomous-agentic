@@ -1,5 +1,7 @@
 # Project Story
 
+> Rascunho em português para a narrativa final do projeto.
+
 ## Inspiration
 
 A ideia para o AEGIS nasceu de uma frustração recorrente em ambientes empresariais e regulatórios: a conformidade é tratada como um checkpoint estático. Um documento é revisado, uma auditoria é concluída, e a organização segue em frente — até que uma nova regra entra em vigor, uma exigência muda de interpretação ou uma evidência antiga deixa de ser suficiente.

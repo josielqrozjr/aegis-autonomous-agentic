@@ -409,29 +409,20 @@ export function RemediatedDocumentViewer({
         {/* ========================================================================= */}
         {/* RODAPÉ DO VISUALIZADOR COM EXPORTAÇÃO E FECHAMENTO                         */}
         {/* ========================================================================= */}
-        <div className="p-4 bg-[#171B1F] border-t border-[#2A3038] flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-xs font-mono text-[#9096A0]">
-            <span>Status:</span>
-            <span className="text-[#3B8F6B] font-semibold">
-              Ready for Cryptographic Attestation Seal
-            </span>
-          </div>
+        <div className="p-4 bg-[#171B1F] border-t border-[#2A3038] flex items-center justify-end gap-3">
+          <button
+            onClick={handleCopyText}
+            className="px-4 py-2 rounded-lg text-xs font-mono font-semibold bg-[#0D1013] hover:bg-[#21262B] text-white border border-[#2A3038] transition-colors cursor-pointer"
+          >
+            {copied ? "✓ Copied to Clipboard" : "Copy Document Content"}
+          </button>
 
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleCopyText}
-              className="px-4 py-2 rounded-lg text-xs font-mono font-semibold bg-[#0D1013] hover:bg-[#21262B] text-white border border-[#2A3038] transition-colors cursor-pointer"
-            >
-              {copied ? "✓ Copied to Clipboard" : "Copy Document Content"}
-            </button>
-
-            <button
-              onClick={onClose}
-              className="px-5 py-2 rounded-lg text-xs font-semibold bg-[#B8843A] hover:bg-[#CCA159] text-[#0D1013] transition-colors cursor-pointer"
-            >
-              Close Inspector
-            </button>
-          </div>
+          <button
+            onClick={onClose}
+            className="px-5 py-2 rounded-lg text-xs font-semibold bg-[#B8843A] hover:bg-[#CCA159] text-[#0D1013] transition-colors cursor-pointer"
+          >
+            Close
+          </button>
         </div>
       </div>
     </div>

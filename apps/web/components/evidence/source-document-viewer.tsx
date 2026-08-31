@@ -140,7 +140,7 @@ export function SourceDocumentViewer({ finding, onClose }: SourceDocumentViewerP
             onClick={onClose}
             className="px-4 py-2 rounded-lg text-xs font-semibold bg-[#0D1013] hover:bg-[#21262B] text-[#9096A0] hover:text-white border border-[#2A3038] transition-colors"
           >
-            Close Inspector
+            Close
           </button>
         </div>
       </div>

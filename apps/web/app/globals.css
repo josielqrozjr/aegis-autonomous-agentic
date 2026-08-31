@@ -33,3 +33,31 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #3A434F;
 }
+
+/* Otimização de Impressão e Exportação para PDF */
+@media print {
+  @page {
+    margin: 1.5cm;
+    size: auto;
+  }
+
+  body, html {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  aside, header, nav, button, .print\:hidden {
+    display: none !important;
+  }
+
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    background: transparent !important;
+    width: 100% !important;
+    height: auto !important;
+  }
+}

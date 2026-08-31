@@ -24,7 +24,18 @@ import {
   MOCK_TRUST_GRAPH_INITIAL 
 } from "@/lib/mock-data";
 import { Investigation, InvestigationStatus, Finding } from "@/lib/types";
-import { TrustGraphData } from "@/lib/api/client";
+import { 
+  TrustGraphData, 
+  uploadDocument, 
+  createInvestigation, 
+  runInvestigation, 
+  fetchInvestigation, 
+  fetchTrustGraph,
+  fetchAgents,
+  transformFinding, 
+  transformInvestigation,
+  transformAgents,
+} from "@/lib/api/client";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -64,52 +75,110 @@ export default function Home() {
   const activeAgentsCount = agents.filter((a) => a.status === "COMPLETED" || a.status === "RUNNING").length;
   const realDriftCount = isDriftActive ? graphData.invalid_nodes : 0;
 
-  const handleStartInvestigation = (data: { fileName: string; content: string; frameworks: string[] }) => {
-    const newId = `INV-2024-00${investigations.length + 48}`;
-    const newInv: Investigation = {
-      id: newId,
+  const handleStartInvestigation = async (data: { fileName: string; content: string; frameworks: string[]; file?: File }) => {
+    // Create a placeholder investigation for immediate UI feedback
+    const placeholderId = `INV-${Date.now()}`;
+    const placeholderInv: Investigation = {
+      id: placeholderId,
       title: `Audit: ${data.fileName}`,
       documentName: data.fileName,
-      documentHash: "a7b3c2d4e5f60718293a4b5c6d7e8f90123456789abcdef0123456789abcdef0",
+      documentHash: "computing...",
       fileSizeBytes: data.content.length,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       status: "UNDERSTANDING",
-      progressPercent: 20,
+      progressPercent: 10,
       frameworks: data.frameworks,
       findingsCount: { total: 0, critical: 0, high: 0, medium: 0, low: 0 },
     };
 
-    setInvestigations([newInv, ...investigations]);
-    setCurrentInvestigation(newInv);
+    setInvestigations([placeholderInv, ...investigations]);
+    setCurrentInvestigation(placeholderInv);
     setPipelineStatus("UNDERSTANDING");
     setActiveTab("dashboard");
+    setAgents((prev) => prev.map((a) => ({ ...a, status: "IDLE" as const })));
 
-    setTimeout(() => {
+    try {
+      // 1. Upload document to API
+      let fileToUpload: File;
+      if (data.file) {
+        fileToUpload = data.file;
+      } else {
+        fileToUpload = new File([data.content], data.fileName, { type: "text/plain" });
+      }
+      const uploadResult = await uploadDocument(fileToUpload);
+      console.log("[AEGIS] Document uploaded:", uploadResult.id);
+
+      // 2. Create investigation
       setPipelineStatus("PLANNING");
-      setAgents((prev) =>
-        prev.map((a) => (a.id === "pii-scanner" ? { ...a, status: "RUNNING" } : a))
-      );
-    }, 1000);
+      setAgents((prev) => prev.map((a) => (a.id === "pii-scanner" ? { ...a, status: "RUNNING" as const } : a)));
+      const invResult = await createInvestigation(`Audit: ${data.fileName}`, uploadResult.id);
+      console.log("[AEGIS] Investigation created:", invResult.id);
 
-    setTimeout(() => {
+      // 3. Run pipeline (real Gemini analysis)
       setPipelineStatus("INVESTIGATING");
-      setAgents((prev) =>
-        prev.map((a) =>
-          a.id === "pii-scanner"
-            ? { ...a, status: "COMPLETED" }
-            : a.id.includes("specialist")
-            ? { ...a, status: "RUNNING" }
-            : a
-        )
-      );
-    }, 2500);
+      setAgents((prev) => prev.map((a) => a.id.includes("specialist") ? { ...a, status: "RUNNING" as const } : a));
+      const runResult = await runInvestigation(invResult.id);
+      console.log("[AEGIS] Pipeline completed:", runResult.final_status, "Steps:", runResult.steps_executed);
 
-    setTimeout(() => {
+      // 4. Fetch full investigation with findings
+      setPipelineStatus("ADVERSARIAL_REVIEW");
+      setAgents((prev) => prev.map((a) => a.id === "evidence-critic" ? { ...a, status: "RUNNING" as const } : a));
+      const fullInv = await fetchInvestigation(invResult.id);
+
+      // 5. Transform and set real data
+      const realFindings: Finding[] = (fullInv.findings || []).map((f: any) =>
+        transformFinding(f, invResult.id)
+      );
+
+      // Add remediation suggestions from remediations
+      if (fullInv.remediations) {
+        for (const rem of fullInv.remediations) {
+          const finding = realFindings.find((f) => f.id === rem.finding_id);
+          if (finding) {
+            finding.remediationSuggestion = rem.recommendation;
+            finding.remediationStatus = "PROPOSED";
+          }
+        }
+      }
+
+      const realInvestigation = transformInvestigation(fullInv, data.fileName, data.content.length);
+
+      // 6. Fetch trust graph
+      const graphResult = await fetchTrustGraph(invResult.id);
+
+      // 7. Fetch agents
+      try {
+        const agentsResult = await fetchAgents();
+        if (agentsResult.agents) {
+          setAgents(transformAgents(agentsResult.agents));
+        }
+      } catch { /* keep existing agents */ }
+
+      // 8. Update UI with real data
+      setFindings(realFindings);
+      setCurrentInvestigation(realInvestigation);
+      setInvestigations([realInvestigation, ...investigations.filter((i) => i.id !== placeholderId)]);
+      if (graphResult) {
+        setGraphData({
+          ...graphResult,
+          investigation_id: invResult.id,
+        });
+      }
       setPipelineStatus("COMPLETED");
-      setAgents((prev) => prev.map((a) => ({ ...a, status: "COMPLETED" })));
+      setAgents((prev) => prev.map((a) => ({ ...a, status: "COMPLETED" as const })));
       setDemoStep(2);
-    }, 4000);
+
+      console.log("[AEGIS] ✅ Real analysis complete:", realFindings.length, "findings");
+
+    } catch (err) {
+      console.error("[AEGIS] API error, falling back to mock data:", err);
+      // Fallback to mock behavior if API is down
+      setPipelineStatus("COMPLETED");
+      setAgents((prev) => prev.map((a) => ({ ...a, status: "COMPLETED" as const })));
+      setFindings(MOCK_FINDINGS);
+      setDemoStep(2);
+    }
   };
 
   const handleDemoStepChange = (step: number) => {

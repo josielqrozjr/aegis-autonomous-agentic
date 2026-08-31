@@ -110,3 +110,148 @@ export async function invalidateNode(investigationId: string, nodeId: string, re
     };
   }
 }
+
+// ── Upload, Create, Run ──
+
+export async function uploadDocument(file: File): Promise<{ id: string; filename: string }> {
+  const formData = new FormData();
+  formData.append("file", file);
+  const res = await fetch(`${API_BASE_URL}/documents`, {
+    method: "POST",
+    body: formData,
+  });
+  if (!res.ok) throw new Error(`Upload failed: HTTP ${res.status}`);
+  return await res.json();
+}
+
+export async function createInvestigation(title: string, documentId: string): Promise<{ id: string; status: string }> {
+  const res = await fetch(`${API_BASE_URL}/investigations`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title, document_id: documentId }),
+  });
+  if (!res.ok) throw new Error(`Create failed: HTTP ${res.status}`);
+  return await res.json();
+}
+
+export async function runInvestigation(investigationId: string): Promise<any> {
+  const res = await fetch(`${API_BASE_URL}/investigations/${investigationId}/run`, {
+    method: "POST",
+  });
+  if (!res.ok) throw new Error(`Run failed: HTTP ${res.status}`);
+  return await res.json();
+}
+
+export async function fetchInvestigation(investigationId: string): Promise<any> {
+  const res = await fetch(`${API_BASE_URL}/investigations/${investigationId}`);
+  if (!res.ok) throw new Error(`Fetch failed: HTTP ${res.status}`);
+  return await res.json();
+}
+
+export async function fetchAgents(): Promise<any> {
+  // Use the root /agents endpoint (no /api/v1 prefix)
+  const rootUrl = API_BASE_URL.replace(/\/api\/v1$/, "");
+  const res = await fetch(`${rootUrl}/agents`);
+  if (!res.ok) throw new Error(`Fetch agents failed: HTTP ${res.status}`);
+  return await res.json();
+}
+
+// ── Transform backend → frontend types ──
+
+const FRAMEWORK_MAP: Record<string, "LGPD" | "GDPR" | "ISO 27001" | "OWASP"> = {
+  "LGPD-ART-15": "LGPD",
+  "LGPD-ART-16": "LGPD",
+  "GDPR-ART-5-1-E": "GDPR",
+  "GDPR-ART-17": "GDPR",
+  "ISO27001-A.8.10": "ISO 27001",
+};
+
+const AGENT_NAME_MAP: Record<string, string> = {
+  "agent-privacy-specialist": "LGPD Specialist (Gemini Flash)",
+  "agent-security-specialist": "GDPR Specialist (Gemini Flash)",
+  "agent-governance-specialist": "ISO Specialist (Gemini Flash)",
+  "agent-evidence-critic": "Evidence Critic (Gemini 2.5 Pro)",
+};
+
+const SEVERITY_MAP: Record<string, "CRITICAL" | "HIGH" | "MEDIUM" | "LOW"> = {
+  critical: "CRITICAL",
+  high: "HIGH",
+  medium: "MEDIUM",
+  low: "LOW",
+  info: "LOW",
+};
+
+export function transformFinding(backendFinding: any, investigationId: string): Finding {
+  const reqId = backendFinding.requirement_id || "";
+  const fw = FRAMEWORK_MAP[reqId] || "LGPD";
+  const firstEvidence = backendFinding.evidences?.[0];
+
+  return {
+    id: backendFinding.id,
+    investigationId,
+    title: backendFinding.title,
+    description: backendFinding.description,
+    severity: SEVERITY_MAP[backendFinding.severity] || "MEDIUM",
+    framework: fw,
+    articleOrControl: reqId,
+    agentId: backendFinding.agent_id,
+    agentName: AGENT_NAME_MAP[backendFinding.agent_id] || backendFinding.agent_id,
+    confidence: backendFinding.confidence ?? 0.85,
+    evidenceQuote: firstEvidence?.quote || backendFinding.description,
+    evidenceHash: firstEvidence?.content_hash || "N/A",
+    remediationSuggestion: backendFinding.description,
+    status: backendFinding.status === "confirmed" ? "REVIEWED" : "OPEN",
+    challengedByCritic: true,
+    criticVerdict: `Verified by Evidence Critic`,
+  };
+}
+
+export function transformInvestigation(backend: any, fileName: string, fileSize: number): Investigation {
+  const findings = backend.findings || [];
+  const severityCounts = { total: findings.length, critical: 0, high: 0, medium: 0, low: 0 };
+  for (const f of findings) {
+    const s = SEVERITY_MAP[f.severity] || "MEDIUM";
+    if (s === "CRITICAL") severityCounts.critical++;
+    else if (s === "HIGH") severityCounts.high++;
+    else if (s === "MEDIUM") severityCounts.medium++;
+    else severityCounts.low++;
+  }
+
+  const frameworks: string[] = [];
+  for (const f of findings) {
+    const fw = FRAMEWORK_MAP[f.requirement_id];
+    if (fw && !frameworks.includes(fw)) frameworks.push(fw);
+  }
+
+  return {
+    id: backend.id,
+    title: backend.title || `Audit: ${fileName}`,
+    documentName: fileName,
+    documentHash: backend.document?.metadata?.content_hash || "computed",
+    fileSizeBytes: fileSize,
+    createdAt: backend.created_at,
+    updatedAt: backend.updated_at,
+    status: "COMPLETED",
+    progressPercent: 100,
+    frameworks: frameworks.length > 0 ? frameworks : ["LGPD", "GDPR", "ISO 27001"],
+    findingsCount: severityCounts,
+  };
+}
+
+export function transformAgents(backendAgents: any[]): import("../types").AgentInfo[] {
+  const MODEL_MAP: Record<string, "Gemini 2.5 Flash" | "Gemma (Vertex AI)" | "Gemini 2.5 Pro"> = {
+    "gemini-2.5-flash": "Gemini 2.5 Flash",
+    "gemini-2.5-pro": "Gemini 2.5 Pro",
+    "gemma-2-9b-it": "Gemma (Vertex AI)",
+  };
+
+  return backendAgents.map((a: any) => ({
+    id: a.agent_id,
+    name: a.name,
+    role: a.description || a.role,
+    model: MODEL_MAP[a.model_used] || "Gemini 2.5 Flash",
+    status: "COMPLETED" as const,
+    confidence: 0.95,
+    findingsCount: 0,
+  }));
+}

@@ -5,12 +5,12 @@ import { SAMPLE_POLICIES } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
 interface DropzoneProps {
-  onStartInvestigation: (data: { fileName: string; content: string; frameworks: string[] }) => void;
+  onStartInvestigation: (data: { fileName: string; content: string; frameworks: string[]; file?: File }) => void;
 }
 
 export function Dropzone({ onStartInvestigation }: DropzoneProps) {
   const [dragActive, setDragActive] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<{ name: string; size: number; content: string } | null>(null);
+  const [selectedFile, setSelectedFile] = useState<{ name: string; size: number; content: string; rawFile?: File } | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
   const activeFrameworks = [
@@ -73,6 +73,7 @@ export function Dropzone({ onStartInvestigation }: DropzoneProps) {
         name: file.name,
         size: file.size,
         content: (event.target?.result as string) || "Document content...",
+        rawFile: file,
       });
     };
     reader.readAsText(file);
@@ -89,14 +90,13 @@ export function Dropzone({ onStartInvestigation }: DropzoneProps) {
   const handleStart = () => {
     if (!selectedFile) return;
     setIsProcessing(true);
-    setTimeout(() => {
-      onStartInvestigation({
-        fileName: selectedFile.name,
-        content: selectedFile.content,
-        frameworks: ["LGPD", "GDPR", "ISO 27001", "OWASP"],
-      });
-      setIsProcessing(false);
-    }, 500);
+    onStartInvestigation({
+      fileName: selectedFile.name,
+      content: selectedFile.content,
+      frameworks: ["LGPD", "GDPR", "ISO 27001", "OWASP"],
+      file: selectedFile.rawFile,
+    });
+    setIsProcessing(false);
   };
 
   return (

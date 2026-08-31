@@ -145,7 +145,7 @@ class InvestigationHandler:
         )
 
     async def _route(self, inv: Investigation):
-        """Dynamic routing: verify agents exist in registry."""
+        """Dynamic routing: verify agents exist in registry, add agent nodes to trust graph."""
         if not inv.plan:
             return
 
@@ -155,9 +155,18 @@ class InvestigationHandler:
                 if agent is None:
                     task.error = f"Agent {task.agent_id} not found in registry"
                     task.status = TaskStatus.FAILED
-
                     await self._audit(inv.id, task.agent_id, "AGENT_NOT_FOUND",
                                       f"Agent {task.agent_id} not available")
+                elif self._trust_graph:
+                    # Add agent node to trust graph
+                    self._trust_graph.add_node(TrustNode(
+                        node_id=f"agent-{task.agent_id}",
+                        node_type=TrustNodeType.AGENT,
+                        source=agent.name,
+                        agent_id=task.agent_id,
+                        confidence=1.0,
+                        metadata={"role": task.agent_role.value, "model": agent.model_used or "gemini-3.6-flash"},
+                    ))
 
         await self._audit(inv.id, "router", "ROUTING_COMPLETE",
                           f"Routed {len(inv.plan.tasks)} tasks")
@@ -195,6 +204,19 @@ class InvestigationHandler:
                 # Add nodes to trust graph
                 if self._trust_graph:
                     doc_node_id = f"doc-{inv.document.id}" if self._trust_graph.get_node(f"doc-{inv.document.id}") else inv.document.id
+
+                    # Add requirement node (if not already added)
+                    req_node_id = f"req-{finding.requirement_id}"
+                    if not self._trust_graph.get_node(req_node_id):
+                        self._trust_graph.add_node(TrustNode(
+                            node_id=req_node_id,
+                            node_type=TrustNodeType.REQUIREMENT,
+                            source=finding.requirement_id,
+                            confidence=1.0,
+                            metadata={"regulation": finding.requirement_id},
+                        ))
+
+                    # Add evidence nodes
                     for ev in finding.evidences:
                         self._trust_graph.add_node(TrustNode(
                             node_id=ev.id,
@@ -203,15 +225,17 @@ class InvestigationHandler:
                             agent_id=task.agent_id,
                             confidence=ev.confidence_score,
                             content_hash=ev.content_hash or hashlib.sha256(ev.quote.encode()).hexdigest(),
-                            dependencies=[doc_node_id],
+                            dependencies=[doc_node_id, f"agent-{task.agent_id}"],
                         ))
+
+                    # Add finding node (depends on evidence + requirement)
                     self._trust_graph.add_node(TrustNode(
                         node_id=finding.id,
                         node_type=TrustNodeType.FINDING,
                         source=task.agent_id,
                         agent_id=task.agent_id,
                         confidence=finding.confidence,
-                        dependencies=[ev.id for ev in finding.evidences],
+                        dependencies=[ev.id for ev in finding.evidences] + [req_node_id],
                         metadata={"requirement_id": finding.requirement_id},
                     ))
 

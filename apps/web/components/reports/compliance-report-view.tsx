@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { Download } from "lucide-react";
 import { Finding, Investigation } from "@/lib/types";
 import { TrustGraphData } from "@/lib/api/client";
 import { formatDate } from "@/lib/utils";
@@ -49,7 +50,8 @@ export function ComplianceReportView({
             onClick={handlePrint}
             className="px-4 py-2 rounded-lg text-xs font-semibold bg-[#B8843A] hover:bg-[#CCA159] text-[#0D1013] transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
           >
-            <span>Save PDF</span>
+            <Download className="w-3.5 h-3.5" />
+            <span>Download</span>
           </button>
         </div>
       </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Finding, Investigation, AgentInfo } from "@/lib/types";
 import { TrustGraphData, TrustGraphNode } from "@/lib/api/client";
@@ -497,45 +498,50 @@ export function TrustGraphTabView({
               </div>
 
               {/* Ação de Visualização, Download e Aprovação do Documento */}
-              <div className="flex flex-wrap items-center gap-3 shrink-0">
-                <button
-                  onClick={() => setIsPreviewDocOpen(true)}
-                  className="px-3.5 py-2 rounded-lg text-xs font-semibold bg-[#3B8F6B]/15 hover:bg-[#3B8F6B]/25 text-[#3B8F6B] border border-[#3B8F6B]/30 transition-colors cursor-pointer flex items-center gap-1.5"
-                >
-                  <span>Preview Remediated Document</span>
-                </button>
+              <div className="flex flex-col sm:items-end gap-2 shrink-0">
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <button
+                    onClick={() => setIsPreviewDocOpen(true)}
+                    className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-[#3B8F6B]/15 hover:bg-[#3B8F6B]/25 text-[#3B8F6B] border border-[#3B8F6B]/30 transition-colors cursor-pointer flex items-center gap-1.5"
+                  >
+                    <span>Preview Remediated Document</span>
+                  </button>
 
-                <button
-                  onClick={() => printDocumentAsPdf(activeDoc, docFindings, isDriftActive)}
-                  className="px-3.5 py-2 rounded-lg text-xs font-semibold bg-[#0D1013] hover:bg-[#21262B] text-white border border-[#2A3038] hover:border-[#B8843A] transition-colors cursor-pointer flex items-center gap-1.5"
-                  title="Save / Download Final Document as PDF"
-                >
-                  <span>Save PDF</span>
-                </button>
+                  <button
+                    onClick={() => {
+                      if (onApproveDocument) {
+                        onApproveDocument(activeDoc.id);
+                      } else {
+                        docFindings.forEach((f) => {
+                          if (f.status !== "RESOLVED") {
+                            onApplyRemediation(f);
+                          }
+                        });
+                      }
+                    }}
+                    className={cn(
+                      "px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer shadow-md flex items-center gap-1.5",
+                      activeDocProgress.status === "COMPLETED"
+                        ? "bg-[#3B8F6B]/20 text-[#3B8F6B] border border-[#3B8F6B]/40"
+                        : "bg-[#B8843A] hover:bg-[#CCA159] text-[#0D1013]"
+                    )}
+                  >
+                    {activeDocProgress.status === "COMPLETED"
+                      ? "Completed"
+                      : "Approve Document"}
+                  </button>
+                </div>
 
-                <button
-                  onClick={() => {
-                    if (onApproveDocument) {
-                      onApproveDocument(activeDoc.id);
-                    } else {
-                      docFindings.forEach((f) => {
-                        if (f.status !== "RESOLVED") {
-                          onApplyRemediation(f);
-                        }
-                      });
-                    }
-                  }}
-                  className={cn(
-                    "px-3.5 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer shadow-md flex items-center gap-1.5",
-                    activeDocProgress.status === "COMPLETED"
-                      ? "bg-[#3B8F6B]/20 text-[#3B8F6B] border border-[#3B8F6B]/40"
-                      : "bg-[#B8843A] hover:bg-[#CCA159] text-[#0D1013]"
-                  )}
-                >
-                  {activeDocProgress.status === "COMPLETED"
-                    ? "Completed"
-                    : "Approve Document"}
-                </button>
+                <div>
+                  <button
+                    onClick={() => printDocumentAsPdf(activeDoc, docFindings, isDriftActive)}
+                    className="px-3 py-1 rounded-lg text-xs font-semibold bg-[#0D1013] hover:bg-[#21262B] text-[#B8843A] hover:text-[#CCA159] border border-[#2A3038] hover:border-[#B8843A] transition-colors cursor-pointer flex items-center gap-1.5"
+                    title="Download Document as PDF"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Download</span>
+                  </button>
+                </div>
               </div>
             </div>
 

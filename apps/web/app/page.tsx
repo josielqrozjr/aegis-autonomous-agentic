@@ -356,6 +356,7 @@ export default function Home() {
           {activeTab === "investigations" && (
             <InvestigationsTable
               investigations={investigations}
+              findings={findings}
               onSelect={(inv) => {
                 setCurrentInvestigation(inv);
                 setSelectedDocIdForGraph(inv.id);

@@ -23,25 +23,21 @@ export function MetricsHeader({
       targetTab: "investigations",
       label: "Total Investigations",
       value: `${totalInvestigations}`,
-      helper: "audits processed",
     },
     {
       targetTab: "new-investigation",
-      label: "Active AI Fleet",
+      label: "Active AI",
       value: `${activeAgents}`,
-      helper: "autonomous agents online",
     },
     {
       targetTab: "dashboard",
       label: "Findings Identified",
       value: `${findingsCount}`,
-      helper: "verified audit findings",
     },
     {
       targetTab: "remediation",
       label: "Remediations Applied",
       value: `${remediationsCount}`,
-      helper: "compliance patches active",
     },
   ];
 
@@ -56,14 +52,11 @@ export function MetricsHeader({
             onNavigate && "cursor-pointer hover:border-[#B8843A] hover:shadow-lg hover:shadow-black/40 hover:-translate-y-0.5"
           )}
         >
-          <div className="text-[11px] font-mono font-medium text-[#9096A0] uppercase tracking-wider mb-1 text-center group-hover:text-[#B8843A] transition-colors">
-            {m.label}
-          </div>
           <div className="text-3xl font-bold font-mono text-white tracking-tight my-0.5 text-center group-hover:text-[#B8843A] transition-colors">
             {m.value}
           </div>
-          <div className="text-[11px] text-[#5C636E] mt-0.5 font-mono text-center">
-            {m.helper}
+          <div className="text-[11px] font-mono font-medium text-[#9096A0] uppercase tracking-wider mt-1 text-center group-hover:text-[#B8843A] transition-colors">
+            {m.label}
           </div>
         </div>
       ))}

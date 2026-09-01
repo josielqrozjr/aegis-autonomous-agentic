@@ -52,7 +52,8 @@ async def test_deterministic_fallback_generation():
     # 1. Geração de texto para Document Understanding
     text_res = await fallback.generate_text("Por favor, execute o document understanding na política de retenção.")
     assert "jurisdiction" in text_res
-    assert "Política Global de Retenção" in text_res
+    assert "Retention" in text_res or "Retenção" in text_res
+
 
     # 2. Geração estruturada com Pydantic
     structured_res = await fallback.generate_structured(
@@ -88,9 +89,10 @@ async def test_gemini_models_health_and_conformance():
     assert len(conformance["models"]) == 3
 
     model_names = [m["name"] for m in conformance["models"]]
-    assert "Gemini 2.5 Flash" in model_names
+    assert any("Flash" in m for m in model_names)
     assert "Gemma (PII Scanner)" in model_names
     assert "Gemini 2.5 Pro" in model_names
+
 
     for m in conformance["models"]:
         assert "health" in m

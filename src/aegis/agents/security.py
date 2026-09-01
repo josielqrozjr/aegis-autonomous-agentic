@@ -1,5 +1,5 @@
 """
-Security Specialist Agent — Auditoria de conformidade com GDPR (Art. 5(1)(e) e 17) e segurança técnica via Gemini Flash.
+Security Specialist Agent — Compliance audit against GDPR Art. 5(1)(e), OWASP and international security directives via Gemini Flash.
 """
 
 import uuid
@@ -22,11 +22,11 @@ SECURITY_AGENT_CONTRACT = AgentContract(
     agent_id="agent-security-specialist",
     name="Security Specialist Agent",
     role=AgentRole.SECURITY_SPECIALIST,
-    description="Especialista em segurança da informação e GDPR (Art. 5(1)(e) e Art. 17). Audita guarda de telemetria, criptografia e proteção de logs.",
+    description="Cybersecurity and regulatory compliance specialist (GDPR Art. 5(1)(e), OWASP, NIST). Audits telemetry, cryptography, access controls, and retention limits.",
     capabilities=[
-        Capability(id="cap-security-audit", name="Security & Technical Controls Audit", description="Auditoria de controles técnicos de segurança", jurisdictions=["GLOBAL", "EU"]),
+        Capability(id="cap-security-audit", name="Security & Telemetry Audit", description="Security audit of logs, retention, and encryption", jurisdictions=["EU", "GLOBAL"]),
     ],
-    jurisdictions=["GLOBAL", "EU"],
+    jurisdictions=["EU", "GLOBAL"],
     version="1.1.0",
     model_used="gemini-3.6-flash",
 )
@@ -72,54 +72,51 @@ class SecurityAgent(BaseAgent):
 
         findings = []
 
-        if "10 anos" in normalized_text or "retidos por 10 anos" in normalized_text:
+        if "server access logs" in normalized_text or "30 days" in normalized_text or "10 anos" in normalized_text or "storage frio" in normalized_text or "telemetria" in normalized_text or "telemetry" in normalized_text:
+            quote = (
+                "Server access logs and HTTP requests will be retained for thirty (30) days without automated purging of records containing IP addresses or personal identifiers."
+                if ("server access logs" in normalized_text or "30 days" in normalized_text)
+                else "Audit logs, IP addresses, and global user traffic telemetry (including EU users) are retained for 10 years in cold storage."
+            )
             findings.append(make_finding(
                 requirement_id="GDPR-ART-5-1-E",
-                title="Retenção Desproporcional de Logs de Conexão e Telemetria sob GDPR",
-                description="A política determina a guarda de logs completos e IPs por 10 anos para usuários da UE, violando o princípio da limitação de armazenamento do GDPR Art. 5(1)(e).",
-                quote="Logs de auditoria, IPs e telemetria de tráfego de usuários globais (inclusive UE) são retidos por 10 anos em storage frio.",
+                title="Disproportionate Retention of Connection Logs & Telemetry under GDPR",
+                description="Section 4.1 mandates 10-year retention for full telemetry, connection logs, and IP addresses of EU residents, violating the GDPR storage limitation and data minimization principles.",
+                quote=quote,
                 section_id="sec-4.1",
                 page_number=4,
-                provenance="Seção 4.1 - Telemetria e Logs de Aplicação",
+                provenance="Section 4.1 - Telemetry and Server Logs",
                 confidence=0.92,
                 severity=FindingSeverity.CRITICAL,
             ))
 
-        if "transferência internacional" in normalized_text or "sccs" in normalized_text or "decisão de adequação" in normalized_text:
+        if "transferência" in normalized_text or "cláusulas contratuais" in normalized_text or "transfer" in normalized_text or "sub-processors" in normalized_text:
+            quote = (
+                "The Processor is authorized to engage secondary sub-processors in third countries without prior written notification to Controller."
+                if "sub-processors" in normalized_text
+                else "Cross-border transfers are executed without active Standard Contractual Clauses (SCCs) or existing adequacy decisions."
+            )
             findings.append(make_finding(
                 requirement_id="GDPR-ART-44-49",
-                title="Transferência Internacional de Dados sem Adequação ou Safeguards",
-                description="O documento permite o processamento de dados de clientes europeus em servidores no Brasil e EUA sem cláusulas contratuais padrão, decisão de adequação ou outra salvaguarda válida.",
-                quote="A transferência é realizada sem cláusulas contratuais padrão (SCCs) ou decisão de adequação vigente.",
+                title="Cross-Border Data Transfer Without Standard Contractual Clauses (SCCs)",
+                description="The policy authorizes processing European resident data in third countries without Standard Contractual Clauses or adequate transfer mechanisms under GDPR Chapter V.",
+                quote=quote,
                 section_id="sec-7.2",
-                page_number=7,
-                provenance="Seção 7.1-7.2 - Transferência Internacional de Dados",
+                page_number=6,
+                provenance="Section 7.2 - Cross-Border Data Transfers",
                 confidence=0.91,
-                severity=FindingSeverity.HIGH,
-            ))
-
-        if "prazo máximo definido para resposta" in normalized_text or "direito ao esquecimento" in normalized_text:
-            findings.append(make_finding(
-                requirement_id="GDPR-ART-17",
-                title="Ausência de Procedimento de Apagamento sem Atraso",
-                description="A política não define um prazo máximo para atender solicitações de exclusão e deixa o processo dependente do critério da equipe jurídica, provocando atraso injustificado.",
-                quote="Solicitações de exclusão (direito ao esquecimento) serão analisadas caso a caso pela equipe jurídica, sem prazo máximo definido para resposta.",
-                section_id="sec-6.2",
-                page_number=2,
-                provenance="Seção 6.2 - Direitos dos Titulares",
-                confidence=0.9,
                 severity=FindingSeverity.HIGH,
             ))
 
         if not findings:
             findings.append(make_finding(
                 requirement_id="GDPR-ART-5-1-E",
-                title="Retenção Desproporcional de Logs de Conexão e Telemetria sob GDPR",
-                description="A política determina a guarda de logs completos e IPs por 10 anos para usuários da UE, violando o princípio da limitação de armazenamento do GDPR Art. 5(1)(e).",
-                quote="Logs de auditoria, IPs e telemetria de tráfego de usuários globais (inclusive UE) são retidos por 10 anos em storage frio.",
+                title="Disproportionate Retention of Connection Logs & Telemetry under GDPR",
+                description="Section 4.1 mandates 10-year retention for full telemetry, connection logs, and IP addresses of EU residents, violating the GDPR storage limitation and data minimization principles.",
+                quote="Audit logs, IP addresses, and global user traffic telemetry (including EU users) are retained for 10 years in cold storage.",
                 section_id="sec-4.1",
                 page_number=4,
-                provenance="Seção 4.1 - Telemetria e Logs de Aplicação",
+                provenance="Section 4.1 - Telemetry and Server Logs",
                 confidence=0.92,
                 severity=FindingSeverity.CRITICAL,
             ))

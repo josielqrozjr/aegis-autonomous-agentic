@@ -1,5 +1,5 @@
 """
-Remediation Agent — Geração de recomendações de conformidade e planos de ação corretivos via Gemini Flash.
+Remediation Agent — Compliance recommendations and actionable remediation planning via Gemini Flash.
 """
 
 import uuid
@@ -20,9 +20,9 @@ REMEDIATION_AGENT_CONTRACT = AgentContract(
     agent_id="agent-remediation",
     name="Remediation Agent",
     role=AgentRole.REMEDIATION,
-    description="Analisa achados confirmados e propõe planos de ação corretivos específicos, responsáveis e prazos de remediação via Gemini Flash.",
+    description="Analyzes confirmed findings and generates actionable remediation recommendations, assigned owners, and statutory deadlines via Gemini Flash.",
     capabilities=[
-        Capability(id="cap-remediation-planning", name="Remediation Action Planning", description="Geração de recomendações acionáveis de remediação"),
+        Capability(id="cap-remediation-planning", name="Remediation Action Planning", description="Generation of actionable remediation plans"),
     ],
     jurisdictions=["GLOBAL", "BR", "EU"],
     version="1.1.0",
@@ -42,22 +42,22 @@ class RemediationAgent(BaseAgent):
         for f in findings_data:
             finding = Finding.model_validate(f) if isinstance(f, dict) else f
             
-            # Mapeamento e geração de remediação específica
+            # Specific remediation mapping
             if "LGPD" in finding.requirement_id:
-                rec = "Reduzir o prazo de guarda de dados cadastrais inativos para 5 anos (alinhado à prescrição cível) e implementar anonimização automática."
-                action = "Atualizar Seção 3.2 da política e programar job de descarte no banco de dados."
-                assignee = "DPO / Jurídico"
+                rec = "Reduce inactive customer data retention to 5 years (aligned with statutory limitation periods) and implement automated anonymization workflows."
+                action = "Update Section 3.2 of the policy and configure database lifecycle retention rules."
+                assignee = "DPO / Legal Counsel"
             elif "GDPR" in finding.requirement_id:
-                rec = "Segmentar retenção de telemetria: manter logs completos por no máximo 6 meses para UE e anonimizar IPs após 30 dias."
-                action = "Configurar política de retenção no Cloud Logging e SIEM corporativo."
+                rec = "Segment log retention: limit EU telemetry to maximum 6 months to 1 year, and enforce IP anonymization after 30 days."
+                action = "Configure automated log expiration policies in Cloud Logging and SIEM."
                 assignee = "Tech Lead SecOps"
             elif "ISO" in finding.requirement_id:
-                rec = "Formalizar procedimento de descarte e sobrescrita criptográfica segundo NIST SP 800-88 R1."
-                action = "Elaborar POP de sanitização segura de mídias e logs de auditoria de expurgo."
+                rec = "Formalize verifiable sanitization protocols in compliance with NIST SP 800-88 R1 and generate purge audit certificates."
+                action = "Draft Standard Operating Procedure (SOP) for Secure Media Disposal."
                 assignee = "Governance & Compliance Lead"
             else:
-                rec = f"Corrigir apontamento regulatório identificado em {finding.title}."
-                action = "Revisar controles técnicos e documentação aplicável."
+                rec = f"Address regulatory non-compliance identified in {finding.title}."
+                action = "Review technical controls and update policy documentation."
                 assignee = "Compliance Officer"
 
             rem = Remediation(

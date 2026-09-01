@@ -1,27 +1,28 @@
 """
-Fixtures realistas pré-gravadas para a demo da Política de Retenção de Dados e testes determinísticos.
+Pre-recorded realistic fixtures for the Data Retention Policy demo and deterministic testing (in English).
 """
 
 from typing import Dict, Any
 
 DEMO_DOCUMENT_UNDERSTANDING: Dict[str, Any] = {
     "jurisdiction": "BR",
-    "document_type": "Política Global de Retenção e Descarte de Dados",
+    "document_type": "Corporate Global Data Retention & Disposal Policy (Política Global de Retenção)",
+
     "extracted_entities": [
-        "Dados Cadastrais",
-        "Logs de Acesso e IPs",
-        "Registros Financeiros e Fiscais",
-        "Dados de Geolocalização",
-        "Backups em Nuvem",
+        "Customer Registration Data",
+        "Access Logs & IP Addresses",
+        "Financial & Tax Records",
+        "Geolocation Data",
+        "Cloud Backups & Snapshots",
     ],
     "obligations": [
-        "LGPD Art. 15 e 16 - Término do tratamento e eliminação de dados pessoais",
-        "GDPR Art. 5(1)(e) - Princípio da limitação do armazenamento",
-        "GDPR Art. 17 - Direito ao apagamento ('direito a ser esquecido')",
-        "ISO 27001 A.8.10 - Exclusão e descarte seguro de informações",
-        "Marco Civil da Internet Art. 15 - Guarda de registros de aplicação",
+        "LGPD Art. 15 & 16 - Processing termination and personal data deletion",
+        "GDPR Art. 5(1)(e) - Storage limitation principle",
+        "GDPR Art. 17 - Right to erasure ('right to be forgotten')",
+        "ISO 27001 A.8.10 - Information deletion and secure media disposal",
+        "Marco Civil da Internet Art. 15 - Application connection log retention",
     ],
-    "summary": "Documento corporativo definindo diretrizes de retenção para filiais no Brasil e Europa, estipulando prazos de guarda entre 5 e 10 anos para logs e dados cadastrais."
+    "summary": "Corporate document establishing data retention guidelines for subsidiaries in Brazil and the European Union, stipulating retention timeframes between 5 and 10 years for logs and user profile data."
 }
 
 DEMO_PII_SCAN: Dict[str, Any] = {
@@ -31,7 +32,7 @@ DEMO_PII_SCAN: Dict[str, Any] = {
         {"type": "Email", "count": 4, "sample_masked": "dpo@***.com"},
         {"type": "IP Address", "count": 3, "sample_masked": "192.168.***.***"}
     ],
-    "sanitized_preview": "Política de Retenção aplicável ao encarregado (DPO: dpo@***.com)...",
+    "sanitized_preview": "Data Retention Policy applicable to Data Protection Officer (DPO: dpo@***.com)...",
     "safety_status": "PASSED_WITH_REDACTION"
 }
 
@@ -41,8 +42,8 @@ DEMO_PRIVACY_FINDINGS: Dict[str, Any] = {
             "id": "finding-privacy-lgpd-01",
             "requirement_id": "LGPD-ART-16",
             "agent_id": "agent-privacy-specialist",
-            "title": "Retenção Indefinida de Dados Cadastrais Após Término da Finalidade",
-            "description": "A Seção 3.2 estipula retenção automática por 10 anos de todos os dados cadastrais, sem justificar a base legal para guarda após encerramento do contrato.",
+            "title": "Indefinite Retention of User Registration Data After Purpose Termination",
+            "description": "Section 3.2 establishes an automatic 10-year retention rule for all inactive customer registration records without substantiating lawful bases for retention following contract termination under LGPD Art. 16.",
             "severity": "high",
             "status": "open",
             "confidence": 0.94,
@@ -53,8 +54,9 @@ DEMO_PRIVACY_FINDINGS: Dict[str, Any] = {
                     "document_id": "doc-retention-policy",
                     "page_number": 2,
                     "section_id": "sec-3.2",
-                    "quote": "Todos os dados cadastrais de clientes inativos permanecerão arquivados por prazo fixo de 10 (dez) anos para eventual auditoria interna.",
-                    "provenance": "Seção 3.2 - Prazos Gerais de Custódia",
+                    "quote": "All inactive customer registration records shall remain archived for a fixed period of 10 (ten) years for internal audit purposes.",
+
+                    "provenance": "Section 3.2 - General Custody Periods",
                     "confidence_score": 0.96,
                     "dependencies": ["doc-retention-policy"]
                 }
@@ -64,8 +66,8 @@ DEMO_PRIVACY_FINDINGS: Dict[str, Any] = {
             "id": "finding-privacy-gdpr-17",
             "requirement_id": "GDPR-ART-17",
             "agent_id": "agent-privacy-specialist",
-            "title": "Ausência de Prazo Máximo para Resposta ao Direito de Exclusão",
-            "description": "A política não define prazo máximo para responder a solicitações de exclusão do titular e deixa a análise totalmente sob critério interno, contrariando o artigo 17 do GDPR.",
+            "title": "Absence of Statutory Response Window for Right to Erasure Requests",
+            "description": "The policy fails to establish a statutory 30-day response window for data subject erasure requests, leaving evaluation entirely to internal legal discretion contrary to GDPR Article 17.",
             "severity": "high",
             "status": "open",
             "confidence": 0.9,
@@ -76,8 +78,9 @@ DEMO_PRIVACY_FINDINGS: Dict[str, Any] = {
                     "document_id": "doc-retention-policy",
                     "page_number": 2,
                     "section_id": "sec-6.2",
-                    "quote": "Solicitações de exclusão (direito ao esquecimento) serão analisadas caso a caso pela equipe jurídica, sem prazo máximo definido para resposta.",
-                    "provenance": "Seção 6.2 - Direitos dos Titulares",
+                    "quote": "Data deletion requests shall be analyzed on a case-by-case basis by the internal legal team without a defined maximum response deadline.",
+
+                    "provenance": "Section 6.2 - Data Subject Rights",
                     "confidence_score": 0.93,
                     "dependencies": ["doc-retention-policy"]
                 }
@@ -92,8 +95,8 @@ DEMO_SECURITY_FINDINGS: Dict[str, Any] = {
             "id": "finding-security-gdpr-01",
             "requirement_id": "GDPR-ART-5-1-E",
             "agent_id": "agent-security-specialist",
-            "title": "Prazo de Retenção Excessivo para Logs de Conexão sob GDPR",
-            "description": "A Seção 4.1 define a guarda de logs completos de conexão e telemetria por 10 anos para usuários da União Europeia, violando o princípio da minimização e limitação temporal.",
+            "title": "Excessive Retention Period for Connection Logs & Telemetry under GDPR",
+            "description": "Section 4.1 mandates 10-year retention for full telemetry, connection logs, and IP addresses of European Union users, violating the GDPR storage limitation and data minimization principles.",
             "severity": "critical",
             "status": "open",
             "confidence": 0.92,
@@ -104,8 +107,8 @@ DEMO_SECURITY_FINDINGS: Dict[str, Any] = {
                     "document_id": "doc-retention-policy",
                     "page_number": 4,
                     "section_id": "sec-4.1",
-                    "quote": "Logs de auditoria, IPs e telemetria de tráfego de usuários globais (inclusive UE) são retidos por 10 anos em storage frio.",
-                    "provenance": "Seção 4.1 - Telemetria e Logs de Aplicação",
+                    "quote": "Audit logs, IP addresses, and global user traffic telemetry (including EU users) are retained for 10 years in cold storage.",
+                    "provenance": "Section 4.1 - Telemetry and Server Logs",
                     "confidence_score": 0.95,
                     "dependencies": ["doc-retention-policy"]
                 }
@@ -115,8 +118,8 @@ DEMO_SECURITY_FINDINGS: Dict[str, Any] = {
             "id": "finding-security-gdpr-02",
             "requirement_id": "GDPR-ART-44-49",
             "agent_id": "agent-security-specialist",
-            "title": "Transferência Internacional de Dados sem SCCs ou Decisão de Adequação",
-            "description": "O documento autoriza o processamento de dados de clientes europeus em servidores localizados no Brasil e EUA sem cláusulas contratuais padrão ou adequada avaliação de impacto, violando os requisitos de transferência internacional do GDPR.",
+            "title": "Cross-Border Data Transfer Without Standard Contractual Clauses (SCCs)",
+            "description": "The policy authorizes processing European resident data in third-country data centers without standard contractual clauses or documented adequacy mechanisms, breaching GDPR Chapter V.",
             "severity": "high",
             "status": "open",
             "confidence": 0.91,
@@ -127,8 +130,9 @@ DEMO_SECURITY_FINDINGS: Dict[str, Any] = {
                     "document_id": "doc-retention-policy",
                     "page_number": 6,
                     "section_id": "sec-7.2",
-                    "quote": "A transferência é realizada sem cláusulas contratuais padrão (SCCs) ou decisão de adequação vigente.",
-                    "provenance": "Seção 7.1-7.2 - Transferência Internacional de Dados",
+                    "quote": "Cross-border transfers are executed without active Standard Contractual Clauses (SCCs) or existing adequacy decisions.",
+
+                    "provenance": "Section 7.2 - Cross-Border Data Transfers",
                     "confidence_score": 0.94,
                     "dependencies": ["doc-retention-policy"]
                 }
@@ -143,8 +147,8 @@ DEMO_GOVERNANCE_FINDINGS: Dict[str, Any] = {
             "id": "finding-gov-iso-01",
             "requirement_id": "ISO27001-A.8.10",
             "agent_id": "agent-governance-specialist",
-            "title": "Inexistência de Procedimento Verificável para Descarte Criptográfico de Mídias",
-            "description": "O documento menciona descarte de backups em nuvem sem estipular métodos criptográficos de sanitização ou emissão de certificados de expurgo.",
+            "title": "Absence of Formalized Media Sanitization & Disposal Protocols",
+            "description": "The policy permits legacy backups and storage snapshots to be purged on an operational convenience basis, lacking cryptographic sanitization methods or purge certification required by ISO 27001 Control A.8.10.",
             "severity": "medium",
             "status": "open",
             "confidence": 0.89,
@@ -155,8 +159,8 @@ DEMO_GOVERNANCE_FINDINGS: Dict[str, Any] = {
                     "document_id": "doc-retention-policy",
                     "page_number": 5,
                     "section_id": "sec-5.3",
-                    "quote": "As mídias e snapshots legados serão apagados periodicamente conforme conveniência operacional da equipe de TI.",
-                    "provenance": "Seção 5.3 - Descarte e Sobrescrita de Snapshots",
+                    "quote": "Legacy backup media and storage snapshots shall be purged periodically according to IT operational convenience.",
+                    "provenance": "Section 5.3 - Media Disposal & Snapshot Overwriting",
                     "confidence_score": 0.91,
                     "dependencies": ["doc-retention-policy"]
                 }
@@ -166,8 +170,8 @@ DEMO_GOVERNANCE_FINDINGS: Dict[str, Any] = {
             "id": "finding-gov-iso-02",
             "requirement_id": "ISO27001-A.8.24",
             "agent_id": "agent-governance-specialist",
-            "title": "Ausência de Governança de Chaves e Criptografia em Trânsito",
-            "description": "O documento menciona TLS 1.2/1.3, mas não define regras de gestão de chaves, rotação, armazenamento seguro ou critérios de uso de criptografia em dados em repouso e em trânsito.",
+            "title": "Lack of Key Management & Cryptographic Governance in Transit",
+            "description": "The policy references TLS 1.2/1.3 but lacks key management controls, credential rotation schedules, or cryptographic criteria for analytical datastores.",
             "severity": "medium",
             "status": "open",
             "confidence": 0.87,
@@ -178,8 +182,9 @@ DEMO_GOVERNANCE_FINDINGS: Dict[str, Any] = {
                     "document_id": "doc-retention-policy",
                     "page_number": 4,
                     "section_id": "sec-4.2",
-                    "quote": "Os dados em trânsito são criptografados com TLS 1.2 / TLS 1.3 para assegurar integridade.",
-                    "provenance": "Seção 4.2 - Proteção em Trânsito",
+                    "quote": "Data in transit is secured with TLS 1.2 / TLS 1.3; however, encryption key rotation policies and datastore credentials are not formally defined.",
+
+                    "provenance": "Section 4.2 - Data Protection in Transit",
                     "confidence_score": 0.9,
                     "dependencies": ["doc-retention-policy"]
                 }
@@ -195,7 +200,7 @@ DEMO_EVIDENCE_CRITIC_REVIEWS: Dict[str, Any] = {
             "finding_id": "finding-privacy-lgpd-01",
             "critic_agent_id": "agent-evidence-critic",
             "decision": "confirmed",
-            "reasoning": "A citação da Seção 3.2 comprova violação direta ao Art. 16 da LGPD. Não foi encontrada cláusula de consentimento ou obrigação legal setorial justificando 10 anos.",
+            "reasoning": "Section 3.2 citation directly confirms non-compliance with LGPD Art. 16. No statutory retention duty or active consent clause justifies 10-year perpetual storage.",
             "contradictions_found": []
         },
         {
@@ -203,7 +208,7 @@ DEMO_EVIDENCE_CRITIC_REVIEWS: Dict[str, Any] = {
             "finding_id": "finding-security-gdpr-01",
             "critic_agent_id": "agent-evidence-critic",
             "decision": "confirmed",
-            "reasoning": "Evidência empírica robusta. A guarda de telemetria por 10 anos sem anonimização é manifestamente desproporcional sob o GDPR Art. 5(1)(e).",
+            "reasoning": "Robust empirical evidence. Retaining raw telemetry and IP addresses for 10 years without anonymization is manifestly disproportionate under GDPR Art. 5(1)(e).",
             "contradictions_found": []
         },
         {
@@ -211,7 +216,7 @@ DEMO_EVIDENCE_CRITIC_REVIEWS: Dict[str, Any] = {
             "finding_id": "finding-gov-iso-01",
             "critic_agent_id": "agent-evidence-critic",
             "decision": "confirmed",
-            "reasoning": "Evidência textual clara. A redação 'conforme conveniência' falha no critério de controle A.8.10 da ISO 27001.",
+            "reasoning": "Clear textual proof. The wording 'operational convenience' fails ISO 27001 Control A.8.10 verifiable sanitization requirements.",
             "contradictions_found": []
         }
     ]
@@ -222,24 +227,24 @@ DEMO_REMEDIATIONS: Dict[str, Any] = {
         {
             "id": "rem-01",
             "finding_id": "finding-privacy-lgpd-01",
-            "recommendation": "Reduzir o prazo de guarda de dados cadastrais inativos para 5 anos (alinhado ao prazo prescricional do CC/CDC) e implementar processo automático de anonimização.",
-            "action_item": "Atualizar a Seção 3.2 da política e configurar lifecycle no banco de dados.",
-            "assignee": "DPO / Jurídico",
+            "recommendation": "Reduce inactive customer data retention to 5 years (aligned with statutory limitation periods) and implement automated anonymization workflows.",
+            "action_item": "Update Section 3.2 of the policy and configure database lifecycle retention rules.",
+            "assignee": "DPO / Legal Counsel",
             "status": "pending"
         },
         {
             "id": "rem-02",
             "finding_id": "finding-security-gdpr-01",
-            "recommendation": "Segmentar a retenção de logs: manter telemetria por no máximo 6 meses a 1 ano para filiais da UE, e anonimizar IPs após 30 dias.",
-            "action_item": "Configurar expiração automática de logs no Cloud Logging / SIEM.",
+            "recommendation": "Segment log retention: limit EU telemetry to maximum 6 months to 1 year, and enforce IP anonymization after 30 days.",
+            "action_item": "Configure automated log expiration policies in Cloud Logging and SIEM.",
             "assignee": "Tech Lead SecOps",
             "status": "pending"
         },
         {
             "id": "rem-03",
             "finding_id": "finding-gov-iso-01",
-            "recommendation": "Formalizar procedimento de sanitização em conformidade com NIST SP 800-88 R1 e gerar logs de expurgo.",
-            "action_item": "Elaborar Procedimento Operacional Padrão (POP) de Descarte Seguro.",
+            "recommendation": "Formalize verifiable sanitization protocols in compliance with NIST SP 800-88 R1 and generate purge audit certificates.",
+            "action_item": "Draft Standard Operating Procedure (SOP) for Secure Media Disposal.",
             "assignee": "Governance & Compliance Lead",
             "status": "pending"
         }
@@ -250,9 +255,9 @@ DEMO_POLICY_DRIFT_IMPACT: Dict[str, Any] = {
     "change_id": "reg-change-gdpr-retention-2026",
     "framework": "GDPR",
     "version": "2026.2",
-    "change_description": "Nova diretriz do EDPB estipula prazo máximo estrito de 3 anos para guarda de logs técnicos e exige expurgo imediato mediante solicitação do Art. 17.",
+    "change_description": "Updated EDPB guidelines enforce a strict maximum 3-year retention period for technical logs and mandate immediate erasure upon Art. 17 requests.",
     "affected_requirements": ["GDPR-ART-5-1-E", "GDPR-ART-17"],
     "affected_evidence": ["ev-sec-01"],
     "affected_findings": ["finding-security-gdpr-01"],
-    "blast_radius_summary": "Invalidação de 1 evidência, reabertura de 1 finding crítico e necessidade de re-avaliação do Security Specialist."
+    "blast_radius_summary": "Invalidation of 1 evidence node, reopening of 1 critical finding, and selective re-evaluation by the Security Specialist."
 }

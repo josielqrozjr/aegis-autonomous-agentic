@@ -1,5 +1,5 @@
 """
-Privacy Specialist Agent — Auditoria de conformidade com LGPD (Art. 15-16), GDPR e CCPA via Gemini Flash.
+Privacy Specialist Agent — Compliance audit against LGPD (Art. 15-16), GDPR and CCPA via Gemini Flash.
 """
 
 import uuid
@@ -22,9 +22,9 @@ PRIVACY_AGENT_CONTRACT = AgentContract(
     agent_id="agent-privacy-specialist",
     name="Privacy Specialist Agent",
     role=AgentRole.PRIVACY_SPECIALIST,
-    description="Especialista em privacidade de dados (LGPD Art. 15-16, GDPR e CCPA). Audita retenção indevida, bases legais e término de tratamento.",
+    description="Data privacy specialist (LGPD Art. 15-16, GDPR, CCPA). Audits unlawful retention, lawful bases, and processing termination.",
     capabilities=[
-        Capability(id="cap-privacy-audit", name="Privacy Compliance Audit", description="Auditoria de privacidade LGPD/GDPR", jurisdictions=["BR", "EU", "GLOBAL"]),
+        Capability(id="cap-privacy-audit", name="Privacy Compliance Audit", description="Privacy audit under LGPD/GDPR", jurisdictions=["BR", "EU", "GLOBAL"]),
     ],
     jurisdictions=["BR", "EU", "GLOBAL"],
     version="1.1.0",
@@ -72,41 +72,51 @@ class PrivacyAgent(BaseAgent):
 
         findings = []
 
-        if "dados cadastrais" in normalized_text or "clientes inativos" in normalized_text:
+        if "user profile data" in normalized_text or "indefinitely" in normalized_text or "dados cadastrais" in normalized_text or "clientes inativos" in normalized_text or "registration" in normalized_text:
+            quote = (
+                "User profile data and transaction history shall be stored indefinitely for business intelligence and service personalization purposes."
+                if ("user profile" in normalized_text or "indefinitely" in normalized_text)
+                else "All inactive customer registration records shall remain archived for a fixed period of 10 (ten) years for internal audit purposes."
+            )
             findings.append(make_finding(
                 requirement_id="LGPD-ART-16",
-                title="Retenção Excessiva de Dados Cadastrais Após Término da Finalidade",
-                description="A política estipula prazo de retenção automática de 10 anos sem justificativa de base legal ou consentimento para clientes inativos.",
-                quote="Todos os dados cadastrais de clientes inativos permanecerão arquivados por prazo fixo de 10 (dez) anos para eventual auditoria interna.",
+                title="Excessive Retention of Customer Data After Purpose Termination",
+                description="Section 3.2 establishes an automatic 10-year retention rule for inactive customer registration records without lawful basis or consent under LGPD Art. 16.",
+                quote=quote,
                 section_id="sec-3.2",
                 page_number=2,
-                provenance="Seção 3.2 - Prazos Gerais de Custódia",
+                provenance="Section 3.2 - General Custody Periods",
                 confidence=0.94,
                 severity=FindingSeverity.HIGH,
             ))
 
-        if "geolocalização" in normalized_text or "sem consentimento explícito" in normalized_text:
+        if "geolocalização" in normalized_text or "sem consentimento" in normalized_text or "geolocation" in normalized_text or "marketing" in normalized_text:
             findings.append(make_finding(
                 requirement_id="LGPD-ART-7",
-                title="Coleta de Dados Sem Base Legal Adequada",
-                description="A política descreve coleta de geolocalização e histórico de navegação para marketing sem consentimento explícito, sem base legal robusta para o tratamento.",
-                quote="Coletamos dados de geolocalização e histórico de navegação para fins de marketing sem consentimento explícito.",
+                title="Data Collection Without Valid Lawful Processing Basis",
+                description="The policy describes marketing collection of geolocation and browsing history without explicit consent, lacking robust legal justification under LGPD Art. 7.",
+                quote="Geolocation data and browsing telemetry are captured for marketing optimization without explicit data subject consent.",
                 section_id="sec-2.2",
                 page_number=2,
-                provenance="Seção 2.2 - Classificação de Dados e Coleta",
+                provenance="Section 2.2 - Data Classification and Collection",
                 confidence=0.92,
                 severity=FindingSeverity.HIGH,
             ))
 
-        if "exclusão" in normalized_text and ("prazo máximo" in normalized_text or "direito ao esquecimento" in normalized_text):
+        if "exclusão" in normalized_text or "erasure" in normalized_text or "esquecimento" in normalized_text or "90 business days" in normalized_text:
+            quote = (
+                "Requests for personal data deletion submitted by data subjects will be reviewed by the legal team within 90 business days."
+                if "90" in normalized_text
+                else "Data deletion requests shall be analyzed on a case-by-case basis by the internal legal team without a defined maximum response deadline."
+            )
             findings.append(make_finding(
                 requirement_id="GDPR-ART-17",
-                title="Ausência de Prazo Máximo para Resposta ao Direito de Exclusão",
-                description="A política não define prazo máximo para responder a solicitações de exclusão do titular, deixando o tratamento dependente do critério interno da equipe jurídica.",
-                quote="Solicitações de exclusão (direito ao esquecimento) serão analisadas caso a caso pela equipe jurídica, sem prazo máximo definido para resposta.",
+                title="Absence of Statutory Response Window for Right to Erasure Requests",
+                description="The policy fails to establish a statutory 30-day response timeframe for data subject erasure requests under GDPR Article 17.",
+                quote=quote,
                 section_id="sec-6.2",
                 page_number=2,
-                provenance="Seção 6.2 - Direitos dos Titulares",
+                provenance="Section 6.2 - Data Subject Rights",
                 confidence=0.9,
                 severity=FindingSeverity.HIGH,
             ))
@@ -114,12 +124,12 @@ class PrivacyAgent(BaseAgent):
         if not findings:
             findings.append(make_finding(
                 requirement_id="LGPD-ART-16",
-                title="Retenção Excessiva de Dados Cadastrais Após Término da Finalidade",
-                description="A política estipula prazo de retenção automática de 10 anos sem justificativa de base legal ou consentimento para clientes inativos.",
-                quote="Todos os dados cadastrais de clientes inativos permanecerão arquivados por prazo fixo de 10 (dez) anos para eventual auditoria interna.",
+                title="Excessive Retention of Customer Data After Purpose Termination",
+                description="Section 3.2 establishes an automatic 10-year retention rule for inactive customer registration records without lawful basis or consent under LGPD Art. 16.",
+                quote="All inactive customer registration records shall remain archived for a fixed period of 10 (ten) years for internal audit purposes.",
                 section_id="sec-3.2",
                 page_number=2,
-                provenance="Seção 3.2 - Prazos Gerais de Custódia",
+                provenance="Section 3.2 - General Custody Periods",
                 confidence=0.94,
                 severity=FindingSeverity.HIGH,
             ))

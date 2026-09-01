@@ -1,5 +1,5 @@
 """
-Evidence Critic Agent (Adversarial Auditor / Red Team) — Contestação rigorosa com Gemini 2.5 Pro.
+Evidence Critic Agent (Adversarial Auditor / Red Team) — Rigorous review with Gemini 2.5 Pro.
 """
 
 import uuid
@@ -20,9 +20,9 @@ EVIDENCE_CRITIC_CONTRACT = AgentContract(
     agent_id="agent-evidence-critic",
     name="Evidence Critic Agent (Adversarial Auditor)",
     role=AgentRole.EVIDENCE_CRITIC,
-    description="Atua como Red Team / Auditor Adversarial com Gemini 2.5 Pro. Contesta achados, verifica a suficiência das evidências e detecta contradições.",
+    description="Acts as an Adversarial Red Team Auditor with Gemini 2.5 Pro. Challenges findings, verifies evidence sufficiency, and detects false positive claims.",
     capabilities=[
-        Capability(id="cap-adversarial-review", name="Adversarial Verification", description="Auditoria e contestação adversarial de findings"),
+        Capability(id="cap-adversarial-review", name="Adversarial Verification", description="Adversarial auditing and evidence cross-examination"),
     ],
     jurisdictions=["GLOBAL"],
     version="1.1.0",
@@ -42,21 +42,21 @@ class EvidenceCriticAgent(BaseAgent):
         for f in findings_data:
             finding = Finding.model_validate(f) if isinstance(f, dict) else f
             
-            # Auditoria adversarial das evidências apresentadas
+            # Adversarial review of presented evidence
             has_evidences = len(finding.evidences) > 0
             sufficient_confidence = all(e.confidence_score >= 0.7 for e in finding.evidences) if has_evidences else False
 
             if not has_evidences:
                 decision = ReviewDecision.INSUFFICIENT_EVIDENCE
-                reasoning = "Nenhuma evidência empírica ou citação direta de texto foi anexada a este achado."
-                contradictions = ["Achado declarado sem evidência direta no documento."]
+                reasoning = "No empirical textual evidence or direct citation was attached to this finding."
+                contradictions = ["Finding asserted without direct textual evidence in document."]
             elif not sufficient_confidence:
                 decision = ReviewDecision.REJECTED
-                reasoning = "A confiança da citação extraída é inferior ao limiar mínimo auditável (0.70)."
-                contradictions = ["Nível de confiança insuficiente."]
+                reasoning = "Confidence score of extracted evidence is below the required audit threshold (0.70)."
+                contradictions = ["Insufficient confidence score in extracted evidence."]
             else:
                 decision = ReviewDecision.CONFIRMED
-                reasoning = f"Achado '{finding.title}' validado com sucesso pelo Red Team (Gemini Pro). Evidência textual robusta com hash criptográfico e proveniência comprovada."
+                reasoning = f"Finding '{finding.title}' validated by Red Team (Gemini 2.5 Pro). Robust textual evidence with verified cryptographic hash and provenance."
                 contradictions = []
 
             review = Review(

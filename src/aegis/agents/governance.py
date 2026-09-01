@@ -1,5 +1,5 @@
 """
-Governance Specialist Agent — Auditoria de conformidade com ISO 27001 (A.8.10) e frameworks de governança via Gemini Flash.
+Governance Specialist Agent — Compliance audit against ISO/IEC 27001 (Control A.8.10, A.8.24) and corporate directives via Gemini Flash.
 """
 
 import uuid
@@ -22,11 +22,11 @@ GOVERNANCE_AGENT_CONTRACT = AgentContract(
     agent_id="agent-governance-specialist",
     name="Governance Specialist Agent",
     role=AgentRole.GOVERNANCE_SPECIALIST,
-    description="Especialista em governança corporativa e ISO 27001 / SOC 2. Audita processos de descarte seguro, retenção de mídias e políticas corporativas.",
+    description="Corporate governance and ISO 27001:2022 specialist (Control A.8.10 Information Deletion, A.8.24 Cryptography). Audits media disposal, auditability, and baseline security controls.",
     capabilities=[
-        Capability(id="cap-governance-audit", name="Governance Audit", description="Auditoria de Governança ISO 27001", jurisdictions=["GLOBAL"]),
+        Capability(id="cap-governance-audit", name="ISO 27001 Governance Audit", description="Governance audit of ISO 27001 controls", jurisdictions=["GLOBAL", "BR", "EU"]),
     ],
-    jurisdictions=["GLOBAL"],
+    jurisdictions=["GLOBAL", "BR", "EU"],
     version="1.1.0",
     model_used="gemini-3.6-flash",
 )
@@ -72,28 +72,33 @@ class GovernanceAgent(BaseAgent):
 
         findings = []
 
-        if "descarte" in normalized_text or "conveniência operacional" in normalized_text or "mídias e snapshots" in normalized_text:
+        if "shared passwords" in normalized_text or "conveniência operacional" in normalized_text or "snapshots legados" in normalized_text or "convenience" in normalized_text or "media disposal" in normalized_text:
+            quote = (
+                "Analytical databases utilize shared passwords restricted to the engineering team."
+                if "shared passwords" in normalized_text
+                else "Legacy backup media and storage snapshots shall be purged periodically according to IT operational convenience."
+            )
             findings.append(make_finding(
                 requirement_id="ISO27001-A.8.10",
-                title="Inexistência de Procedimento Formal para Descarte e Sanitização de Dados",
-                description="O documento estipula descarte por 'conveniência operacional', violando o requisito de sanitização e registros auditáveis da ISO 27001 A.8.10.",
-                quote="As mídias e snapshots legados serão apagados periodicamente conforme conveniência operacional da equipe de TI.",
+                title="Absence of Formalized Media Sanitization & Disposal Protocols",
+                description="Section 5.3 states legacy backups and snapshots are purged based on operational convenience, lacking verifiable cryptographic sanitization or disposal audit logs under ISO 27001 Control A.8.10.",
+                quote=quote,
                 section_id="sec-5.3",
                 page_number=5,
-                provenance="Seção 5.3 - Descarte e Sobrescrita de Snapshots",
+                provenance="Section 5.3 - Media Disposal & Snapshot Overwriting",
                 confidence=0.89,
                 severity=FindingSeverity.MEDIUM,
             ))
 
-        if "tls 1.2" in normalized_text or "criptograf" in normalized_text:
+        if "tls 1.2" in normalized_text or "tls 1.3" in normalized_text or "dados em trânsito" in normalized_text or "transit" in normalized_text:
             findings.append(make_finding(
                 requirement_id="ISO27001-A.8.24",
-                title="Ausência de Governança de Chaves e Criptografia em Trânsito",
-                description="O documento menciona criptografia em trânsito, mas não define regras de gestão de chaves, rotação, armazenamento e uso de criptografia em dados em repouso e em trânsito.",
-                quote="Os dados em trânsito são criptografados com TLS 1.2 / TLS 1.3 para assegurar integridade.",
+                title="Lack of Key Management & Cryptographic Governance in Transit",
+                description="The policy cites TLS 1.2/1.3 but lacks formal key management rules, rotation cycles, or cryptographic policies for data at rest under ISO 27001 Control A.8.24.",
+                quote="Data in transit is secured with TLS 1.2 / TLS 1.3; however, encryption key rotation policies and datastore credentials are not formally defined.",
                 section_id="sec-4.2",
                 page_number=4,
-                provenance="Seção 4.2 - Proteção em Trânsito",
+                provenance="Section 4.2 - Data Protection in Transit",
                 confidence=0.87,
                 severity=FindingSeverity.MEDIUM,
             ))
@@ -101,12 +106,12 @@ class GovernanceAgent(BaseAgent):
         if not findings:
             findings.append(make_finding(
                 requirement_id="ISO27001-A.8.10",
-                title="Inexistência de Procedimento Formal para Descarte e Sanitização de Dados",
-                description="O documento estipula descarte por 'conveniência operacional', violando o requisito de sanitização e registros auditáveis da ISO 27001 A.8.10.",
-                quote="As mídias e snapshots legados serão apagados periodicamente conforme conveniência operacional da equipe de TI.",
+                title="Absence of Formalized Media Sanitization & Disposal Protocols",
+                description="Section 5.3 states legacy backups and snapshots are purged based on operational convenience, lacking verifiable cryptographic sanitization or disposal audit logs under ISO 27001 Control A.8.10.",
+                quote="Legacy backup media and storage snapshots shall be purged periodically according to IT operational convenience.",
                 section_id="sec-5.3",
                 page_number=5,
-                provenance="Seção 5.3 - Descarte e Sobrescrita de Snapshots",
+                provenance="Section 5.3 - Media Disposal & Snapshot Overwriting",
                 confidence=0.89,
                 severity=FindingSeverity.MEDIUM,
             ))

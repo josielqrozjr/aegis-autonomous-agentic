@@ -21,10 +21,11 @@ class GeminiFlashModel(BaseLanguageModel):
 
     def __init__(
         self,
-        model_name: str = "gemini-3.6-flash",
+        model_name: str = "gemini-2.5-flash",
         api_key: Optional[str] = None,
         replay_mode: Optional[bool] = None,
     ):
+
         super().__init__(model_name=model_name, model_role="primary_reasoning")
         self.api_key = api_key or os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
         self.replay_mode = (

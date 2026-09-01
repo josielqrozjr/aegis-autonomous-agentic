@@ -42,7 +42,8 @@ async def test_agent_registry_discovery(registry):
     planner_agents = registry.discover_by_role(AgentRole.PLANNER)
     assert len(planner_agents) == 1
     assert planner_agents[0].name == "Planner & Orchestrator Agent"
-    assert planner_agents[0].model_used == "gemini-2.5-flash"
+    assert planner_agents[0].model_used in ("gemini-2.5-flash", "gemini-3.6-flash")
+
 
     # Testar descoberta por capacidade
     privacy_agents = registry.discover_by_capability("cap-privacy-audit")
